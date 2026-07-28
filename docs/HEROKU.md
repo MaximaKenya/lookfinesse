@@ -102,5 +102,6 @@ Connect the repo in Heroku Dashboard → **Deploy** → **GitHub** for automatic
 |-------|-----|
 | `R10 Boot timeout` | Ensure `package.json` `"start"` uses `-H 0.0.0.0 -p $PORT` |
 | Build OOM | Set `NODE_OPTIONS=--max-old-space-size=460` |
-| Auth redirect loops | Set `NEXT_PUBLIC_APP_URL` to your Heroku URL |
+| Auth redirect loops | Set `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_BASE_URL` to your Heroku URL |
 | Missing data | Run Supabase migrations + seed (see `docs/SEED_CREDENTIALS.md`) |
+| No `heroku` remote / CLI | Install CLI, `heroku login`, then `heroku git:remote -a lookfinesse` and `git push heroku HEAD:main` (do not force-push). Full env list: `docs/LIVE_INTEGRATIONS.md` |
