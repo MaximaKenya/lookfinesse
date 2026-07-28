@@ -1,0 +1,324 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Input utility ───────────────────────────────────────────────── */
+.input {
+  @apply bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-white/20;
+}
+
+/* ── Scrollbar hide ──────────────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/*---break---*/
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans)
+  }
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0)
+  }
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.78 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0)
+  }
+
+* {
+  @apply border-zinc-800;
+}
+
+body {
+  @apply bg-black text-white;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  @apply font-sans;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* ── App scroll shell (fixed chrome, scrollable main) ──────────── */
+.app-main {
+  position: fixed;
+  top: var(--mobile-header-h);
+  bottom: var(--mobile-bottom-nav-h);
+  left: 0;
+  right: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-main--reels {
+  overflow: hidden;
+}
+
+.app-main--reels > div {
+  height: 100%;
+}
+
+.dashboard-content {
+  min-height: calc(100dvh - var(--mobile-header-h));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  .app-main {
+    top: 0;
+    bottom: 0;
+    left: var(--desktop-sidebar-w);
+    right: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-content {
+    margin-left: 18rem;
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+}
+
+/* ── Typography: body text contrast boost ───────────────────────── */
+/* Replace low-contrast gray-400 (white/40) with gray-300 (white/60) */
+p, li, span:not(.badge), label {
+  color: inherit;
+}
+
+/* Increase base body text size on mobile */
+@media (max-width: 640px) {
+  body {
+    font-size: 16px;
+  }
+  p, li {
+    font-size: 1rem;
+  }
+  .text-sm {
+    font-size: 0.9375rem !important;
+  }
+}
+
+/* ── Better contrast utility overrides ──────────────────────────── */
+/* white/40 → white/65 for readable body text */
+.text-muted {
+  @apply text-white/65;
+}
+
+/* Caption / metadata text — readable but subdued */
+.text-caption {
+  @apply text-white/60;
+}
+
+/* Prefer /70 over /50 for secondary body copy on dark surfaces */
+.text-secondary {
+  @apply text-white/70;
+}
+
+}
+
+/* ── Mobile chrome heights (match AppNav h-14 header + h-16 bottom nav) ── */
+:root {
+  --mobile-header-h: 3.5rem;
+  --mobile-bottom-nav-h: 4rem;
+  --desktop-sidebar-w: 16rem;
+  --reel-viewport-h: calc(
+    100dvh - var(--mobile-header-h) - var(--mobile-bottom-nav-h)
+  );
+}
+
+@media (min-width: 768px) {
+  :root {
+    --reel-viewport-h: 100dvh;
+  }
+}
+
+/* ── Reels: TikTok-style 9:16 column ─────────────────────────────── */
+.reels-page {
+  height: 100%;
+  min-height: var(--reel-viewport-h);
+  overflow: hidden;
+}
+
+.reels-shell {
+  position: relative;
+  z-index: 0;
+  height: 100%;
+  min-height: var(--reel-viewport-h);
+  overflow: hidden;
+  background-color: #000;
+}
+
+.reels-scroll {
+  height: 100%;
+  min-height: var(--reel-viewport-h);
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reel-slide {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  min-height: var(--reel-viewport-h);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  isolation: isolate;
+  background-color: #000;
+}
+
+/* 9:16 frame — centered, one reel per viewport */
+.reel-frame {
+  position: relative;
+  height: min(100%, calc(100vw * 16 / 9), calc(24rem * 16 / 9));
+  width: min(calc(var(--reel-viewport-h) * 9 / 16), 100vw, 24rem);
+  max-height: 100%;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  background-color: #000;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.reel-frame video {
+  object-fit: cover;
+}
+
+.reel-actions-rail {
+  z-index: 20;
+}
+
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Feed: smooth scroll + glass cards ───────────────────────────── */
+.feed-page {
+  min-height: 0;
+}
+
+.feed-scroll-body {
+  -webkit-overflow-scrolling: touch;
+}
+
+.feed-post-card {
+  @apply rounded-3xl overflow-hidden border border-white/[0.08] bg-[#0c0c0c]/80 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.35)];
+}
+
+.feed-sticky-header {
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ── Sidebar nav readability ─────────────────────────────────────── */
+.nav-sidebar-label {
+  @apply text-[10px] font-semibold text-white/75 uppercase tracking-widest;
+}
+
+.nav-sidebar-link {
+  @apply text-white/75 hover:text-white;
+}
+
+.nav-sidebar-link-active {
+  @apply bg-white/10 text-white;
+}
+
+.nav-sidebar-muted {
+  @apply text-white/70;
+}
+
+.dashboard-nav-label {
+  @apply text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70;
+}
+
+.dashboard-nav-link {
+  @apply text-zinc-300 hover:text-white;
+}
+
+.dashboard-nav-desc {
+  @apply text-[11px] text-zinc-400;
+}
+

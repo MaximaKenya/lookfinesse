@@ -1,0 +1,1 @@
+export type PayoutProvider = "mpesa" | "stripe_connect";

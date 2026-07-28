@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 44" fill="none" role="img" aria-label="LookFinesse">
+  <defs>
+    <linearGradient id="lf-mark" x1="6" y1="4" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FDA4AF"/>
+      <stop offset="45%" stop-color="#C084FC"/>
+      <stop offset="100%" stop-color="#F5D0A8"/>
+    </linearGradient>
+    <linearGradient id="lf-bg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#141018"/>
+      <stop offset="100%" stop-color="#08060A"/>
+    </linearGradient>
+    <linearGradient id="lf-edge" x1="0" y1="0" x2="44" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FDA4AF" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#C084FC" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="lf-word-accent" x1="118" y1="8" x2="268" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF5F0"/>
+      <stop offset="35%" stop-color="#FBCFE8"/>
+      <stop offset="70%" stop-color="#D8B4FE"/>
+      <stop offset="100%" stop-color="#F5D0A8"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon mark -->
+  <rect x="1" y="2" width="40" height="40" rx="11" fill="url(#lf-bg)"/>
+  <rect x="1.75" y="2.75" width="38.5" height="38.5" rx="10.25" stroke="url(#lf-edge)" stroke-width="0.85"/>
+  <path d="M10 32 L10 12 L20 12 L20 22 L28 12 L34 12 L24 24 L34 32 L28 32 L20 26 L20 32 Z" fill="url(#lf-mark)"/>
+  <path d="M13 17 L31 29" stroke="#FFF5F0" stroke-width="1" stroke-linecap="round" opacity="0.35"/>
+  <circle cx="32" cy="14" r="1.5" fill="#FDA4AF"/>
+  <!-- LookFinesse wordmark — one connected word -->
+  <text x="50" y="30" fill="url(#lf-word-accent)" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.04em">LookFinesse</text>
+</svg>

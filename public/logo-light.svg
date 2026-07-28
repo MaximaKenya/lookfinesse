@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 44" fill="none" role="img" aria-label="LookFinesse">
+  <defs>
+    <linearGradient id="lf-mark-lt" x1="6" y1="4" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DB2777"/>
+      <stop offset="50%" stop-color="#9333EA"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+    <linearGradient id="lf-word-lt" x1="50" y1="8" x2="268" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1C1017"/>
+      <stop offset="45%" stop-color="#3B1F35"/>
+      <stop offset="100%" stop-color="#5C3D2E"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="2" width="40" height="40" rx="11" fill="#FAF7F4" stroke="#E9D5FF" stroke-width="0.85"/>
+  <path d="M10 32 L10 12 L20 12 L20 22 L28 12 L34 12 L24 24 L34 32 L28 32 L20 26 L20 32 Z" fill="url(#lf-mark-lt)"/>
+  <path d="M13 17 L31 29" stroke="#9333EA" stroke-width="1" stroke-linecap="round" opacity="0.25"/>
+  <circle cx="32" cy="14" r="1.5" fill="#DB2777"/>
+  <text x="50" y="30" fill="url(#lf-word-lt)" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.04em">LookFinesse</text>
+</svg>
