@@ -113,32 +113,37 @@ export default function AppNav() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { userId: authUserId } = useCurrentUser();
   const { isVendor, isAdmin, loading: roleLoading, userId: roleUserId } = useUserRole();
-  const { active: subActive, tier: subTier, hasRow: subHasRow } = usePlatformSubscription();
+  const { active: subActive, tier: subTier, hasRow: subHasRow, isAdmin: subIsAdmin } =
+    usePlatformSubscription();
 
   const loggedIn = !!(authUserId ?? roleUserId);
+  const adminUnlocked = isAdmin || subIsAdmin;
   // Admin is treated as vendor for cockpit CTAs; isAdmin unlocks every entitlement gate
-  const showVendorTools = !roleLoading && (isVendor || isAdmin);
+  const showVendorTools = !roleLoading && (isVendor || adminUnlocked);
   const dashboardNav = resolveDashboardNav({
     loggedIn,
-    isAdmin,
-    isVendor: isVendor || isAdmin,
+    isAdmin: adminUnlocked,
+    isVendor: isVendor || adminUnlocked,
     roleLoading,
   });
 
   const navCtx = {
-    role: (isAdmin ? "admin" : isVendor ? "vendor" : "shopper") as "admin" | "vendor" | "shopper",
-    isAdmin,
-    isVendor: isVendor || isAdmin,
-    subscriptionActive: isAdmin ? true : subActive,
-    subscriptionTier: isAdmin ? "elite" : subTier,
-    hasSubscriptionRow: isAdmin ? true : subHasRow,
+    role: (adminUnlocked ? "admin" : isVendor ? "vendor" : "shopper") as
+      | "admin"
+      | "vendor"
+      | "shopper",
+    isAdmin: adminUnlocked,
+    isVendor: isVendor || adminUnlocked,
+    subscriptionActive: adminUnlocked ? true : subActive,
+    subscriptionTier: adminUnlocked ? "elite" : subTier,
+    hasSubscriptionRow: adminUnlocked ? true : subHasRow,
   };
 
   const vendorLinkAllowed = (href: string) => {
-    if (isAdmin) return true;
+    if (adminUnlocked) return true;
     if (!isVendor) return true;
     return vendorCanAccessPath(href, subActive, subTier, {
-      isAdmin,
+      isAdmin: adminUnlocked,
       hasSubscriptionRow: subHasRow,
     });
   };
@@ -152,14 +157,14 @@ export default function AppNav() {
     ...SIDEBAR_GROUPS.map((group) => ({
       ...group,
       items:
-        (isVendor || isAdmin) && group.label === "My Space"
+        (isVendor || adminUnlocked) && group.label === "My Space"
           ? [
               ...group.items,
               { href: creatorStudioHref, label: "Creator Studio", icon: Video },
             ]
           : group.items,
     })),
-    ...(isAdmin ? [ADMIN_SIDEBAR_GROUP] : []),
+    ...(adminUnlocked ? [ADMIN_SIDEBAR_GROUP] : []),
   ];
 
   const isActive = (href: string) =>

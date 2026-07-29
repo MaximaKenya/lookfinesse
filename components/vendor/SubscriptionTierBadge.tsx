@@ -20,16 +20,26 @@ export default function SubscriptionTierBadge({
     );
   }
 
-  const label = active && tier ? getPlatformTier(tier)?.name ?? tier : "Free";
-  const tone = active
-    ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
-    : "border-white/10 bg-white/5 text-white/40";
+  const tierName = active && tier ? getPlatformTier(tier)?.name ?? tier : "Free";
+  const isTrial = status === "trialing" && active;
+  const label = isTrial ? `${tierName} Trial` : tierName;
+  const tone = isTrial
+    ? "border-amber-500/40 bg-amber-500/15 text-amber-100"
+    : active
+      ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+      : "border-white/10 bg-white/5 text-white/40";
 
   return (
     <Link
       href="/dashboard/subscription"
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider hover:opacity-90 transition ${tone} ${className}`}
-      title={active ? `Platform plan: ${label}` : `Status: ${status}`}
+      title={
+        isTrial
+          ? `Free trial (${tierName})`
+          : active
+            ? `Platform plan: ${label}`
+            : `Status: ${status}`
+      }
     >
       <Crown className="w-3 h-3" />
       {label}

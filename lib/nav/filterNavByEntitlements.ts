@@ -24,6 +24,7 @@ export type NavItemAccess = {
 const UPGRADE_HREF = "/dashboard/subscription";
 
 function canAccessHref(ctx: NavEntitlementContext, href: string): boolean {
+  // Admins: every vendor + admin nav item unlocked
   if (ctx.role === "admin" || ctx.isAdmin) return true;
 
   if (ctx.role === "vendor" || ctx.isVendor) {
@@ -32,7 +33,7 @@ function canAccessHref(ctx: NavEntitlementContext, href: string): boolean {
     }
     if (isConsumerAppPath(href)) return true;
     return vendorCanAccessPath(href, ctx.subscriptionActive, ctx.subscriptionTier, {
-      isAdmin: ctx.isAdmin,
+      isAdmin: false,
       hasSubscriptionRow: ctx.hasSubscriptionRow,
     });
   }
@@ -44,6 +45,11 @@ export function getNavItemAccess(
   ctx: NavEntitlementContext,
   href: string
 ): NavItemAccess {
+  // Admin: never show lock icons — full VENDOR_NAV + ADMIN_NAV unlocked
+  if (ctx.role === "admin" || ctx.isAdmin) {
+    return { allowed: true, locked: false, upgradeHref: UPGRADE_HREF };
+  }
+
   const allowed = canAccessHref(ctx, href);
   const isVendor = ctx.role === "vendor" || ctx.isVendor;
   const locked = isVendor && !allowed && !isConsumerAppPath(href);

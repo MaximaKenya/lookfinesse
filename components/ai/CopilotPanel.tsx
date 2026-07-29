@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import Link from "next/link";
 import {
   Sparkles,
   Send,
@@ -14,14 +14,25 @@ import {
   MessageCircle,
   ChevronDown,
   Minimize2,
+  CloudSun,
+  BarChart3,
+  BrainCircuit,
+  Store,
+  Megaphone,
+  Flower2,
+  ExternalLink,
+  type LucideIcon,
 } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type AssistantType =
   | "finance"
   | "stylist"
   | "fitness"
   | "beauty"
-  | "concierge";
+  | "concierge"
+  | "vendor"
+  | "ops";
 
 type CopilotMessage = {
   role: "user" | "assistant";
@@ -29,13 +40,120 @@ type CopilotMessage = {
   created_at: string;
 };
 
-const assistants = [
-  { id: "concierge", label: "Lifestyle", icon: ConciergeBell },
-  { id: "stylist", label: "Stylist", icon: Shirt },
-  { id: "fitness", label: "Fitness", icon: Dumbbell },
-  { id: "beauty", label: "Beauty", icon: Heart },
-  { id: "finance", label: "Finance", icon: Wallet },
-] as const;
+type AiMenuItem = {
+  id: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  href?: string;
+  assistant?: AssistantType;
+  roles: Array<"shopper" | "vendor" | "admin">;
+};
+
+const AI_MENU: AiMenuItem[] = [
+  {
+    id: "stylist",
+    label: "AI Stylist",
+    description: "Outfit picks for Nairobi weather & occasions",
+    icon: Shirt,
+    href: "/ai/stylist",
+    assistant: "stylist",
+    roles: ["shopper", "vendor", "admin"],
+  },
+  {
+    id: "dresser",
+    label: "Virtual Dresser",
+    description: "Try looks on your avatar",
+    icon: Sparkles,
+    href: "/ai/virtual-dresser",
+    roles: ["shopper", "vendor", "admin"],
+  },
+  {
+    id: "today",
+    label: "Today tips",
+    description: "Personalized outfit, skin & move tips",
+    icon: CloudSun,
+    href: "/for-you",
+    roles: ["shopper", "vendor", "admin"],
+  },
+  {
+    id: "beauty",
+    label: "AI Beauty",
+    description: "Skincare for melanin-rich skin",
+    icon: Flower2,
+    href: "/ai/beauty",
+    assistant: "beauty",
+    roles: ["shopper", "vendor", "admin"],
+  },
+  {
+    id: "fitness",
+    label: "AI Fitness",
+    description: "Workouts & trainer bookings",
+    icon: Dumbbell,
+    href: "/ai/fitness",
+    assistant: "fitness",
+    roles: ["shopper", "vendor", "admin"],
+  },
+  {
+    id: "lifestyle",
+    label: "Lifestyle concierge",
+    description: "Chat — experiences, shops, bookings",
+    icon: ConciergeBell,
+    assistant: "concierge",
+    roles: ["shopper", "vendor", "admin"],
+  },
+  {
+    id: "vendor-insights",
+    label: "Vendor insights",
+    description: "Growth signals & merchandising intel",
+    icon: BarChart3,
+    href: "/vendor/intelligence",
+    assistant: "vendor",
+    roles: ["vendor", "admin"],
+  },
+  {
+    id: "creator",
+    label: "Creator Studio",
+    description: "Content, products & live commerce",
+    icon: Store,
+    href: "/dashboard/creator-studio",
+    roles: ["vendor", "admin"],
+  },
+  {
+    id: "ads",
+    label: "Ads & campaigns",
+    description: "Promote posts and carousel ads",
+    icon: Megaphone,
+    href: "/dashboard/ads",
+    roles: ["vendor", "admin"],
+  },
+  {
+    id: "finance",
+    label: "Finance assistant",
+    description: "Payouts, escrow & M-Pesa help",
+    icon: Wallet,
+    assistant: "finance",
+    roles: ["vendor", "admin"],
+  },
+  {
+    id: "sentiment",
+    label: "Sentiment",
+    description: "Marketplace mood & review signals",
+    icon: Heart,
+    href: "/intelligence",
+    assistant: "ops",
+    roles: ["admin"],
+  },
+  {
+    id: "intel",
+    label: "AI Intelligence",
+    description: "Risk, treasury & ops command",
+    icon: BrainCircuit,
+    href: "/intelligence",
+    assistant: "ops",
+    roles: ["admin"],
+  },
+];
 
 const FAB_STORAGE_KEY = "lf_copilot_fab_pos";
 const FAB_SIZE = 56;
@@ -58,7 +176,7 @@ function loadFabPosition(): FabPosition | null {
 function defaultFabPosition(): FabPosition {
   if (typeof window === "undefined") return { x: 0, y: 0 };
   const margin = 16;
-  const bottomNav = 88; // ~5.5rem
+  const bottomNav = 88;
   return {
     x: window.innerWidth - FAB_SIZE - margin,
     y: window.innerHeight - FAB_SIZE - bottomNav - margin,
@@ -78,6 +196,7 @@ function clampFabPosition(pos: FabPosition): FabPosition {
     ),
   };
 }
+
 function formatTime(iso: string) {
   try {
     return new Date(iso).toLocaleTimeString(undefined, {
@@ -91,16 +210,17 @@ function formatTime(iso: string) {
 
 function MessageTime({ iso }: { iso: string }) {
   const [label, setLabel] = useState("");
-
   useEffect(() => {
     setLabel(formatTime(iso));
   }, [iso]);
-
   if (!label) return null;
   return <div className="text-[10px] opacity-60 mt-2">{label}</div>;
 }
 
+type PanelView = "menu" | "chat";
+
 export default function CopilotPanel() {
+  const { isAdmin, isVendor, loading: roleLoading } = useUserRole();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -108,12 +228,23 @@ export default function CopilotPanel() {
   const [assistantType, setAssistantType] = useState<AssistantType>("concierge");
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [view, setView] = useState<PanelView>("menu");
   const [mounted, setMounted] = useState(false);
   const [geo, setGeo] = useState<{ lat?: number; lng?: number }>({});
   const [fabPos, setFabPos] = useState<FabPosition>({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   const dragMoved = useRef(false);
+
+  const role = useMemo<"shopper" | "vendor" | "admin">(() => {
+    if (isAdmin) return "admin";
+    if (isVendor) return "vendor";
+    return "shopper";
+  }, [isAdmin, isVendor]);
+
+  const menuItems = useMemo(() => {
+    return AI_MENU.filter((item) => item.roles.includes(role));
+  }, [role]);
 
   useEffect(() => {
     setMounted(true);
@@ -163,21 +294,19 @@ export default function CopilotPanel() {
     [dragging, persistFab]
   );
 
-  const onFabPointerUp = useCallback(
-    (e: React.PointerEvent<HTMLButtonElement>) => {
-      setDragging(false);
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-    },
-    []
-  );
+  const onFabPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    setDragging(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const openCopilot = useCallback(() => {
     setIsOpen(true);
     setCollapsed(false);
+    setView("menu");
   }, []);
 
   useEffect(() => {
@@ -193,7 +322,12 @@ export default function CopilotPanel() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isOpen]);
+  }, [messages, isOpen, view]);
+
+  function openChat(assistant: AssistantType) {
+    setAssistantType(assistant);
+    setView("chat");
+  }
 
   async function askCopilot() {
     if (!input.trim()) return;
@@ -215,11 +349,11 @@ export default function CopilotPanel() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "demo-user-id",
           assistantType,
           message: currentInput,
           lat: geo.lat,
           lng: geo.lng,
+          role,
         }),
       });
 
@@ -293,6 +427,9 @@ export default function CopilotPanel() {
     );
   }
 
+  const roleLabel =
+    role === "admin" ? "Admin tools" : role === "vendor" ? "Vendor tools" : "Shopper tools";
+
   return (
     <>
       <div
@@ -313,10 +450,21 @@ export default function CopilotPanel() {
               </div>
               <div>
                 <div className="text-white font-bold text-base">AI Copilot</div>
-                <div className="text-[10px] text-emerald-300/70">LookFinesse intelligence</div>
+                <div className="text-[10px] text-emerald-300/70">
+                  {roleLoading ? "LookFinesse intelligence" : roleLabel}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-1">
+              {view === "chat" && (
+                <button
+                  type="button"
+                  onClick={() => setView("menu")}
+                  className="px-2 py-1.5 text-[11px] text-amber-200/80 hover:text-amber-100"
+                >
+                  Menu
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setCollapsed(true)}
@@ -335,102 +483,148 @@ export default function CopilotPanel() {
               </button>
             </div>
           </div>
+        </div>
 
-          <div className="flex gap-1.5 overflow-x-auto mt-3 pb-1 scrollbar-hide">
-            {assistants.map((assistant) => {
-              const Icon = assistant.icon;
-              const active = assistant.id === assistantType;
+        {view === "menu" ? (
+          <div className="flex-1 min-h-0 overflow-y-auto max-h-[min(520px,calc(100vh-12rem))] p-3 space-y-1.5">
+            <p className="px-2 pb-2 text-[11px] text-white/45 leading-relaxed">
+              Scroll for more tools. Tap a link to open it, or chat with an assistant.
+            </p>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const chatOnly = !item.href && item.assistant;
+              const row = (
+                <div className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-amber-500/25 transition-colors">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10">
+                    <Icon className="h-4 w-4 text-amber-200" />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold text-white truncate">
+                      {item.label}
+                    </span>
+                    <span className="block text-[11px] text-white/45 truncate">
+                      {item.description}
+                    </span>
+                  </span>
+                  {item.href ? (
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-white/30" />
+                  ) : (
+                    <MessageCircle className="h-3.5 w-3.5 shrink-0 text-amber-300/70" />
+                  )}
+                </div>
+              );
+
+              if (chatOnly && item.assistant) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => openChat(item.assistant!)}
+                    className="w-full text-left"
+                  >
+                    {row}
+                  </button>
+                );
+              }
+
               return (
-                <button
-                  key={assistant.id}
-                  type="button"
-                  onClick={() => setAssistantType(assistant.id as AssistantType)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium whitespace-nowrap transition ${
-                    active
-                      ? "bg-gradient-to-r from-amber-500/30 to-rose-500/20 border-amber-400/40 text-amber-100"
-                      : "bg-white/5 text-white/60 border-white/10"
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {assistant.label}
-                </button>
+                <div key={item.id} className="space-y-1">
+                  {item.href && (
+                    <Link href={item.href} onClick={() => setIsOpen(false)}>
+                      {row}
+                    </Link>
+                  )}
+                  {item.assistant && item.href && (
+                    <button
+                      type="button"
+                      onClick={() => openChat(item.assistant!)}
+                      className="w-full px-3 py-1.5 text-left text-[11px] text-amber-200/70 hover:text-amber-100"
+                    >
+                      Chat about {item.label.toLowerCase()} →
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
-          {messages.length === 0 && (
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-              <div className="text-white font-semibold">Welcome</div>
-              <div className="text-zinc-400 mt-2 text-xs leading-relaxed">
-                Outfit picks · skincare · workouts · bookings · creator tips · finance insights
-              </div>
-            </div>
-          )}
-
-          {messages.map((message, index) => (
-            <div
-              key={`${message.created_at}-${index}`}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[88%] rounded-2xl px-4 py-3 ${
-                  message.role === "user"
-                    ? "bg-gradient-to-r from-amber-400 to-rose-400 text-black"
-                    : "bg-white/8 text-white border border-white/10"
-                }`}
-              >
-                <div className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</div>
-                <MessageTime iso={message.created_at} />
-              </div>
-            </div>
-          ))}
-
-          {loading && (
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-400 text-sm">
-              Thinking…
-            </div>
-          )}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <div className="p-3 border-t border-white/10 bg-black/80 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="flex items-end gap-2">
-            <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    askCopilot();
-                  }
-                }}
-                placeholder={`Ask ${assistantType}…`}
-                rows={1}
-                className="w-full bg-transparent text-white text-sm outline-none resize-none placeholder:text-zinc-500 max-h-24"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={askCopilot}
-              disabled={loading}
-              className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-black flex items-center justify-center disabled:opacity-50 shrink-0"
-            >
-              {loading ? (
-                <MessageCircle className="w-4 h-4 animate-pulse" />
-              ) : (
-                <Send className="w-4 h-4" />
+        ) : (
+          <>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+              {messages.length === 0 && (
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                  <div className="text-white font-semibold capitalize">{assistantType} chat</div>
+                  <div className="text-zinc-400 mt-2 text-xs leading-relaxed">
+                    Ask anything — answers use your prefs, weather, and role context when available.
+                  </div>
+                </div>
               )}
-            </button>
-          </div>
-        </div>
+
+              {messages.map((message, index) => (
+                <div
+                  key={`${message.created_at}-${index}`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[88%] rounded-2xl px-4 py-3 ${
+                      message.role === "user"
+                        ? "bg-gradient-to-r from-amber-400 to-rose-400 text-black"
+                        : "bg-white/8 text-white border border-white/10"
+                    }`}
+                  >
+                    <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {message.content}
+                    </div>
+                    <MessageTime iso={message.created_at} />
+                  </div>
+                </div>
+              ))}
+
+              {loading && (
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-400 text-sm">
+                  Thinking…
+                </div>
+              )}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="p-3 border-t border-white/10 bg-black/80 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <div className="flex items-end gap-2">
+                <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        askCopilot();
+                      }
+                    }}
+                    placeholder={`Ask ${assistantType}…`}
+                    rows={1}
+                    className="w-full bg-transparent text-white text-sm outline-none resize-none placeholder:text-zinc-500 max-h-24"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={askCopilot}
+                  disabled={loading}
+                  className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-black flex items-center justify-center disabled:opacity-50 shrink-0"
+                >
+                  {loading ? (
+                    <MessageCircle className="w-4 h-4 animate-pulse" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

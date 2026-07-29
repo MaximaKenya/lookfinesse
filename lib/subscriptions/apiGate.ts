@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabaseServer";
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 import {
   pathRequiresEliteTier,
   pathRequiresProTier,
@@ -28,7 +29,11 @@ export async function getVendorGateContext(): Promise<VendorGateContext | null> 
     .eq("user_id", user.id);
 
   const roles = (roleRows ?? []).map((r) => r.role);
-  const isAdmin = roles.includes("admin");
+  const isAdmin = isPlatformAdmin({
+    email: user.email,
+    roles,
+    appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+  });
   let isVendor = roles.includes("vendor") || isAdmin;
 
   if (!isVendor) {
@@ -40,15 +45,31 @@ export async function getVendorGateContext(): Promise<VendorGateContext | null> 
     if (stores && stores.length > 0) isVendor = true;
   }
 
+  // Admins: elite entitlements without reading subscription rows
+  if (isAdmin) {
+    return {
+      userId: user.id,
+      isAdmin: true,
+      isVendor: true,
+      active: true,
+      tier: "elite",
+      hasRow: true,
+    };
+  }
+
   const { data: subRow } = await supabase
     .from("platform_subscriptions")
-    .select("tier, status")
+    .select("tier, status, current_period_end")
     .eq("user_id", user.id)
     .maybeSingle();
 
   const hasRow = !!subRow;
   const tier = subRow?.tier ?? null;
-  const active = subRow?.status === "active";
+  const periodOk =
+    !subRow?.current_period_end ||
+    new Date(subRow.current_period_end) > new Date();
+  const active =
+    (subRow?.status === "active" || subRow?.status === "trialing") && periodOk;
 
   return { userId: user.id, isAdmin, isVendor, active, tier, hasRow };
 }

@@ -57,31 +57,54 @@ export default function PlatformSubscriptionGate({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
-  const { isAdmin } = useUserRole();
-  const { active, loading, tier, hasRow } = usePlatformSubscription();
+  const { isAdmin, loading: roleLoading } = useUserRole();
+  const {
+    active,
+    loading,
+    tier,
+    hasRow,
+    status,
+    isAdmin: subIsAdmin,
+  } = usePlatformSubscription();
 
-  const gated = pathRequiresPlatformSub(pathname);
-  const subscriptionPage = pathname.startsWith("/dashboard/subscription");
-  const starterSurface = pathInList(pathname, [
-    "/dashboard/creator-studio",
-    "/dashboard/create-post",
-    "/dashboard/create-reel",
-    "/dashboard/create-product",
-    "/dashboard/create-service",
-    "/vendor/products",
-    "/vendor/orders",
-  ]) || pathname === "/dashboard";
-
-  const allowed =
-    isAdmin ||
-    vendorCanAccessPath(pathname, active, tier, { isAdmin, hasSubscriptionRow: hasRow }) ||
-    (!hasRow && starterSurface && !pathRequiresEliteTier(pathname) && !pathRequiresProTier(pathname));
-
-  if (loading || !gated || allowed || subscriptionPage) {
+  // Admins never see upgrade gates — always render children
+  if (isAdmin || subIsAdmin) {
     return <>{children}</>;
   }
 
-  const { title, body } = gateMessage(pathname, tier, active, hasRow);
+  // trialing Pro/Elite unlocks the same surfaces as an active paid plan
+  const trialOrActive =
+    active || (status === "trialing" && (tier === "pro" || tier === "elite"));
+
+  const gated = pathRequiresPlatformSub(pathname);
+  const subscriptionPage = pathname.startsWith("/dashboard/subscription");
+  const starterSurface =
+    pathInList(pathname, [
+      "/dashboard/creator-studio",
+      "/dashboard/create-post",
+      "/dashboard/create-reel",
+      "/dashboard/create-product",
+      "/dashboard/create-service",
+      "/vendor/products",
+      "/vendor/orders",
+    ]) || pathname === "/dashboard";
+
+  const allowed =
+    vendorCanAccessPath(pathname, trialOrActive, tier, {
+      isAdmin: false,
+      hasSubscriptionRow: hasRow || status === "trialing",
+    }) ||
+    (!hasRow &&
+      starterSurface &&
+      !pathRequiresEliteTier(pathname) &&
+      !pathRequiresProTier(pathname));
+
+  // Wait for role + subscription so admin identity can't flash as locked
+  if (roleLoading || loading || !gated || allowed || subscriptionPage) {
+    return <>{children}</>;
+  }
+
+  const { title, body } = gateMessage(pathname, tier, trialOrActive, hasRow);
 
   return (
     <div className="relative min-h-[60vh]">

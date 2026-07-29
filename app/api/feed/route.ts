@@ -15,6 +15,7 @@ import {
 import { tierMeetsMinimum } from "@/lib/subscriptions/platformEntitlements";
 import { canViewExclusivePost, getUserFanTierForVendor } from "@/lib/subscriptions/fanAccess";
 import { queueSentimentAnalysis } from "@/lib/ai/sentimentAnalysis";
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -99,9 +100,25 @@ export async function POST(req: Request) {
     }
 
     const server = await createSupabaseServer();
+    const {
+      data: { user: authUser },
+    } = await server.auth.getUser();
+    let feedIsAdmin = false;
+    if (authUser) {
+      const { data: roleRows } = await server
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", authUser.id);
+      feedIsAdmin = isPlatformAdmin({
+        email: authUser.email,
+        roles: (roleRows ?? []).map((r) => r.role),
+        appMetadata: (authUser.app_metadata ?? null) as Record<string, unknown> | null,
+      });
+    }
+
     const sub = await getVendorSubscriptionState(server, vendor_id);
 
-    if (sub.entitlements.monthlyPostLimit != null) {
+    if (!feedIsAdmin && sub.entitlements.monthlyPostLimit != null) {
       const count = await countVendorPostsThisMonth(server, vendor_id);
       if (count >= sub.entitlements.monthlyPostLimit) {
         return NextResponse.json(
@@ -113,7 +130,11 @@ export async function POST(req: Request) {
       }
     }
 
-    if (promote_as_ad && (!sub.active || !tierMeetsMinimum(sub.tier, "pro"))) {
+    if (
+      !feedIsAdmin &&
+      promote_as_ad &&
+      (!sub.active || !tierMeetsMinimum(sub.tier, "pro"))
+    ) {
       return NextResponse.json(
         { error: "Ads require an active Pro or Elite plan" },
         { status: 403 }
@@ -161,7 +182,7 @@ export async function POST(req: Request) {
     let campaign = null;
     if (promote_as_ad && post?.id) {
       const adSpend = Number(body.ad_credit_amount ?? 500);
-      if (adSpend > sub.adCreditsRemaining) {
+      if (!feedIsAdmin && adSpend > sub.adCreditsRemaining) {
         return NextResponse.json(
           {
             error: `Insufficient ad credits (KES ${sub.adCreditsRemaining} remaining). Starter: KES ${sub.entitlements.adCreditsMonthly}/mo cap.`,
@@ -170,13 +191,15 @@ export async function POST(req: Request) {
         );
       }
 
-      await server
-        .from("platform_subscriptions")
-        .update({
-          ad_credits_remaining: Math.max(0, sub.adCreditsRemaining - adSpend),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("vendor_id", vendor_id);
+      if (!feedIsAdmin) {
+        await server
+          .from("platform_subscriptions")
+          .update({
+            ad_credits_remaining: Math.max(0, sub.adCreditsRemaining - adSpend),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("vendor_id", vendor_id);
+      }
 
       const imageUrl = thumbnail_url ?? mediaItems[0] ?? "";
       const ctaUrl = primaryProductId

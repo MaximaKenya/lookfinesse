@@ -1,6 +1,29 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { checkVendorProductLimit, productLimitMessage } from "@/lib/subscriptions/productLimits";
+import { createSupabaseServer } from "@/lib/supabaseServer";
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
+
+async function resolveIsAdmin(): Promise<boolean> {
+  try {
+    const server = await createSupabaseServer();
+    const {
+      data: { user },
+    } = await server.auth.getUser();
+    if (!user) return false;
+    const { data: roleRows } = await server
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    return isPlatformAdmin({
+      email: user.email,
+      roles: (roleRows ?? []).map((r) => r.role),
+      appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+    });
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +53,8 @@ export async function POST(req: Request) {
     }
 
     if (vendor_id) {
-      const limit = await checkVendorProductLimit(supabase, vendor_id);
+      const isAdmin = await resolveIsAdmin();
+      const limit = await checkVendorProductLimit(supabase, vendor_id, { isAdmin });
       if (!limit.allowed) {
         return NextResponse.json(
           {

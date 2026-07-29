@@ -79,7 +79,7 @@ function KpiCard({
 }
 
 export default function VendorIntelligencePage() {
-  const { tier, entitlements, active } = usePlatformSubscription();
+  const { tier, entitlements, active, isAdmin } = usePlatformSubscription();
   const [intel, setIntel] = useState<VendorIntel | null>(null);
 
   useEffect(() => {
@@ -191,7 +191,9 @@ export default function VendorIntelligencePage() {
             <p className="text-xs text-amber-200/80 border border-amber-500/20 bg-amber-500/10 rounded-xl px-3 py-2 inline-block">
               Analytics window: last {entitlements.analyticsDays} days
               {tier ? ` (${tier}${active ? "" : " — inactive"})` : " (starter)"}.
-              {entitlements.analyticsDays < 90 ? " Upgrade to Pro for 90-day history." : ""}
+              {!isAdmin && entitlements.analyticsDays < 90
+                ? " Upgrade to Pro for 90-day history."
+                : ""}
             </p>
           </div>
 

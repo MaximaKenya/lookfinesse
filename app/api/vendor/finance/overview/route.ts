@@ -4,6 +4,7 @@ import { createSupabaseServer } from "@/lib/supabaseServer";
 import { resolveVendorScope } from "@/lib/vendor/scope";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type FinanceWallet = { id: string; currency: string; balance: number };
 type FinancePayout = {
@@ -18,6 +19,34 @@ type FinanceRisk = {
   is_frozen: boolean;
 };
 type FinanceKyc = { status: string };
+
+const EMPTY_PAYLOAD = {
+  demo: false,
+  empty: true,
+  label:
+    "No finance records yet — complete your first sale to see balances here",
+  wallets: [] as FinanceWallet[],
+  payouts: [] as FinancePayout[],
+  risk: {
+    risk_score: 0,
+    trust_tier: "STANDARD",
+    is_frozen: false,
+  } satisfies FinanceRisk,
+  kyc: { status: "PENDING" } satisfies FinanceKyc,
+};
+
+function json(
+  body: Record<string, unknown>,
+  status = 200
+): NextResponse {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "private, no-store",
+      "Content-Type": "application/json",
+    },
+  });
+}
 
 function normalizeWallet(
   row: Record<string, unknown>,
@@ -77,14 +106,14 @@ export async function GET() {
     const scopeResult = await resolveVendorScope(supabase);
 
     if (!scopeResult.ok) {
-      return NextResponse.json(
+      return json(
         {
           error:
             scopeResult.reason === "not_vendor"
               ? "Vendor account required"
               : "Unauthorized",
         },
-        { status: scopeResult.reason === "not_vendor" ? 403 : 401 }
+        scopeResult.reason === "not_vendor" ? 403 : 401
       );
     }
 
@@ -184,13 +213,14 @@ export async function GET() {
     );
     const kyc = normalizeKyc((kycRow as Record<string, unknown> | null) ?? null);
 
-    return NextResponse.json({
+    const empty = wallets.length === 0 && payouts.length === 0;
+
+    return json({
       demo: false,
-      empty: wallets.length === 0 && payouts.length === 0,
-      label:
-        wallets.length === 0 && payouts.length === 0
-          ? "No finance records yet — complete your first sale to see balances here"
-          : undefined,
+      empty,
+      label: empty
+        ? EMPTY_PAYLOAD.label
+        : undefined,
       wallets,
       payouts,
       risk,
@@ -198,9 +228,13 @@ export async function GET() {
     });
   } catch (err) {
     console.error("Vendor finance overview failed:", err);
-    return NextResponse.json(
-      { error: "Failed to load finance overview" },
-      { status: 500 }
-    );
+    // Always JSON — never HTML error pages for this API
+    if (
+      err instanceof Error &&
+      err.message.startsWith("SUPABASE_MISCONFIGURED")
+    ) {
+      return json({ error: "Finance service misconfigured", ...EMPTY_PAYLOAD }, 503);
+    }
+    return json({ error: "Failed to load finance overview", ...EMPTY_PAYLOAD }, 500);
   }
 }

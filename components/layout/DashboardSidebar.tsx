@@ -55,7 +55,9 @@ function NavLink({
   active: boolean;
   onSelect?: () => void;
 }) {
-  const target = locked ? upgradeHref : href;
+  // Force unlocked when access says allowed — never show lock for unlocked items
+  const isLocked = locked === true;
+  const target = isLocked ? upgradeHref : href;
   return (
     <Link
       href={target}
@@ -63,7 +65,7 @@ function NavLink({
       className={`group flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm transition-all ${
         active
           ? "border-white/15 bg-white/10 text-white shadow-inner shadow-black/30"
-          : locked
+          : isLocked
             ? "border-transparent text-zinc-400 hover:border-amber-500/20 hover:bg-amber-500/5 hover:text-amber-100"
             : "border-transparent dashboard-nav-link hover:border-white/10 hover:bg-white/5"
       }`}
@@ -83,7 +85,7 @@ function NavLink({
           </span>
         )}
       </span>
-      {locked ? (
+      {isLocked ? (
         <Lock className="h-3.5 w-3.5 shrink-0 text-amber-400/80" />
       ) : (
       <ChevronRight
@@ -94,6 +96,39 @@ function NavLink({
       )}
     </Link>
   );
+}
+
+/** Merge admin + vendor nav: unique keys, dedupe by href, rename Finance groups. */
+function mergeNavGroups(
+  primary: NavGroup[],
+  secondary: NavGroup[],
+  financeLabels: { primary: string; secondary: string }
+): NavGroup[] {
+  const seenHrefs = new Set<string>();
+  const out: NavGroup[] = [];
+
+  const pushGroups = (
+    groups: NavGroup[],
+    financeLabel: string
+  ) => {
+    for (const group of groups) {
+      const items = group.items.filter((item) => {
+        if (seenHrefs.has(item.href)) return false;
+        seenHrefs.add(item.href);
+        return true;
+      });
+      if (items.length === 0) continue;
+      out.push({
+        ...group,
+        title: group.title === "Finance" ? financeLabel : group.title,
+        items,
+      });
+    }
+  };
+
+  pushGroups(primary, financeLabels.primary);
+  pushGroups(secondary, financeLabels.secondary);
+  return out;
 }
 
 function NavBody({
@@ -107,8 +142,8 @@ function NavBody({
 }) {
   return (
     <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-6 scrollbar-hide">
-      {groups.map((group) => (
-        <div key={group.title}>
+      {groups.map((group, index) => (
+        <div key={`${group.title}-${index}`}>
           <p className="dashboard-nav-label px-3 pb-2">
             {group.title}
           </p>
@@ -137,16 +172,23 @@ function NavBody({
 export default function DashboardSidebar({ variant, brand, footer }: Props) {
   const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
-  const { active, tier, hasRow } = usePlatformSubscription();
-  const { isAdmin } = useUserRole();
+  const { active, tier, hasRow, isAdmin: subIsAdmin } = usePlatformSubscription();
+  const { isAdmin, loading: roleLoading } = useUserRole();
+  const adminUnlocked = isAdmin || subIsAdmin;
 
   const groups = useMemo(() => {
-    // Admin: every vendor + admin nav item, all unlocked
-    if (isAdmin) {
-      const merged: NavGroup[] =
+    // Admin: every vendor + admin nav item, all unlocked — never show lock icons
+    if (adminUnlocked) {
+      const merged =
         variant === "admin"
-          ? [...ADMIN_NAV, ...VENDOR_NAV]
-          : [...VENDOR_NAV, ...ADMIN_NAV];
+          ? mergeNavGroups(ADMIN_NAV, VENDOR_NAV, {
+              primary: "Platform Finance",
+              secondary: "Vendor Finance",
+            })
+          : mergeNavGroups(VENDOR_NAV, ADMIN_NAV, {
+              primary: "Vendor Finance",
+              secondary: "Platform Finance",
+            });
       return filterNavGroupsByEntitlements(merged, {
         role: "admin",
         isAdmin: true,
@@ -157,8 +199,20 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
       });
     }
 
+    // While role resolves, show base nav without locks (avoid admin flash as locked)
     const base = NAV_BY_VARIANT[variant];
     if (variant === "admin") return base;
+    if (roleLoading) {
+      return base.map((group) => ({
+        ...group,
+        items: group.items.map((item) => ({
+          ...item,
+          allowed: true,
+          locked: false,
+          upgradeHref: "/dashboard/subscription",
+        })),
+      }));
+    }
     return filterNavGroupsByEntitlements(base, {
       role: "vendor",
       isVendor: true,
@@ -167,7 +221,7 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
       subscriptionTier: tier,
       hasSubscriptionRow: hasRow,
     });
-  }, [variant, active, tier, hasRow, isAdmin]);
+  }, [variant, active, tier, hasRow, adminUnlocked, roleLoading]);
 
   return (
     <>

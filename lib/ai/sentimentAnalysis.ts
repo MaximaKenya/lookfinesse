@@ -2,6 +2,7 @@ import { openai } from "@/lib/openai";
 import { supabase } from "@/lib/supabaseClient";
 import { trackBehavior } from "@/lib/ai/trackBehavior";
 import type { SentimentLabel, SentimentSourceType } from "@/lib/ai/sentimentTypes";
+import { isOpenAiConfigured, resolveOpenAiModel } from "@/lib/ai/provider";
 
 export type { SentimentLabel, SentimentSourceType } from "@/lib/ai/sentimentTypes";
 
@@ -73,11 +74,11 @@ export function analyzeTextRuleBased(text: string): SentimentResult {
 }
 
 async function analyzeTextWithOpenAI(text: string): Promise<SentimentResult | null> {
-  if (!process.env.OPENAI_API_KEY) return null;
+  if (!isOpenAiConfigured()) return null;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: resolveOpenAiModel("fast"),
       temperature: 0,
       response_format: { type: "json_object" },
       messages: [

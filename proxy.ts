@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { createEdgeSupabase, readEdgeSessionUserFromCookies } from "@/lib/auth/edgeAuth";
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 import { vendorCanAccessPath } from "@/lib/subscriptions/platformTiers";
 
 /** Routes that require a signed-in session at the edge. */
@@ -58,10 +59,14 @@ function loginRedirect(request: NextRequest, pathname: string, response?: NextRe
   return redirect;
 }
 
+/**
+ * API routes must NEVER hit auth redirects (those return HTML login pages).
+ * Callers expect JSON — a 302 → /login breaks `res.json()` with Unexpected token '<'.
+ */
 function shouldSkip(pathname: string): boolean {
+  if (pathname === "/api" || pathname.startsWith("/api/")) return true;
   return (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
     pathname.startsWith("/auth") ||
     pathname === "/logout" ||
     pathname === "/login" ||
@@ -94,6 +99,11 @@ function devLogRedirect(from: string, to: string, reason: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Hard skip for every /api/* request — no HTML redirects, no tier gates
+  if (pathname === "/api" || pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
 
   if (shouldSkip(pathname)) {
     return NextResponse.next();
@@ -139,7 +149,11 @@ export async function proxy(request: NextRequest) {
       .eq("user_id", user.id);
 
     const roles = (roleRows ?? []).map((r) => r.role);
-    const isAdmin = roles.includes("admin");
+    const isAdmin = isPlatformAdmin({
+      email: user.email,
+      roles,
+      appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+    });
     let isVendor = roles.includes("vendor") || isAdmin;
 
     if (!isVendor) {
@@ -151,7 +165,7 @@ export async function proxy(request: NextRequest) {
       if (stores && stores.length > 0) isVendor = true;
     }
 
-    // Admin: full bypass — every dashboard, vendor, admin route
+    // Admin: full bypass — every dashboard, vendor, admin route (no tier redirects)
     if (isAdmin) {
       return sessionResponse;
     }
@@ -197,15 +211,38 @@ export async function proxy(request: NextRequest) {
 
       // Only apply path-tier checks to known vendor route prefixes
       if (matchesPrefix(pathname, VENDOR_ROUTE_PREFIXES) || pathname.startsWith("/vendor")) {
-        const { data: subRow } = await supabase
+        // Prefer user_id; fall back to vendors row if subscription was keyed by vendor only
+        let { data: subRow } = await supabase
           .from("platform_subscriptions")
-          .select("tier, status")
+          .select("tier, status, current_period_end")
           .eq("user_id", user.id)
           .maybeSingle();
 
+        if (!subRow) {
+          const { data: vendorRow } = await supabase
+            .from("vendors")
+            .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (vendorRow?.id) {
+            const byVendor = await supabase
+              .from("platform_subscriptions")
+              .select("tier, status, current_period_end")
+              .eq("vendor_id", vendorRow.id)
+              .maybeSingle();
+            subRow = byVendor.data;
+          }
+        }
+
         const hasRow = !!subRow;
         const tier = subRow?.tier ?? null;
-        const active = subRow?.status === "active";
+        const periodOk =
+          !subRow?.current_period_end ||
+          new Date(subRow.current_period_end) > new Date();
+        // trialing = full Pro/Elite access until current_period_end
+        const active =
+          (subRow?.status === "active" || subRow?.status === "trialing") &&
+          periodOk;
 
         const allowed = vendorCanAccessPath(pathname, active, tier, {
           isAdmin: false,
@@ -229,5 +266,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
+  // Exclude all /api/* (and static assets) so API handlers always return JSON
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api(?:/|$)).*)",
+  ],
 };

@@ -29,11 +29,24 @@ export async function countVendorProducts(
 
 export async function checkVendorProductLimit(
   supabase: SupabaseClient,
-  vendorId: string
+  vendorId: string,
+  options?: { isAdmin?: boolean }
 ): Promise<ProductLimitCheck> {
+  const current = await countVendorProducts(supabase, vendorId);
+
+  // Platform admins never hit product limits
+  if (options?.isAdmin) {
+    return {
+      allowed: true,
+      current,
+      max: null,
+      tier: "elite",
+      upgradeRequired: false,
+    };
+  }
+
   const sub = await getVendorSubscriptionState(supabase, vendorId);
   const max = sub.entitlements.maxProducts;
-  const current = await countVendorProducts(supabase, vendorId);
   const tier = sub.tier ?? "starter";
 
   if (max == null) {

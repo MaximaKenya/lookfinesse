@@ -12,11 +12,12 @@ If you have a **new empty project** (no tables yet), use this path. Do **not** r
 |------|----------------|---------|
 | **1** | `supabase/migrations/000_fresh_bootstrap.sql` | Creates the **entire** LookFinesse schema (core + social + commerce + finance minimal + RLS + categories seed) |
 | **2** | `supabase/seed_auth_users.sql` | Creates login accounts — see **`docs/SEED_CREDENTIALS.md`** |
-| **3** | `supabase/seed_auth_roles.sql` | Links auth users → `user_roles`, vendor profile, `user_profiles` |
+| **3** | `supabase/seed_auth_roles.sql` | Links auth users → `user_roles`, vendor profile, `user_profiles`, **30-day Pro trial** |
 | **4** | `supabase/seed.sql` | Demo vendors, products, feed, bookings, ads |
-| **5** | Dashboard → Storage → New bucket **`profile-media`** (public) | Required for profile avatar/banner uploads — **not** created by `000` (Dashboard-only on many hosted projects) |
+| **5** | `supabase/seed_demo_metrics.sql` | Orders, wallets, ledger, payouts, Pro trial — **non-zero** `/dashboard` & `/vendor/finance`. **Re-run anytime** if KPIs show zeros. |
+| **6** | Dashboard → Storage → New bucket **`profile-media`** (public) | Required for profile avatar/banner uploads — **not** created by `000` (Dashboard-only on many hosted projects) |
 
-After step 4 you can log in and use the app. **Skip migrations 001–020** unless you are repairing a legacy install (see below).
+After step 5 you can log in and use the app with populated KPIs. **Skip migrations 001–024** unless you are repairing a legacy install (see below). Legacy installs that already ran an older `000` should also run **`025_platform_subscription_trial.sql`** before seeding trial rows.
 
 ### What `000_fresh_bootstrap.sql` includes
 
@@ -58,6 +59,11 @@ Run **001 → 020** in order. Each file is idempotent (`IF NOT EXISTS` / conditi
 | 018 | `018_user_profiles_bio_and_fields.sql` | Bio, display_name, media columns |
 | 019 | `019_profile_media_bucket.sql` | Standalone `profile-media` bucket + RLS |
 | 020 | `020_bookings_table.sql` | Bookings table |
+| 021 | `021_service_subscriptions.sql` | Service plans, customer subs, class sessions |
+| 022 | `022_canonical_categories.sql` | Canonical categories |
+| 023 | `023_booking_availability_seed.sql` | Booking availability seed |
+| 024 | `024_bookings_fk_and_capacity.sql` | Bookings FK + capacity |
+| 025 | `025_platform_subscription_trial.sql` | `trialing` status + `trial_ends_at` for free trials |
 
 ### Virtual Dresser preferences (no new migration)
 

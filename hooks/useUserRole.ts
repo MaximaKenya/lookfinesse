@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 import { supabase } from "@/lib/supabaseClient";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
@@ -25,12 +26,24 @@ export function useUserRole() {
       try {
         setError(false);
         const { data: auth } = await supabase.auth.getUser();
-        const uid = auth?.user?.id ?? null;
+        const user = auth?.user ?? null;
+        const uid = user?.id ?? null;
         if (!mounted) return;
 
         setUserId(uid);
-        if (!uid) {
+        if (!uid || !user) {
           setRole(null);
+          return;
+        }
+
+        // Email / JWT metadata bypass — works even if user_roles row is missing
+        if (
+          isPlatformAdmin({
+            email: user.email,
+            appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+          })
+        ) {
+          setRole("admin");
           return;
         }
 
@@ -42,7 +55,7 @@ export function useUserRole() {
 
         if (!rolesErr && rows && rows.length > 0) {
           const roles = rows.map((r) => r.role);
-          if (roles.includes("admin")) {
+          if (isPlatformAdmin({ roles, email: user.email })) {
             setRole("admin");
             return;
           }

@@ -4,6 +4,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
+
 export type EdgeAuth = {
   userId: string | null;
   isAdmin: boolean;
@@ -135,7 +137,11 @@ export async function getEdgeAuth(request: NextRequest): Promise<EdgeAuth & { re
       .eq("user_id", user.id);
 
     const roles = (roleRows ?? []).map((r) => r.role);
-    let isAdmin = roles.includes("admin");
+    let isAdmin = isPlatformAdmin({
+      email: user.email,
+      roles,
+      appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+    });
     let isVendor = roles.includes("vendor") || isAdmin;
 
     if (!isVendor) {
@@ -149,6 +155,15 @@ export async function getEdgeAuth(request: NextRequest): Promise<EdgeAuth & { re
 
     return { userId: user.id, isAdmin, isVendor, response: getResponse() };
   } catch {
-    return { userId: user.id, isAdmin: false, isVendor: false, response: NextResponse.next() };
+    const isAdmin = isPlatformAdmin({
+      email: user.email,
+      appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+    });
+    return {
+      userId: user.id,
+      isAdmin,
+      isVendor: isAdmin,
+      response: NextResponse.next(),
+    };
   }
 }

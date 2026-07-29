@@ -104,13 +104,21 @@ const TILES = [
 ];
 
 export default function CreatorStudioPage() {
-  const { isVendor, loading } = useUserRole();
-  const { active, tier } = usePlatformSubscription();
+  const { isVendor, isAdmin, loading } = useUserRole();
+  const { active, tier, hasRow, isAdmin: subIsAdmin } = usePlatformSubscription();
+  const adminUnlocked = isAdmin || subIsAdmin;
 
   const tiles = filterCreatorStudioTiles(TILES, {
-    subscriptionActive: active,
-    subscriptionTier: tier,
+    subscriptionActive: adminUnlocked ? true : active,
+    subscriptionTier: adminUnlocked ? "elite" : tier,
+    hasSubscriptionRow: adminUnlocked ? true : hasRow,
+    isAdmin: adminUnlocked,
   });
+
+  // Admin: never hide or lock tiles
+  const visibleTiles = adminUnlocked
+    ? tiles.map((t) => ({ ...t, allowed: true, locked: false }))
+    : tiles;
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -150,7 +158,7 @@ export default function CreatorStudioPage() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tiles.map((tile) => {
+          {visibleTiles.map((tile) => {
             const Icon = tile.icon;
             return (
               <Link

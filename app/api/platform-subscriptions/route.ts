@@ -9,7 +9,9 @@ import { resolveVendorScope } from "@/lib/vendor/scope";
 import { getPlatformTier } from "@/lib/subscriptions/platformTiers";
 import { getPlatformEntitlements } from "@/lib/subscriptions/platformEntitlements";
 import { getVendorSubscriptionState } from "@/lib/subscriptions/vendorSubscription";
+import { ensureVendorTrial } from "@/lib/subscriptions/ensureVendorTrial";
 import { getRequestOrigin } from "@/lib/url";
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 
 export const runtime = "nodejs";
 
@@ -24,6 +26,41 @@ export async function GET() {
 
   try {
     const supabase = await createSupabaseServer();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Platform admin: treat as active Elite (full entitlements, no upgrade gates)
+    if (user) {
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      const roles = (roleRows ?? []).map((r) => r.role);
+      if (
+        isPlatformAdmin({
+          email: user.email,
+          roles,
+          appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+        })
+      ) {
+        return NextResponse.json(
+          {
+            active: true,
+            tier: "elite",
+            status: "active",
+            entitlements: getPlatformEntitlements("elite"),
+            ad_credits_remaining: 999_999,
+            hasRow: true,
+            current_period_end: null,
+            subscription: null,
+            isAdmin: true,
+          },
+          { headers: { "Cache-Control": "private, max-age=30" } }
+        );
+      }
+    }
+
     const scopeResult = await resolveVendorScope(supabase);
 
     if (!scopeResult.ok) {
@@ -33,7 +70,14 @@ export async function GET() {
       );
     }
 
-    const { vendorId } = scopeResult.scope;
+    const { vendorId, userId } = scopeResult.scope;
+
+    // First vendor access: auto-start 30-day Pro trial when no sub row exists
+    await ensureVendorTrial(supabase, userId, {
+      vendorId,
+      email: user?.email ?? null,
+    });
+
     const subState = await getVendorSubscriptionState(supabase, vendorId);
 
     const { data: sub } = await supabase
@@ -50,7 +94,8 @@ export async function GET() {
         entitlements: subState.entitlements,
         ad_credits_remaining: subState.adCreditsRemaining,
         hasRow: subState.hasRow,
-        current_period_end: sub?.current_period_end ?? null,
+        current_period_end: sub?.current_period_end ?? sub?.trial_ends_at ?? null,
+        trial_ends_at: sub?.trial_ends_at ?? sub?.current_period_end ?? null,
         subscription: sub ?? null,
       },
       { headers: { "Cache-Control": "private, max-age=30" } }

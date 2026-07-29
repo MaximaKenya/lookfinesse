@@ -8,6 +8,7 @@ import {
   type TodayTip,
   type WeatherInput,
 } from "@/lib/ai/weatherTips";
+import { isOpenAiConfigured, resolveOpenAiModel } from "@/lib/ai/provider";
 
 export type TodayUserContext = {
   userId: string;
@@ -69,11 +70,6 @@ function shopCategoryForInterests(interests: string[] = []): string {
   return "fashion";
 }
 
-function isOpenAiConfigured(): boolean {
-  const key = process.env.OPENAI_API_KEY;
-  return !!key && key.length > 20 && key !== "sk-your-key-here";
-}
-
 async function generateWithOpenAI(
   weather: WeatherInput,
   ctx: TodayUserContext
@@ -95,7 +91,7 @@ async function generateWithOpenAI(
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: resolveOpenAiModel("fast"),
       max_tokens: 900,
       response_format: { type: "json_object" },
       messages: [
@@ -116,6 +112,7 @@ Tailor outfit/skincare/fitness to gender, age_group, style, and interests. Refer
             weather,
             timeOfDay: tod,
             profile,
+            interests,
             defaultShopCategory: shopCat,
           }),
         },

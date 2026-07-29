@@ -28,7 +28,7 @@ Use webpack (not Turbopack). The `dev` script is `next dev --webpack -H 0.0.0.0`
    nslookup YOUR_PROJECT_REF.supabase.co
    ```
 
-5. Optional: `OPENAI_API_KEY` for AI tips/copilot; payment keys for M-Pesa/Stripe (see `.env.example`).
+5. Optional: `OPENAI_API_KEY` for AI tips/copilot (**OpenAI only** — Groq is not used; see `docs/AI_PROVIDERS.md`); payment keys for M-Pesa/Stripe (see `.env.example`).
 
 ### Mobile / LAN testing
 

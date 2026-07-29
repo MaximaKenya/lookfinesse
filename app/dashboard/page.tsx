@@ -9,6 +9,7 @@ import { signOutAndRedirect } from "@/lib/logout";
 import ProductImage from "@/components/ProductImage";
 import BrandLogo from "@/components/brand/BrandLogo";
 import SubscriptionTierBadge from "@/components/vendor/SubscriptionTierBadge";
+import TrialBanner from "@/components/vendor/TrialBanner";
 import { VENDOR_KPI_LINKS } from "@/lib/nav/dashboards";
 import { useUserRole } from "@/hooks/useUserRole";
 import {
@@ -243,6 +244,8 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        <TrialBanner />
 
         {/* ── STORE SWITCHER ───────────────────────────────────── */}
         {stores.length > 0 && (

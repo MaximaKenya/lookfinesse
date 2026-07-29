@@ -153,11 +153,32 @@ export default function VendorFinancePage() {
     try {
       const res = await fetch("/api/vendor/finance/overview", {
         credentials: "include",
+        redirect: "manual",
+        headers: { Accept: "application/json" },
       });
+
+      // Redirects (login HTML) or opaque — never try to parse as JSON
+      if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
+        setData(null);
+        setError("Sign in to view your financial center.");
+        return;
+      }
+
+      const contentType = res.headers.get("content-type") ?? "";
+      const text = await res.text();
+
+      if (
+        !contentType.includes("application/json") ||
+        text.trimStart().startsWith("<")
+      ) {
+        throw new Error(
+          "Finance service returned an invalid response. Try refreshing, or re-run seed_demo_metrics.sql if balances stay empty."
+        );
+      }
 
       let json: unknown;
       try {
-        json = await res.json();
+        json = JSON.parse(text);
       } catch {
         throw new Error("Finance service returned an invalid response.");
       }

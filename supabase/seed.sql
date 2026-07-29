@@ -6,6 +6,8 @@
 --   2. Run supabase/seed_auth_users.sql — see docs/SEED_CREDENTIALS.md
 --   3. Run supabase/seed_auth_roles.sql
 --   4. Paste & run this file
+--   5. Run supabase/seed_demo_metrics.sql — orders, wallets, ledger (non-zero KPIs)
+--   6. Optional: 021_service_subscriptions.sql, 025_platform_subscription_trial.sql
 -- NOTE: Uses ON CONFLICT DO NOTHING — safe to re-run
 -- ═══════════════════════════════════════════════════════════════════════════
 
@@ -411,17 +413,23 @@ VALUES
   (ad3, v_glow,     p14, 'Glass Skin Kit Flash Sale', 'Korean Skincare — 20% Off',    'Limited stock. All 4 steps for glass skin.',                 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=800','Shop Sale', '/shop?category=beauty',  ARRAY['beauty'],                   'Nairobi', 1000, 15000,  15, now() - interval '1 day',  now() + interval '7 days',  'live', 3200,  145)
 ON CONFLICT (id) DO NOTHING;
 
--- ─── PLATFORM SUBSCRIPTIONS (demo vendor — vendor@test.com / EliteFit) ───────
-INSERT INTO platform_subscriptions (vendor_id, user_id, tier, status, price_kes, payment_method, current_period_start, current_period_end)
+-- ─── PLATFORM SUBSCRIPTIONS (vendor@test.com → EliteFit Pro trial) ───────────
+-- Prefer trialing so dashboard shows the free-trial banner; skip overwrite if already paid active.
+INSERT INTO platform_subscriptions (
+  vendor_id, user_id, tier, status, price_kes, payment_method,
+  ad_credits_remaining, current_period_start, current_period_end, trial_ends_at
+)
 SELECT
   v_elitefit,
   u.id,
   'pro',
-  'active',
-  2999,
-  'mpesa',
-  now() - interval '10 days',
-  now() + interval '20 days'
+  'trialing',
+  0,
+  NULL,
+  2500,
+  now(),
+  now() + interval '30 days',
+  now() + interval '30 days'
 FROM auth.users u
 WHERE u.email = 'vendor@test.com'
 ON CONFLICT (vendor_id) DO UPDATE SET
@@ -429,7 +437,12 @@ ON CONFLICT (vendor_id) DO UPDATE SET
   status = EXCLUDED.status,
   price_kes = EXCLUDED.price_kes,
   user_id = EXCLUDED.user_id,
-  current_period_end = EXCLUDED.current_period_end;
+  ad_credits_remaining = EXCLUDED.ad_credits_remaining,
+  current_period_start = EXCLUDED.current_period_start,
+  current_period_end = EXCLUDED.current_period_end,
+  trial_ends_at = EXCLUDED.trial_ends_at
+WHERE platform_subscriptions.status IS DISTINCT FROM 'active'
+   OR platform_subscriptions.payment_method IS NULL;
 
 -- ─── NOTIFICATIONS & BOOKINGS (demo user — requires auth.users) ─────────────
 IF demo_user IS NOT NULL THEN

@@ -78,6 +78,13 @@ export default function CreateStorePage() {
 
     if (error) return alert(error.message);
 
+    // Start 30-day Pro trial on first vendor store (idempotent)
+    try {
+      await fetch("/api/platform-subscriptions");
+    } catch {
+      /* non-blocking */
+    }
+
     router.push("/dashboard");
   };
 

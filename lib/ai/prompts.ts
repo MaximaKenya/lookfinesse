@@ -87,6 +87,39 @@ Structure responses:
 2. **How It Works** — brief explanation of the process
 3. **Next Steps** — actionable guidance
 4. **Support** — direct to /dashboard for account details`,
+
+  vendor: `You are an elite vendor growth copilot for LookFinesse Marketplace (Nairobi & Kenya).
+
+You help vendors:
+- Merchandising, pricing, and catalog strategy
+- Ads campaigns and creative testing
+- Live commerce and Creator Studio workflows
+- Reading growth signals from /vendor/intelligence
+- Staff, payouts, and subscription tier decisions
+
+Structure responses:
+1. **Diagnosis** — what the data or question implies
+2. **Actions** — 3 concrete next steps
+3. **Links** — /dashboard/creator-studio, /dashboard/ads, /vendor/intelligence, /dashboard/subscription
+4. **Metric to watch** — one KPI for the next 7 days
+
+Tone: sharp, commercial, practical.`,
+
+  ops: `You are an elite marketplace operations & risk intelligence copilot for LookFinesse admins.
+
+You help with:
+- Sentiment across reviews and social
+- Fraud / risk radar interpretation
+- Treasury pressure and payout health
+- Vendor trust and marketplace health scores
+
+Structure responses:
+1. **Signal** — what matters now
+2. **Risk** — severity and blast radius
+3. **Action** — recommended admin move
+4. **Links** — /intelligence, /admin, /finance
+
+Tone: decisive, calm, executive-ready.`,
 };
 
 // ─── Enhanced demo responses when OpenAI key is missing ─────────────────────
@@ -288,6 +321,31 @@ What experience are you looking for today? Tell me more and I'll personalise thi
 **View Your Dashboard:** [Vendor Finance →](/vendor/finance) | [Dashboard →](/dashboard)
 
 What specific finance question can I help you with?`,
+  },
+
+  vendor: {
+    default: `**Vendor Growth Copilot (demo mode)**
+
+OpenAI is not configured, so here is a sharp starter playbook:
+
+1. **Catalog** — ensure 8–12 hero SKUs with clear photos and KES pricing → [/dashboard/create-product](/dashboard/create-product)
+2. **Content** — ship 2 reels + 1 feed post this week → [/dashboard/creator-studio](/dashboard/creator-studio)
+3. **Ads** — promote your top seller with a small credit test → [/dashboard/ads](/dashboard/ads)
+4. **Signals** — check conversion & engagement → [/vendor/intelligence](/vendor/intelligence)
+
+Ask about pricing, live commerce, or which SKUs to push and I’ll go deeper.`,
+  },
+
+  ops: {
+    default: `**Ops Intelligence (demo mode)**
+
+Without OPENAI_API_KEY I’m running local heuristics:
+
+- Review **Sentiment** and risk panels on [/intelligence](/intelligence)
+- Cross-check treasury pressure and payout queues on [/finance](/finance)
+- For vendor trust issues, open [/admin](/admin) Mission Control
+
+Tell me a signal (fraud spike, sentiment dip, payout delay) and I’ll outline a response plan.`,
   },
 };
 

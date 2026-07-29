@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabaseClient";
 import CreatorPageShell from "@/components/creator/CreatorPageShell";
 import { useVendorContext } from "@/hooks/useVendorContext";
+import { useUserRole } from "@/hooks/useUserRole";
+import { usePlatformSubscription } from "@/hooks/usePlatformSubscription";
 import Link from "next/link";
 import { Lock } from "lucide-react";
 
@@ -30,6 +32,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function CreateProductPage() {
   const router = useRouter();
   const { vendorId, storeId, loading: vendorLoading, isDemoMode, hasVendorStore } = useVendorContext();
+  const { isAdmin } = useUserRole();
+  const { isAdmin: subIsAdmin } = usePlatformSubscription();
+  const adminBypass = isAdmin || subIsAdmin;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [categories, setCategories] = useState<{ id: string; name: string; icon?: string }[]>([]);
@@ -59,12 +64,17 @@ export default function CreateProductPage() {
   }, []);
 
   useEffect(() => {
-    if (!vendorId) return;
+    if (!vendorId || adminBypass) {
+      if (adminBypass) {
+        setProductLimit({ current: 0, max: null, allowed: true, tier: "elite" });
+      }
+      return;
+    }
     fetch(`/api/products/limit?vendor_id=${vendorId}`)
       .then((r) => r.json())
       .then(setProductLimit)
       .catch(() => setProductLimit(null));
-  }, [vendorId]);
+  }, [vendorId, adminBypass]);
 
   const uploadPathPrefix = storeId ?? vendorId ?? "products";
 
@@ -95,7 +105,7 @@ export default function CreateProductPage() {
 
   const handleCreate = async () => {
     if (!vendorId) return toast.error("Vendor context unavailable");
-    if (productLimit && !productLimit.allowed) {
+    if (!adminBypass && productLimit && !productLimit.allowed) {
       return toast.error("Product limit reached — upgrade your plan");
     }
     if (!name || !price || stock === "") return toast.error("Fill all required fields");
@@ -157,7 +167,7 @@ export default function CreateProductPage() {
       isDemoMode={isDemoMode}
       hasVendorStore={hasVendorStore}
     >
-      {productLimit && productLimit.max != null && (
+      {!adminBypass && productLimit && productLimit.max != null && (
         <div
           className={`mb-6 rounded-2xl border px-4 py-3 flex items-start gap-3 ${
             productLimit.allowed
@@ -281,7 +291,7 @@ export default function CreateProductPage() {
             <button
               type="button"
               onClick={handleCreate}
-              disabled={submitting || vendorLoading || productHealth < 75 || (productLimit != null && !productLimit.allowed)}
+              disabled={submitting || vendorLoading || productHealth < 75 || (!adminBypass && productLimit != null && !productLimit.allowed)}
               className="w-full h-12 rounded-2xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-black font-black flex items-center justify-center gap-2"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish Product"}

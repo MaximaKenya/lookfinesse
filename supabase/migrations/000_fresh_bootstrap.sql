@@ -4,10 +4,13 @@
 -- Paste this entire file into Supabase Dashboard → SQL Editor → Run.
 --
 -- After this succeeds you only need:
---   1. Create auth test users (see docs/SEED_CREDENTIALS.md)
---   2. Run supabase/seed_auth_roles.sql
+--   1. Run supabase/seed_auth_users.sql (see docs/SEED_CREDENTIALS.md)
+--   2. Run supabase/seed_auth_roles.sql  (roles + 30-day Pro trial)
 --   3. Run supabase/seed.sql
---   4. Create Storage bucket "profile-media" in Dashboard (see docs/SEED_CREDENTIALS.md)
+--   4. Run supabase/seed_demo_metrics.sql  (orders, wallets, ledger — non-zero KPIs)
+--   5. Create Storage bucket "profile-media" in Dashboard (see docs/SEED_CREDENTIALS.md)
+--
+-- Legacy DBs: also run 025_platform_subscription_trial.sql for `trialing` status.
 --
 -- Do NOT run migrations 001–011 on a fresh project — they ALTER tables this file creates.
 -- Safe to re-run: uses CREATE TABLE IF NOT EXISTS and ADD COLUMN IF NOT EXISTS throughout.
@@ -547,14 +550,15 @@ CREATE TABLE IF NOT EXISTS platform_subscriptions (
   user_id                uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   tier                   text NOT NULL CHECK (tier IN ('starter', 'pro', 'elite')),
   status                 text NOT NULL DEFAULT 'pending'
-                         CHECK (status IN ('pending', 'active', 'cancelled', 'expired', 'past_due')),
+                         CHECK (status IN ('pending', 'active', 'trialing', 'cancelled', 'expired', 'past_due')),
   price_kes              numeric(12,2) NOT NULL DEFAULT 0,
-  payment_method         text CHECK (payment_method IN ('stripe', 'mpesa', 'wallet')),
+  payment_method         text CHECK (payment_method IS NULL OR payment_method IN ('stripe', 'mpesa', 'wallet')),
   payment_ref            text,
   stripe_subscription_id text,
   stripe_customer_id     text,
   current_period_start   timestamptz,
   current_period_end     timestamptz,
+  trial_ends_at          timestamptz,
   ad_credits_remaining   numeric(12,2) DEFAULT 0,
   created_at             timestamptz DEFAULT now(),
   updated_at             timestamptz DEFAULT now(),

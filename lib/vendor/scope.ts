@@ -1,4 +1,5 @@
 import { createSupabaseServer } from "@/lib/supabaseServer";
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 
 export type VendorScope = {
   userId: string;
@@ -40,9 +41,14 @@ export async function resolveVendorScope(
     ]);
 
   const roles = (roleRows ?? []).map((row) => row.role);
+  const admin = isPlatformAdmin({
+    email: user.email,
+    roles,
+    appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+  });
   const isVendor =
     roles.includes("vendor") ||
-    roles.includes("admin") ||
+    admin ||
     Boolean(vendorRow?.id) ||
     (stores?.length ?? 0) > 0;
 
