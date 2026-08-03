@@ -76,6 +76,15 @@ heroku config:set \
 
 The `Procfile` runs `npm run start`, which binds to `$PORT` on `0.0.0.0` (required by Heroku).
 
+## Production Supabase seeds (finance zeros)
+
+Heroku does **not** run SQL seeds. After deploy, in the Supabase SQL editor for the project matching Heroku `NEXT_PUBLIC_SUPABASE_URL`:
+
+1. `supabase/seed_demo_metrics.sql`
+2. `supabase/seed_admin_finance.sql`
+
+Login as **`admin@test.com`** only for `/admin/finance`. Set `SUPABASE_SERVICE_ROLE_KEY` on Heroku so admin finance APIs bypass RLS.
+
 ## Verify
 
 ```bash

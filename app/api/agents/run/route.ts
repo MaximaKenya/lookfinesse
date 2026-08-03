@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { runAgents } from "@/lib/agents/orchestrator";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 function computeSignalWeights(entry: any) {
   return {
@@ -187,6 +188,10 @@ function clusterVendors(vendorsWithRisk: any[]) {
 }
 
 export async function GET() {
+  const __adminGate = await requireAdmin();
+  if (!__adminGate.ok) return __adminGate.response;
+  const { db: __adminDb } = __adminGate.ctx;
+  void __adminDb;
   /**
    * 🔥 IMPORTANT:
    * created_at MUST exist in your DB

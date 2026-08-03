@@ -15,8 +15,6 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabaseClient";
-
 type Payout = {
   id: string;
   amount: number;
@@ -37,6 +35,7 @@ type Stats = {
   payouts: number;
   pendingPayouts: Payout[];
   fraud: Fraud[];
+  treasuryBalance: number;
   loading: boolean;
 };
 
@@ -130,6 +129,7 @@ export default function AdminFinanceDashboard() {
     payouts: 0,
     pendingPayouts: [],
     fraud: [],
+    treasuryBalance: 0,
     loading: true,
   });
 
@@ -138,31 +138,22 @@ export default function AdminFinanceDashboard() {
 
     async function load() {
       try {
-        const { data: revenueData } = await supabase
-          .from("ledger_entries")
-          .select("amount")
-          .eq("category", "fee");
-
-        const revenue =
-          revenueData?.reduce((sum, i) => sum + Number(i.amount ?? 0), 0) || 0;
-
-        const { data: payouts } = await supabase.from("payouts").select("*");
-        const totalPayouts =
-          payouts?.reduce((sum, p) => sum + Number(p.amount ?? 0), 0) || 0;
-
-        const pending = payouts?.filter((p: Payout) => p.status === "pending") || [];
-
-        const { data: fraud } = await supabase
-          .from("fraud_logs")
-          .select("*")
-          .order("created_at", { ascending: false });
-
+        // Server admin API — service-role when configured; never client RLS zeros
+        const res = await fetch("/api/admin/finance/overview", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          throw new Error(`finance overview ${res.status}`);
+        }
+        const data = await res.json();
         if (!mounted) return;
         setStats({
-          revenue,
-          payouts: totalPayouts,
-          pendingPayouts: pending as Payout[],
-          fraud: (fraud || []) as Fraud[],
+          revenue: Number(data.revenue ?? 0),
+          payouts: Number(data.payouts ?? 0),
+          pendingPayouts: (data.pendingPayouts ?? []) as Payout[],
+          fraud: (data.fraud ?? []) as Fraud[],
+          treasuryBalance: Number(data.treasuryBalance ?? 0),
           loading: false,
         });
       } catch (err) {
@@ -253,11 +244,11 @@ export default function AdminFinanceDashboard() {
             icon={Gauge}
           />
           <KpiTile
-            label="Fraud Alerts"
-            value={`${stats.fraud.length}`}
-            helper="Review the risk dashboard"
-            href="/admin/risk-dashboard"
-            tone="border-red-500/20 bg-red-500/5 hover:bg-red-500/10"
+            label="Treasury Balance"
+            value={`KES ${stats.treasuryBalance.toLocaleString()}`}
+            helper={`${stats.fraud.length} fraud alerts`}
+            href="/admin/treasury"
+            tone="border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10"
             icon={ShieldAlert}
           />
         </section>

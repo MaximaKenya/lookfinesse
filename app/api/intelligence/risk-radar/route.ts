@@ -9,9 +9,14 @@ import { buildFraudHeatmap } from "@/lib/intelligence/fraudHeatmap";
 import { generateAIInsight } from "@/lib/intelligence/aiInsights";
 
 import { LedgerEntry } from "@/types/system";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 
 export async function GET() {
+  const __adminGate = await requireAdmin();
+  if (!__adminGate.ok) return __adminGate.response;
+  const { db: __adminDb } = __adminGate.ctx;
+  void __adminDb;
   try {
     console.log(
       "🚀 Risk radar route started"

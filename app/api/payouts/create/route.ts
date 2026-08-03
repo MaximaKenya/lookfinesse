@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { getPayoutDelay } from "@/lib/payouts/scheduler";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function POST(req: Request) {
+  const __adminGate = await requireAdmin();
+  if (!__adminGate.ok) return __adminGate.response;
+  const { db: __adminDb } = __adminGate.ctx;
+  void __adminDb;
   const body = await req.json();
 
   const { vendor_id, amount, currency } = body;

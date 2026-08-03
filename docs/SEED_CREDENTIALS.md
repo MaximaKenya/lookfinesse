@@ -27,8 +27,8 @@ Legacy DBs: run **`supabase/migrations/025_platform_subscription_trial.sql`** be
 
 | Email | Password | Role | What you can access |
 |-------|----------|------|---------------------|
-| `admin@test.com` | `Test123456!` | **Platform admin** | **Full exclusive access** — bypasses every `PlatformSubscriptionGate`, nav entitlement lock, and proxy vendor tier check. Sees **all** nav (consumer + vendor + admin). Allowed on `/dashboard`, `/vendor/*`, `/admin/*`, `/finance`, `/intelligence`, and all create flows. `useUserRole().isAdmin === true` unlocks everything. Also: KYC reviews, ledger, treasury, risk, categories. |
-| `vendor@test.com` | `Test123456!` | **Vendor / creator** | Creator Studio, `/dashboard`, `/vendor/*`, shop & feed publishing — **Pro trial** by default after seed; gated by Starter/Pro/Elite after trial ends |
+| `admin@test.com` | `Test123456!` | **Platform admin** | **Only account with admin surfaces.** `user_roles.role=admin` **or** `isPlatformAdmin` (this email / JWT `app_metadata.role=admin`). Full access to `/admin/*`, `/finance`, `/intelligence`, `/dashboard/admin/*`, treasury, risk, compliance, payouts admin APIs. Also bypasses vendor tier gates on `/dashboard` / `/vendor/*`. |
+| `vendor@test.com` | `Test123456!` | **Vendor / creator** | Creator Studio, `/dashboard`, `/vendor/*`, shop & feed publishing — **Pro trial** by default after seed. **Cannot** open `/admin/*`, `/finance`, `/intelligence`, or `/dashboard/admin/*` even with an active subscription. |
 | `user@test.com` | `Test123456!` | **Buyer / fan** | Feed, shop, checkout, bookings, fan memberships, profile — no vendor or admin routes |
 
 Optional second vendor: `glow@test.com` — **Glow Salon & Spa** service provider store (not a seeded login account).
@@ -76,6 +76,15 @@ Optional second vendor: `glow@test.com` — **Glow Salon & Spa** service provide
 4. After this, `/dashboard` and `/vendor/finance` show real figures for `vendor@test.com`
 
 **If dashboards show all zeros or finance wallets are empty:** re-run **`supabase/seed_demo_metrics.sql`** in the SQL editor (safe / idempotent). Also re-run **`supabase/seed_auth_roles.sql`** if `vendor@test.com` has no Pro trial (`platform_subscriptions.status = trialing`). Legacy DBs need **`025_platform_subscription_trial.sql`** first so `trialing` is allowed.
+
+### Step 5b: Admin finance (platform KPIs — Heroku production)
+
+1. **SQL** → **New query** on the **same Supabase project** wired to Heroku (`NEXT_PUBLIC_SUPABASE_URL`)
+2. Paste and run **`supabase/seed_admin_finance.sql`** (after `seed_demo_metrics.sql`)
+3. Inserts `category=fee` ledger rows, treasury accounts, liquidity pools, payout forecasts, fraud logs — **non-zero** `/admin/finance`
+4. Login as **`admin@test.com` only** to view `/admin/finance` (vendors are redirected)
+
+**If `/admin/finance` shows zeros on Heroku:** production DB is empty or seeds were run on a different Supabase project. Re-run **both** `seed_demo_metrics.sql` **and** `seed_admin_finance.sql` on the Heroku-linked project. Ensure `SUPABASE_SERVICE_ROLE_KEY` is set on Heroku so admin APIs can read past RLS.
 
 ### Step 6: Profile media bucket (Dashboard only)
 
@@ -140,9 +149,10 @@ Forgot-password flow: `/forgot-password` → email link → `/auth/reset-passwor
 
 ## Notes
 
-- **`admin@test.com` has full exclusive access** — `isAdmin` bypasses `PlatformSubscriptionGate`, `filterNavByEntitlements` / `vendorCanAccessPath`, and `proxy.ts` vendor tier checks. Admin sidebars merge vendor + admin nav (Finance groups renamed to avoid duplicate React keys).
+- **`admin@test.com` is the only seeded platform admin** — `isPlatformAdmin` / `user_roles.role=admin`. Vendors never reach `/admin/*`, `/finance`, `/intelligence`, or `/dashboard/admin/*` (proxy + layout + `requireAdmin()` APIs). Admin still bypasses vendor tier gates on `/dashboard` / `/vendor/*`.
 - Seed emails like `elitefit@vyb.co.ke` are **vendor business contacts**, not login accounts.
-- Re-running `seed_auth_users.sql`, `seed.sql`, and `seed_demo_metrics.sql` is safe.
+- Re-running `seed_auth_users.sql`, `seed.sql`, `seed_demo_metrics.sql`, and `seed_admin_finance.sql` is safe.
+- Production Heroku: run `seed_demo_metrics.sql` **and** `seed_admin_finance.sql` on the **same** Supabase project as `NEXT_PUBLIC_SUPABASE_URL`.
 - If Dashboard user creation fails, use `seed_auth_users.sql` instead — it does not require the Auth UI.
 - Platform subscription enforcement: see `lib/subscriptions/platformEntitlements.ts`.
 - Fan tier enforcement: see `lib/subscriptions/fanEntitlements.ts`.

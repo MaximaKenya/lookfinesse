@@ -20,13 +20,13 @@ Priority: **P0** = app will not run or auth fails · **P1** = core commerce brok
 
 ## Quick production checklist
 
-1. Supabase project live + migrations + `seed_auth_users.sql` / roles / `seed.sql` / `seed_demo_metrics.sql`
+1. Supabase project live + migrations + `seed_auth_users.sql` / roles / `seed.sql` / `seed_demo_metrics.sql` / **`seed_admin_finance.sql`** (same project as Heroku — required for non-zero `/admin/finance`)
 2. Storage buckets + RLS policies
 3. `NEXT_PUBLIC_BASE_URL` = production HTTPS URL
 4. Google OAuth redirect allow-list in Supabase
 5. M-Pesa + Stripe live keys + HTTPS callbacks/webhooks
 6. Optional: OpenAI, Resend, Maps, `CRON_SECRET`
-7. Smoke: login → logout (session cleared) → login as `admin@test.com` (full access) → `vendor@test.com` (Pro trial banner + non-zero finance KPIs) → vendor checkout path
+7. Smoke: login → logout (session cleared) → login as `admin@test.com` (admin surfaces) → confirm `vendor@test.com` cannot open `/admin/finance` → vendor Pro trial + non-zero vendor finance KPIs
 
 ## Related docs
 

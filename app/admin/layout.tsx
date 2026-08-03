@@ -1,10 +1,13 @@
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
+import { requireAdminPage } from "@/lib/auth/requireAdminPage";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await requireAdminPage({ returnPath: "/admin" });
+
   return (
     <div className="min-h-screen bg-black text-white">
       <DashboardSidebar

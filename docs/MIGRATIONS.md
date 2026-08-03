@@ -15,9 +15,18 @@ If you have a **new empty project** (no tables yet), use this path. Do **not** r
 | **3** | `supabase/seed_auth_roles.sql` | Links auth users → `user_roles`, vendor profile, `user_profiles`, **30-day Pro trial** |
 | **4** | `supabase/seed.sql` | Demo vendors, products, feed, bookings, ads |
 | **5** | `supabase/seed_demo_metrics.sql` | Orders, wallets, ledger, payouts, Pro trial — **non-zero** `/dashboard` & `/vendor/finance`. **Re-run anytime** if KPIs show zeros. |
-| **6** | Dashboard → Storage → New bucket **`profile-media`** (public) | Required for profile avatar/banner uploads — **not** created by `000` (Dashboard-only on many hosted projects) |
+| **6** | `supabase/seed_admin_finance.sql` | Platform fees (`category=fee`), treasury accounts, liquidity pools, fraud telemetry — **non-zero** `/admin/finance`. **Required on the same Supabase project as Heroku.** |
+| **7** | Dashboard → Storage → New bucket **`profile-media`** (public) | Required for profile avatar/banner uploads — **not** created by `000` (Dashboard-only on many hosted projects) |
 
-After step 5 you can log in and use the app with populated KPIs. **Skip migrations 001–024** unless you are repairing a legacy install (see below). Legacy installs that already ran an older `000` should also run **`025_platform_subscription_trial.sql`** (trialing status) and **`026_platform_subscriptions_rls.sql`** (owner RLS for trial inserts) before seeding trial rows.
+After step 6 you can log in and use the app with populated KPIs (vendor + admin finance). **Skip migrations 001–024** unless you are repairing a legacy install (see below). Legacy installs that already ran an older `000` should also run **`025_platform_subscription_trial.sql`** (trialing status) and **`026_platform_subscriptions_rls.sql`** (owner RLS for trial inserts) before seeding trial rows.
+
+### Heroku / production finance zeros
+
+`/admin/finance` reads `ledger_entries` (`category=fee`), `payouts`, `fraud_logs` / `fraud_events`, and `treasury_accounts` via `/api/admin/finance/overview` (admin-gated; prefers `SUPABASE_SERVICE_ROLE_KEY`). If production shows zeros:
+
+1. Confirm Heroku config points at the intended Supabase project
+2. Run `seed_demo_metrics.sql` then `seed_admin_finance.sql` on **that** project
+3. Confirm `SUPABASE_SERVICE_ROLE_KEY` is set (APIs fall back to the session client but never invent zeros)
 
 ### What `000_fresh_bootstrap.sql` includes
 

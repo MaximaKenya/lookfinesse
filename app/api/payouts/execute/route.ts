@@ -7,8 +7,13 @@ import {
 } from "@/lib/mpesa";
 import { logAudit } from "@/lib/audit/log";
 import { getRequestOrigin } from "@/lib/url";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function POST(req: Request) {
+  const __adminGate = await requireAdmin();
+  if (!__adminGate.ok) return __adminGate.response;
+  const { db: __adminDb } = __adminGate.ctx;
+  void __adminDb;
   try {
     const origin = getRequestOrigin(req);
     const { vendor_id, amount, phone } = await req.json();

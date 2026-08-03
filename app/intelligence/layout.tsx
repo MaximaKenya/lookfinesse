@@ -1,10 +1,13 @@
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
+import { requireAdminPage } from "@/lib/auth/requireAdminPage";
 
-export default function IntelligenceLayout({
+export default async function IntelligenceLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await requireAdminPage({ returnPath: "/intelligence" });
+
   return (
     <div className="min-h-screen bg-black text-white">
       <DashboardSidebar

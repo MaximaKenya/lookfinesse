@@ -170,19 +170,18 @@ export async function proxy(request: NextRequest) {
       return sessionResponse;
     }
 
+    // Strict admin-only — vendors (even subscribed) NEVER reach /admin, /finance,
+    // /intelligence, or /dashboard/admin. No subscription / vendor bypass.
     if (needsAdmin) {
-      if (isVendor) {
-        devLogRedirect(pathname, "/vendor", "vendor blocked from admin");
-        return withSessionCookies(
-          sessionResponse,
-          NextResponse.redirect(new URL("/vendor", request.url))
-        );
-      }
-      // Shopper hitting admin → dashboard home with upgrade CTA (never /feed)
-      devLogRedirect(pathname, "/dashboard", "shopper blocked from admin");
+      const dest = isVendor ? "/dashboard" : "/feed";
+      devLogRedirect(
+        pathname,
+        dest,
+        isVendor ? "vendor blocked from admin" : "shopper blocked from admin"
+      );
       return withSessionCookies(
         sessionResponse,
-        NextResponse.redirect(new URL("/dashboard", request.url))
+        NextResponse.redirect(new URL(dest, request.url))
       );
     }
 
@@ -261,6 +260,11 @@ export async function proxy(request: NextRequest) {
 
     return sessionResponse;
   } catch {
+    // Fail closed on admin surfaces — never soft-open /admin/* on DB errors
+    if (needsAdmin) {
+      devLogRedirect(pathname, "/dashboard", "admin gate error fail-closed");
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
     return NextResponse.next();
   }
 }

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { supabase } from "@/lib/supabaseClient";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function GET() {
+  const __adminGate = await requireAdmin();
+  if (!__adminGate.ok) return __adminGate.response;
+  const { db: __adminDb } = __adminGate.ctx;
+  void __adminDb;
   const { data: events, error } = await supabase
     .from("financial_events")
     .select("event_type, description, severity, created_at, status")

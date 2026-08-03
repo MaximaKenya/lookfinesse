@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { postJournal } from "@/lib/finance/postJournal";
 import { sendMpesaPayout } from "@/lib/mpesa/payout";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function POST(req: Request) {
+  const __adminGate = await requireAdmin();
+  if (!__adminGate.ok) return __adminGate.response;
+  const { db: __adminDb } = __adminGate.ctx;
+  void __adminDb;
   try {
     const { payoutId, adminId } = await req.json();
 

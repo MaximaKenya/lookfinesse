@@ -1,10 +1,13 @@
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
+import { requireAdminPage } from "@/lib/auth/requireAdminPage";
 
-export default function FinanceLayout({
+export default async function FinanceLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await requireAdminPage({ returnPath: "/finance" });
+
   return (
     <div className="min-h-screen bg-black text-white">
       <DashboardSidebar
