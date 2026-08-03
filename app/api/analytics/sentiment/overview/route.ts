@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSentimentOverview } from "@/lib/ai/sentimentAnalysis";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const limit = Number(searchParams.get("limit") ?? 200);

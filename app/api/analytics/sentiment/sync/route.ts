@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { queueSentimentAnalysis } from "@/lib/ai/sentimentAnalysis";
 
+export const dynamic = "force-dynamic";
+
 type SyncBody = {
   source_types?: ("feed_post" | "comment" | "review" | "booking_note")[];
   limit?: number;

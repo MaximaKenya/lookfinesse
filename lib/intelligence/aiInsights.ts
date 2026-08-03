@@ -1,9 +1,5 @@
-import OpenAI from "openai";
+import { getOpenAI } from "@/lib/openai";
 import { isOpenAiConfigured, resolveOpenAiModel } from "@/lib/ai/provider";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 function localFallbackInsight(data: any) {
   const suspicious = data?.risk?.suspiciousCount || 0;
@@ -34,7 +30,8 @@ function localFallbackInsight(data: any) {
 }
 
 export async function generateAIInsight(data: any) {
-  if (!isOpenAiConfigured()) {
+  const openai = getOpenAI();
+  if (!openai || !isOpenAiConfigured()) {
     return localFallbackInsight(data);
   }
 

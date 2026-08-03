@@ -1,4 +1,4 @@
-import { openai } from "@/lib/openai";
+import { getOpenAI } from "@/lib/openai";
 import { supabase } from "@/lib/supabaseClient";
 import { trackBehavior } from "@/lib/ai/trackBehavior";
 import type { SentimentLabel, SentimentSourceType } from "@/lib/ai/sentimentTypes";
@@ -74,7 +74,8 @@ export function analyzeTextRuleBased(text: string): SentimentResult {
 }
 
 async function analyzeTextWithOpenAI(text: string): Promise<SentimentResult | null> {
-  if (!isOpenAiConfigured()) return null;
+  const openai = getOpenAI();
+  if (!openai || !isOpenAiConfigured()) return null;
 
   try {
     const response = await openai.chat.completions.create({
