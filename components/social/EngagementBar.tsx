@@ -8,6 +8,13 @@ import { useRequireLogin } from "@/hooks/useRequireLogin";
 import { Bookmark, MessageCircle, Share2, Heart, MoreHorizontal, Flag, Link2 } from "lucide-react";
 import { toast } from "sonner";
 
+type EngagementSeed = {
+  reaction_counts?: Partial<Record<ReactionType, number>>;
+  reaction_count?: number;
+  comment_count?: number;
+  user_reaction?: ReactionType | null;
+};
+
 type Props = {
   postId?: string;
   reelId?: string;
@@ -17,6 +24,11 @@ type Props = {
   showMore?: boolean;
   /** Bump to refetch comment count after a new comment is posted. */
   commentRefreshKey?: number;
+  /**
+   * When provided (e.g. from GET /api/feed batch), skip per-item GET
+   * /api/reactions and /api/comments. Detail pages omit this to fetch live.
+   */
+  initialEngagement?: EngagementSeed | null;
 };
 
 export default function EngagementBar({
@@ -27,17 +39,23 @@ export default function EngagementBar({
   vertical = false,
   showMore = true,
   commentRefreshKey = 0,
+  initialEngagement = null,
 }: Props) {
   const { userId } = useCurrentUser();
   const requireLogin = useRequireLogin();
   const router = useRouter();
-  const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
+  const hasSeed = initialEngagement != null;
+  const [userReaction, setUserReaction] = useState<ReactionType | null>(
+    initialEngagement?.user_reaction ?? null
+  );
   const [saved, setSaved] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [reactionCount, setReactionCount] = useState(0);
-  const [reactionCounts, setReactionCounts] = useState<Partial<Record<ReactionType, number>>>({});
-  const [commentCount, setCommentCount] = useState(0);
+  const [reactionCount, setReactionCount] = useState(initialEngagement?.reaction_count ?? 0);
+  const [reactionCounts, setReactionCounts] = useState<Partial<Record<ReactionType, number>>>(
+    initialEngagement?.reaction_counts ?? {}
+  );
+  const [commentCount, setCommentCount] = useState(initialEngagement?.comment_count ?? 0);
   const moreRef = useRef<HTMLDivElement>(null);
 
   const returnUrl =
@@ -49,6 +67,7 @@ export default function EngagementBar({
         : "/reels");
 
   useEffect(() => {
+    if (hasSeed) return;
     const params = new URLSearchParams();
     if (postId) params.set("post_id", postId);
     else if (reelId) params.set("reel_id", reelId);
@@ -66,10 +85,13 @@ export default function EngagementBar({
         setReactionCounts(byType);
       })
       .catch(() => {});
-  }, [postId, reelId, userId]);
+  }, [postId, reelId, userId, hasSeed]);
 
   useEffect(() => {
     if (!postId && !reelId) return;
+    // List view: seed covers initial count; only refetch when comments change.
+    if (hasSeed && commentRefreshKey === 0) return;
+
     const params = new URLSearchParams();
     if (postId) params.set("post_id", postId);
     else if (reelId) params.set("reel_id", reelId);
@@ -84,7 +106,7 @@ export default function EngagementBar({
         setCommentCount(typeof data?.count === "number" ? data.count : data?.comments?.length ?? 0);
       })
       .catch(() => {});
-  }, [postId, reelId, commentRefreshKey]);
+  }, [postId, reelId, commentRefreshKey, hasSeed]);
 
   useEffect(() => {
     if (!userId || (!postId && !reelId)) return;

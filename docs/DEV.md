@@ -48,24 +48,26 @@ On Windows you may see:
 
 - `ENOENT` for `page.js` or `routes-manifest.json` under `.next/dev`
 - `PackFileCacheStrategy` rename errors under `.next/dev/cache/webpack`
-- Slow or 500 responses on first load of `/feed` or `/api/ads/serve`
+- 500s on `/dashboard`, `/services`, `/dashboard/subscription`, `/feed`, or `/api/ads/serve`
 
-These come from a corrupted or racing webpack filesystem cache, often after killing the dev server mid-compile or running `next build` while `next dev` is still running.
+These come from a corrupted or racing webpack filesystem cache, often after killing the dev server mid-compile or running `next build` while `next dev` is still running. Creating an empty `routes-manifest.json` stub does **not** fix this — delete `.next` and recompile.
 
-### Fix (try in order)
+`next.config.ts` uses webpack `cache: { type: "memory" }` in development on Windows to reduce filesystem rename races.
 
-1. Stop all Node/Next processes (only one dev server at a time).
-2. Clear dev cache and restart:
+### Fix when ENOENT appears
 
-   ```bash
-   npm run dev:clean
-   ```
-
-3. If errors persist, full clean then dev:
+1. **Stop all Node/Next processes** (Task Manager → end node.exe, or close every terminal running `next`). Only one `npm run dev` at a time.
+2. Full clean, then a single dev server:
 
    ```bash
    npm run clean
    npm run dev
+   ```
+
+3. Shortcut (clears webpack/dev caches only, then starts):
+
+   ```bash
+   npm run dev:clean
    ```
 
 4. Do **not** run `npm run build` and `npm run dev` in parallel.

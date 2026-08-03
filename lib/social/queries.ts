@@ -360,11 +360,11 @@ export async function getFeedPosts(options: {
   const { type = "discover", userId, limit = 50 } = options;
 
   if (!isSupabaseConfigured()) {
-    return filterDemoPosts(DEMO_FEED_POSTS, type);
+    return attachFeedEngagement(filterDemoPosts(DEMO_FEED_POSTS, type), userId);
   }
 
   if (type === "following" && !userId) {
-    return filterDemoPosts(DEMO_FEED_POSTS, "following");
+    return attachFeedEngagement(filterDemoPosts(DEMO_FEED_POSTS, "following"), userId);
   }
 
   let vendorIds: string[] | null = null;
@@ -376,9 +376,11 @@ export async function getFeedPosts(options: {
         .eq("follower_id", userId);
       vendorIds = follows?.map((f) => f.vendor_id) ?? [];
     } catch {
-      return filterDemoPosts(DEMO_FEED_POSTS, "following");
+      return attachFeedEngagement(filterDemoPosts(DEMO_FEED_POSTS, "following"), userId);
     }
-    if (!vendorIds.length) return filterDemoPosts(DEMO_FEED_POSTS, "following");
+    if (!vendorIds.length) {
+      return attachFeedEngagement(filterDemoPosts(DEMO_FEED_POSTS, "following"), userId);
+    }
   }
 
   const data = await tryFeedPostsQuery((q) => {
@@ -389,9 +391,76 @@ export async function getFeedPosts(options: {
     return q;
   }, limit);
 
-  if (data === null) return filterDemoPosts(DEMO_FEED_POSTS, type);
-  if (data.length === 0) return filterDemoPosts(DEMO_FEED_POSTS, type);
-  return data;
+  if (data === null) return attachFeedEngagement(filterDemoPosts(DEMO_FEED_POSTS, type), userId);
+  if (data.length === 0) return attachFeedEngagement(filterDemoPosts(DEMO_FEED_POSTS, type), userId);
+  return attachFeedEngagement(data, userId);
+}
+
+/** Attach reaction_counts / comment_count / user_reaction in one batch (no N+1).
+ * Uses the shared supabase client (not supabaseServer) so queries.ts stays
+ * importable from client components.
+ */
+async function attachFeedEngagement<T extends { id: string }>(
+  posts: T[],
+  userId?: string
+): Promise<(T & {
+  reaction_counts: Partial<Record<string, number>>;
+  reaction_count: number;
+  comment_count: number;
+  user_reaction: string | null;
+})[]> {
+  const empty = {
+    reaction_counts: {} as Partial<Record<string, number>>,
+    reaction_count: 0,
+    comment_count: 0,
+    user_reaction: null as string | null,
+  };
+
+  if (!posts.length) return posts.map((post) => ({ ...post, ...empty }));
+  if (!isSupabaseConfigured()) {
+    return posts.map((post) => ({ ...post, ...empty }));
+  }
+
+  const ids = posts.map((p) => p.id).filter((id) => id && !String(id).startsWith("demo-"));
+  if (!ids.length) {
+    return posts.map((post) => ({ ...post, ...empty }));
+  }
+
+  try {
+    const [{ data: reactions }, { data: comments }] = await Promise.all([
+      supabase.from("post_reactions").select("post_id, user_id, reaction_type").in("post_id", ids),
+      supabase.from("post_comments").select("post_id").in("post_id", ids),
+    ]);
+
+    const byPost = new Map<string, typeof empty>();
+    for (const id of ids) {
+      byPost.set(id, {
+        reaction_counts: {},
+        reaction_count: 0,
+        comment_count: 0,
+        user_reaction: null,
+      });
+    }
+
+    for (const row of reactions ?? []) {
+      const entry = byPost.get(row.post_id as string);
+      if (!entry) continue;
+      const type = row.reaction_type as string;
+      entry.reaction_counts[type] = (entry.reaction_counts[type] ?? 0) + 1;
+      entry.reaction_count += 1;
+      if (userId && row.user_id === userId) entry.user_reaction = type;
+    }
+
+    for (const row of comments ?? []) {
+      const entry = byPost.get(row.post_id as string);
+      if (entry) entry.comment_count += 1;
+    }
+
+    return posts.map((post) => ({ ...post, ...(byPost.get(post.id) ?? empty) }));
+  } catch (err) {
+    console.error("[attachFeedEngagement]", err);
+    return posts.map((post) => ({ ...post, ...empty }));
+  }
 }
 
 export async function getReels(limit = 25) {

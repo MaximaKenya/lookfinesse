@@ -50,6 +50,11 @@ export interface FeedPost {
   hashtags?: string[];
   location?: string;
   created_at?: string;
+  /** Batched on GET /api/feed — use in list view to skip per-post fetches */
+  reaction_counts?: Partial<Record<ReactionType, number>>;
+  reaction_count?: number;
+  comment_count?: number;
+  user_reaction?: ReactionType | null;
   vendors?: {
     id: string;
     name: string;

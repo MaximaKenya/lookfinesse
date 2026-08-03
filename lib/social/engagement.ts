@@ -180,6 +180,65 @@ export async function getCommentCount(postId?: string, reelId?: string): Promise
   return count ?? 0;
 }
 
+/** Batched engagement for feed list — avoids N+1 /api/reactions + /api/comments. */
+export type FeedPostEngagement = {
+  reaction_counts: Partial<Record<ReactionType, number>>;
+  reaction_count: number;
+  comment_count: number;
+  user_reaction: ReactionType | null;
+};
+
+export async function getFeedEngagementBatch(params: {
+  postIds: string[];
+  userId?: string;
+}): Promise<Map<string, FeedPostEngagement>> {
+  const result = new Map<string, FeedPostEngagement>();
+  const ids = [...new Set(params.postIds.filter(Boolean))];
+  for (const id of ids) {
+    result.set(id, {
+      reaction_counts: {},
+      reaction_count: 0,
+      comment_count: 0,
+      user_reaction: null,
+    });
+  }
+  if (ids.length === 0) return result;
+
+  try {
+    const supabase = await db();
+    const [{ data: reactions }, { data: comments }] = await Promise.all([
+      supabase
+        .from("post_reactions")
+        .select("post_id, user_id, reaction_type")
+        .in("post_id", ids),
+      supabase.from("post_comments").select("post_id").in("post_id", ids),
+    ]);
+
+    for (const row of reactions ?? []) {
+      const postId = row.post_id as string;
+      const entry = result.get(postId);
+      if (!entry) continue;
+      const type = row.reaction_type as ReactionType;
+      entry.reaction_counts[type] = (entry.reaction_counts[type] ?? 0) + 1;
+      entry.reaction_count += 1;
+      if (params.userId && row.user_id === params.userId) {
+        entry.user_reaction = type;
+      }
+    }
+
+    for (const row of comments ?? []) {
+      const postId = row.post_id as string;
+      const entry = result.get(postId);
+      if (!entry) continue;
+      entry.comment_count += 1;
+    }
+  } catch (err) {
+    console.error("[getFeedEngagementBatch]", err);
+  }
+
+  return result;
+}
+
 export async function toggleSave(params: {
   userId: string;
   postId?: string;

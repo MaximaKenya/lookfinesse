@@ -30,9 +30,24 @@ export default function FeedCard({ post }: Props) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLElement | null>(null);
+  const viewedRef = useRef(false);
 
+  // Track view only when card is mostly on screen (avoids N behavior posts on mount)
   useEffect(() => {
-    if (post?.id) trackView(userId, "feed_post", post.id, post.type);
+    const el = cardRef.current;
+    if (!el || !post?.id) return;
+    viewedRef.current = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.45 || viewedRef.current) return;
+        viewedRef.current = true;
+        trackView(userId, "feed_post", post.id, post.type);
+      },
+      { threshold: [0.45] }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [post?.id, userId, post?.type]);
 
   useEffect(() => {
@@ -47,6 +62,18 @@ export default function FeedCard({ post }: Props) {
   const thumb = post.thumbnail_url || post.media_urls?.[0] || "/placeholder.png";
   const typeLabel = TYPE_LABELS[post.type] || post.type?.replace("_", " ") || "New Drop";
   const detailHref = `/feed/${post.id}`;
+  const engagementSeed =
+    post.reaction_counts != null ||
+    post.comment_count != null ||
+    post.reaction_count != null ||
+    post.user_reaction !== undefined
+      ? {
+          reaction_counts: post.reaction_counts,
+          reaction_count: post.reaction_count,
+          comment_count: post.comment_count,
+          user_reaction: post.user_reaction ?? null,
+        }
+      : null;
 
   const handleSave = async () => {
     if (!userId) return toast.error("Sign in to save");
@@ -92,6 +119,7 @@ export default function FeedCard({ post }: Props) {
   return (
     <>
       <article
+        ref={cardRef}
         onClick={openDetail}
         className="bg-[#0f0f0f] rounded-3xl overflow-hidden border border-white/8 hover:border-white/15 transition-all cursor-pointer"
       >
@@ -167,7 +195,11 @@ export default function FeedCard({ post }: Props) {
 
         {/* Engagement + caption */}
         <div className="px-4 py-3">
-          <EngagementBar postId={post.id} onCommentClick={() => setCommentsOpen(true)} />
+          <EngagementBar
+            postId={post.id}
+            initialEngagement={engagementSeed}
+            onCommentClick={() => setCommentsOpen(true)}
+          />
 
           {post.caption && (
             <p className="text-[13px] text-white/70 mt-3 leading-relaxed line-clamp-2">{post.caption}</p>

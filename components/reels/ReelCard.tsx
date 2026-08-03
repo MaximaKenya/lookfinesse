@@ -28,20 +28,26 @@ export default function ReelCard({ reel }: Props) {
     setShareUrl(`${window.location.origin}/reels/${reel.id}`);
   }, [reel.id]);
 
-  useEffect(() => {
-    if (reel?.id) trackView(userId, "reel", reel.id, "reel");
-  }, [reel?.id, userId]);
+  const viewedRef = useRef(false);
 
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
+    viewedRef.current = false;
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting && entry.intersectionRatio >= 0.55),
+      ([entry]) => {
+        const visible = entry.isIntersecting && entry.intersectionRatio >= 0.55;
+        setInView(visible);
+        if (visible && reel?.id && !viewedRef.current) {
+          viewedRef.current = true;
+          trackView(userId, "reel", reel.id, "reel");
+        }
+      },
       { threshold: [0.55, 0.75, 1] }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [reel?.id, userId]);
 
   useEffect(() => {
     const v = videoRef.current;
