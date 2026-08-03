@@ -1,4 +1,5 @@
 import { PayoutProvider } from "./types";
+import Stripe from "stripe";
 
 export async function payoutProviderFactory(
   provider: PayoutProvider,
@@ -21,13 +22,18 @@ export async function mpesaPayout(payload: any) {
   return { status: "sent_mpesa", payload };
 }
 
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-03-25.dahlia",
-});
+function getStripe(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+  return new Stripe(key, {
+    apiVersion: "2026-03-25.dahlia",
+  });
+}
 
 export async function stripePayout(payload: any) {
+  const stripe = getStripe();
   const transfer = await stripe.transfers.create({
     amount: Math.round(payload.amount * 100),
     currency: "kes",

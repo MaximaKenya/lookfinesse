@@ -17,7 +17,7 @@ If you have a **new empty project** (no tables yet), use this path. Do **not** r
 | **5** | `supabase/seed_demo_metrics.sql` | Orders, wallets, ledger, payouts, Pro trial — **non-zero** `/dashboard` & `/vendor/finance`. **Re-run anytime** if KPIs show zeros. |
 | **6** | Dashboard → Storage → New bucket **`profile-media`** (public) | Required for profile avatar/banner uploads — **not** created by `000` (Dashboard-only on many hosted projects) |
 
-After step 5 you can log in and use the app with populated KPIs. **Skip migrations 001–024** unless you are repairing a legacy install (see below). Legacy installs that already ran an older `000` should also run **`025_platform_subscription_trial.sql`** before seeding trial rows.
+After step 5 you can log in and use the app with populated KPIs. **Skip migrations 001–024** unless you are repairing a legacy install (see below). Legacy installs that already ran an older `000` should also run **`025_platform_subscription_trial.sql`** (trialing status) and **`026_platform_subscriptions_rls.sql`** (owner RLS for trial inserts) before seeding trial rows.
 
 ### What `000_fresh_bootstrap.sql` includes
 
@@ -64,6 +64,7 @@ Run **001 → 020** in order. Each file is idempotent (`IF NOT EXISTS` / conditi
 | 023 | `023_booking_availability_seed.sql` | Booking availability seed |
 | 024 | `024_bookings_fk_and_capacity.sql` | Bookings FK + capacity |
 | 025 | `025_platform_subscription_trial.sql` | `trialing` status + `trial_ends_at` for free trials |
+| 026 | `026_platform_subscriptions_rls.sql` | RLS SELECT/INSERT/UPDATE for own `platform_subscriptions` (+ vendors insert) |
 
 ### Virtual Dresser preferences (no new migration)
 

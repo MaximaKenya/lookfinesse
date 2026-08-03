@@ -59,7 +59,8 @@ git push heroku HEAD:main
 | `SUPABASE_SERVICE_ROLE_KEY` | Runtime | Server routes / admin |
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_BASE_URL` | Runtime | Heroku app URL |
 | `OPENAI_API_KEY` | **No** (optional) | Chat, sentiment, tips, insights. Demo fallbacks without it. |
-| `STRIPE_*` / `MPESA_*` / `RESEND_API_KEY` | **No** (optional) | Payments / email |
+| `RESEND_API_KEY` | **No** (optional) | Email alerts. Skipped at runtime if unset; must not block build. |
+| `STRIPE_*` / `MPESA_*` | **No** (optional) | Payments |
 
 ```bash
 heroku config:set \

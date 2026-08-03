@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createSupabaseServiceRole } from "@/lib/supabase/serviceRole";
 import { getPlatformEntitlements } from "./platformEntitlements";
 import type { PlatformTierId } from "./platformTiers";
+
+/** Prefer service role for trial writes (bypasses RLS); fall back to user client. */
+function writeClient(userClient: SupabaseClient): SupabaseClient {
+  return createSupabaseServiceRole() ?? userClient;
+}
 
 /** Default free-trial tier — full Pro entitlements for 30 days. */
 export const DEFAULT_TRIAL_TIER: PlatformTierId = "pro";
@@ -49,7 +55,8 @@ export async function ensureVendorRow(
     store?.name?.trim() ||
     "My Store";
 
-  const { data: inserted, error } = await supabase
+  const db = writeClient(supabase);
+  const { data: inserted, error } = await db
     .from("vendors")
     .insert({
       user_id: userId,
@@ -67,7 +74,7 @@ export async function ensureVendorRow(
   }
 
   // Link role so subsequent scope checks see vendor
-  await supabase
+  await db
     .from("user_roles")
     .upsert({ user_id: userId, role: "vendor" }, { onConflict: "user_id,role" });
 
@@ -77,6 +84,8 @@ export async function ensureVendorRow(
 /**
  * Create a 30-day Pro (or Elite) trial platform_subscription for new vendors.
  * Idempotent: does nothing when a subscription row already exists.
+ * Writes use service role when SUPABASE_SERVICE_ROLE_KEY is set (RLS bypass);
+ * otherwise rely on platform_subscriptions owner policies (migration 026).
  */
 export async function ensureVendorTrial(
   supabase: SupabaseClient,
@@ -89,6 +98,7 @@ export async function ensureVendorTrial(
   }
 ): Promise<EnsureTrialResult> {
   const tier = opts?.tier ?? DEFAULT_TRIAL_TIER;
+  const db = writeClient(supabase);
 
   let vendorId = opts?.vendorId ?? null;
 
@@ -119,7 +129,8 @@ export async function ensureVendorTrial(
     };
   }
 
-  const { data: existing } = await supabase
+  // Prefer service-role read so we see rows even before RLS policies are applied
+  const { data: existing } = await db
     .from("platform_subscriptions")
     .select("id, status, tier, current_period_end")
     .eq("vendor_id", vendorId)
@@ -138,7 +149,7 @@ export async function ensureVendorTrial(
       const entitlements = getPlatformEntitlements(tier);
       const start = new Date().toISOString();
       const end = periodEndIso();
-      const { error: reviveErr } = await supabase
+      const { error: reviveErr } = await db
         .from("platform_subscriptions")
         .update({
           user_id: userId,
@@ -176,7 +187,7 @@ export async function ensureVendorTrial(
   }
 
   // Also skip if user already has a usable row keyed by user_id (legacy)
-  const { data: byUser } = await supabase
+  const { data: byUser } = await db
     .from("platform_subscriptions")
     .select("id, status, tier, current_period_end, vendor_id")
     .eq("user_id", userId)
@@ -193,7 +204,7 @@ export async function ensureVendorTrial(
       const entitlements = getPlatformEntitlements(tier);
       const start = new Date().toISOString();
       const end = periodEndIso();
-      const { error: reviveErr } = await supabase
+      const { error: reviveErr } = await db
         .from("platform_subscriptions")
         .update({
           vendor_id: vendorId,
@@ -233,7 +244,7 @@ export async function ensureVendorTrial(
   const start = new Date().toISOString();
   const end = periodEndIso();
 
-  const { error } = await supabase.from("platform_subscriptions").insert({
+  const { error } = await db.from("platform_subscriptions").insert({
     vendor_id: vendorId,
     user_id: userId,
     tier,
