@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 
+/** @deprecated Prefer /api/admin/treasury/overview — kept for compatibility. */
 export async function GET() {
   const gate = await requireAdmin();
   if (!gate.ok) return gate.response;

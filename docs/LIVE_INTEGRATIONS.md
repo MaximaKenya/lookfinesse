@@ -20,7 +20,7 @@ Priority: **P0** = app will not run or auth fails · **P1** = core commerce brok
 
 ## Quick production checklist
 
-1. Supabase project live + migrations + `seed_auth_users.sql` / roles / `seed.sql` / `seed_demo_metrics.sql` / **`seed_admin_finance.sql`** (same project as Heroku — required for non-zero `/admin/finance`)
+1. Supabase project live + migrations + `seed_auth_users.sql` / roles / `seed.sql` / `seed_demo_metrics.sql` / **`seed_admin_finance.sql`** (same project as Heroku — required for non-zero `/admin/finance`, `/admin/payouts`, `/admin/treasury`)
 2. Storage buckets + RLS policies
 3. `NEXT_PUBLIC_BASE_URL` = production HTTPS URL
 4. Google OAuth redirect allow-list in Supabase

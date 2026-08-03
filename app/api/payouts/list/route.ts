@@ -1,16 +1,27 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function GET() {
-  const __adminGate = await requireAdmin();
-  if (!__adminGate.ok) return __adminGate.response;
-  const { db: __adminDb } = __adminGate.ctx;
-  void __adminDb;
-  const { data } = await supabase
-    .from("payout_queue")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const gate = await requireAdmin();
+  if (!gate.ok) return gate.response;
+  const { db } = gate.ctx;
 
-  return NextResponse.json({ payouts: data });
+  const [{ data: payouts }, { data: queue }] = await Promise.all([
+    db
+      .from("payouts")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200),
+    db
+      .from("payout_queue")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100),
+  ]);
+
+  return NextResponse.json({
+    payouts: payouts ?? [],
+    queue: queue ?? [],
+  });
 }

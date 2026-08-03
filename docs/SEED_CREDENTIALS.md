@@ -81,10 +81,18 @@ Optional second vendor: `glow@test.com` — **Glow Salon & Spa** service provide
 
 1. **SQL** → **New query** on the **same Supabase project** wired to Heroku (`NEXT_PUBLIC_SUPABASE_URL`)
 2. Paste and run **`supabase/seed_admin_finance.sql`** (after `seed_demo_metrics.sql`)
-3. Inserts `category=fee` ledger rows, treasury accounts, liquidity pools, payout forecasts, fraud logs — **non-zero** `/admin/finance`
-4. Login as **`admin@test.com` only** to view `/admin/finance` (vendors are redirected)
+3. Inserts `category=fee` ledger rows, treasury accounts, liquidity pools, payout forecasts, fraud logs — **non-zero** `/admin/finance`, `/admin/payouts`, `/admin/treasury`
+4. Login as **`admin@test.com` only** to view admin finance consoles (vendors are redirected)
 
-**If `/admin/finance` shows zeros on Heroku:** production DB is empty or seeds were run on a different Supabase project. Re-run **both** `seed_demo_metrics.sql` **and** `seed_admin_finance.sql` on the Heroku-linked project. Ensure `SUPABASE_SERVICE_ROLE_KEY` is set on Heroku so admin APIs can read past RLS.
+**If `/admin/finance`, `/admin/payouts`, or `/admin/treasury` show zeros / empty CTAs on Heroku:** production DB is empty or seeds were run on a different Supabase project. Re-run **both** `seed_demo_metrics.sql` **and** `seed_admin_finance.sql` on the Heroku-linked project. Ensure `SUPABASE_SERVICE_ROLE_KEY` is set on Heroku so admin APIs can read past RLS.
+
+**Smoke after seed (admin session):**
+
+| Route | Expect |
+| --- | --- |
+| `/admin/finance` | Non-zero revenue / payouts / treasury tiles |
+| `/admin/payouts` | Pending + completed rows, approve/reject actions, charts if volume exists |
+| `/admin/treasury` | KES Operating / USD Settlement / Escrow + M-Pesa float pools + forecasts |
 
 ### Step 6: Profile media bucket (Dashboard only)
 

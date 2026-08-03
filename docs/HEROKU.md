@@ -83,7 +83,13 @@ Heroku does **not** run SQL seeds. After deploy, in the Supabase SQL editor for 
 1. `supabase/seed_demo_metrics.sql`
 2. `supabase/seed_admin_finance.sql`
 
-Login as **`admin@test.com`** only for `/admin/finance`. Set `SUPABASE_SERVICE_ROLE_KEY` on Heroku so admin finance APIs bypass RLS.
+Login as **`admin@test.com`** only for `/admin/finance`, `/admin/payouts`, and `/admin/treasury`. Set `SUPABASE_SERVICE_ROLE_KEY` on Heroku so admin finance APIs bypass RLS.
+
+**Post-deploy smoke (admin):**
+
+1. Open `https://lookfinesseke.herokuapp.com/admin/payouts` — expect seeded pending/completed payouts (or empty-state CTA linking to seed SQL if DB empty)
+2. Open `https://lookfinesseke.herokuapp.com/admin/treasury` — expect non-zero treasury accounts + liquidity pools after `seed_admin_finance.sql`
+3. Approve/reject a pending payout from the queue (writes `payouts.status` + audit_logs)
 
 ## Verify
 
