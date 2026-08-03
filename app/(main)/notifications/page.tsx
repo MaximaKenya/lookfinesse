@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import Link from "next/link";
 import { Bell, CheckCheck } from "lucide-react";
 import Pagination, { getPageSlice } from "@/components/ui/Pagination";
+import PushOptIn from "@/components/notifications/PushOptIn";
 
 const NOTIF_ICONS: Record<string, string> = {
   follow: "👤",
@@ -67,6 +68,14 @@ export default function NotificationsPage() {
           Mark all read
         </button>
       </header>
+
+      <div className="mb-6">
+        <PushOptIn />
+        <p className="text-xs text-white/35 mt-2">
+          Push covers order status, booking reminders, new followers, and low-stock (vendors). Works without
+          FCM keys via local notifications; set NEXT_PUBLIC_VAPID_PUBLIC_KEY for Web Push.
+        </p>
+      </div>
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6">

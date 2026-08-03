@@ -1,19 +1,25 @@
 # Roadmap — next product ideas
 
-Short list of improvements to make LookFinesse more competitive for Kenyan / East African fashion & beauty commerce. These are product directions, not committed milestones.
+Short list of improvements to make LookFinesse more competitive for Kenyan / East African fashion & beauty commerce.
 
 ## Product recommendations
 
-1. **Push notifications** — Web Push / FCM for order status, booking reminders, new follower drops, and low-stock alerts so vendors and buyers return without opening the app first.
-2. **WhatsApp commerce** — Share product cards and checkout deep links into WhatsApp; optional Business API for order confirmations and abandoned-cart nudges (high trust channel in KE).
-3. **Inventory barcode / SKU scan** — Mobile camera scan for receive, count, and POS pick so brick-and-mortar vendors stay accurate without spreadsheet edits.
-4. **Multi-currency checkout** — Display and settle in KES by default with optional USD/UGX/TZS rates and clear FX notes for diaspora buyers.
-5. **Vendor KYC / trust badges** — Light ID + business verification tiers that unlock payouts, Elite ads, and a “Verified” badge on storefronts and feed.
-6. **Live shopping / scheduled drops** — Timed flash sales tied to reels or stories with countdown, waitlist, and inventory hold during the live window.
-7. **Buyer size & fit profile sync** — Reuse Virtual Dresser prefs across vendors (size, skin tone, style tags) for better recommendations and fewer returns.
-8. **Affiliate / creator payouts wallet** — One wallet for tips, affiliate commissions, and brand deals with M-Pesa + Stripe payout rails and clear tax/export CSV.
-9. **Offline-friendly vendor POS** — PWA mode for in-store sales with queued sync when connectivity returns (markets, pop-ups, salons).
-10. **Smart restock & demand signals** — Simple AI prompts from sales velocity + feed engagement: “restock X”, “promote Y”, “drop Z this weekend”.
+1. **Push notifications** — DONE. Web Push opt-in on `/notifications` (`PushOptIn` + `/sw.js`), subscriptions API `POST /api/push/subscribe`, migration `027` `push_subscriptions`. Works without VAPID/FCM via local notifications; set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` for full Web Push.
+2. **WhatsApp commerce** — DONE. `wa.me` share on product PDP, EngagementBar more-menu, and checkout deep links (`lib/whatsapp/share`, `WhatsAppShareButton` / `WhatsAppCommerce`).
+3. **Inventory barcode / SKU scan** — DONE. `/vendor/scan` with camera `BarcodeDetector` + manual SKU; `GET/POST /api/vendor/inventory/scan` for receive / count / pick.
+4. **Multi-currency checkout** — DONE. Checkout display currencies KES/USD/UGX/TZS via `CheckoutCurrencyPicker` + `lib/fx/currencies`; settlement remains KES with FX notes.
+5. **Vendor KYC / trust badges** — DONE. Trust tiers (`none|basic|business|elite`) on vendors + `GET/POST /api/vendor/trust-badge`; KYC page shows unlocks; feed Verified badge continues via `is_verified`.
+6. **Live shopping / scheduled drops** — DONE. `/drops` countdown + waitlist + 15‑min holds; `/dashboard/create-drop`; `GET/POST /api/drops`; tables `flash_drops`, `drop_waitlist`, `inventory_holds`.
+7. **Buyer size & fit profile sync** — DONE. `/fit-profile` + `GET/POST /api/fit-profile` synced with Virtual Dresser prefs (`fit_profiles` + `user_profiles.preferences.dresser`).
+8. **Affiliate / creator payouts wallet** — DONE. `/dashboard/creator-wallet` unifies tips + affiliate + brand deals; CSV export `?format=csv`; `GET/POST /api/creator-wallet` + `creator_wallet_ledger`.
+9. **Offline-friendly vendor POS** — DONE. `/vendor/pos` PWA-oriented queue in `localStorage` + SW sync message; `GET/POST /api/vendor/pos/sale` → `pos_sales` with stock decrement.
+10. **Smart restock & demand signals** — DONE. Heuristics in `lib/intelligence/demandSignals`; `GET /api/vendor/demand-signals`; panel on `/vendor/intelligence`.
+
+## Also shipped with this pass
+
+- Reels list engagement batching (mirrors feed N+1 fix) via `attachReelEngagement` / `getReelEngagementBatch`.
+- Nav links: Drops, Fit Profile, POS, SKU Scan, Flash Drops, Creator Wallet.
+- Migration: `supabase/migrations/027_roadmap_mvp.sql`.
 
 ## Related
 

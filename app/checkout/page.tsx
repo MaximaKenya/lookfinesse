@@ -15,6 +15,8 @@ import { CreditCard, Smartphone, Calendar, Loader2 } from "lucide-react";
 import { getProduct } from "@/lib/marketplace";
 
 import Link from "next/link";
+import CheckoutCurrencyPicker from "@/components/checkout/CheckoutCurrencyPicker";
+import { CheckoutWhatsAppShare } from "@/components/commerce/WhatsAppCommerce";
 
 
 
@@ -602,7 +604,9 @@ function CheckoutInner() {
 
           </div>
 
+          <CheckoutCurrencyPicker totalKes={total} />
 
+          <CheckoutWhatsAppShare totalKes={total} />
 
           <div className="bg-white/5 border border-white/10 rounded-3xl p-5 backdrop-blur-xl space-y-5">
 

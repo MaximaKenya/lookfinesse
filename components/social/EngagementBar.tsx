@@ -7,6 +7,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useRequireLogin } from "@/hooks/useRequireLogin";
 import { Bookmark, MessageCircle, Share2, Heart, MoreHorizontal, Flag, Link2 } from "lucide-react";
 import { toast } from "sonner";
+import { whatsappShareUrl } from "@/lib/whatsapp/share";
 
 type EngagementSeed = {
   reaction_counts?: Partial<Record<ReactionType, number>>;
@@ -206,6 +207,12 @@ export default function EngagementBar({
     }
   };
 
+  const shareWhatsApp = () => {
+    const url = shareUrl ?? window.location.href;
+    const text = `Check this out on LookFinesse\n${url}`;
+    window.open(whatsappShareUrl(text), "_blank", "noopener,noreferrer");
+  };
+
   const copyLink = async () => {
     const url = shareUrl ?? window.location.href;
     await navigator.clipboard.writeText(url);
@@ -349,6 +356,16 @@ export default function EngagementBar({
           </button>
           <button type="button" onClick={copyLink} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5">
             <Link2 className="w-4 h-4" /> Copy link
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              shareWhatsApp();
+              setShowMoreMenu(false);
+            }}
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#25D366] hover:bg-white/5"
+          >
+            <MessageCircle className="w-4 h-4" /> WhatsApp
           </button>
         </div>
       )}

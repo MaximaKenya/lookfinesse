@@ -15,6 +15,7 @@ import {
 
 import VendorTrustPanel from "@/components/intelligence/VendorTrustPanel";
 import SentimentOverview from "@/components/intelligence/SentimentOverview";
+import DemandSignalsPanel from "@/components/intelligence/DemandSignalsPanel";
 import { usePlatformSubscription } from "@/hooks/usePlatformSubscription";
 
 const chartSk = () => (
@@ -240,6 +241,8 @@ export default function VendorIntelligencePage() {
             tone="cyan"
           />
         </section>
+
+        <DemandSignalsPanel />
 
         {/* Commerce KPIs */}
         <section className="grid grid-cols-2 xl:grid-cols-3 gap-4">

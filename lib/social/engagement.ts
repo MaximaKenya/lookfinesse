@@ -239,6 +239,57 @@ export async function getFeedEngagementBatch(params: {
   return result;
 }
 
+/** Batched engagement for reels list — same N+1 fix as feed. */
+export async function getReelEngagementBatch(params: {
+  reelIds: string[];
+  userId?: string;
+}): Promise<Map<string, FeedPostEngagement>> {
+  const result = new Map<string, FeedPostEngagement>();
+  const ids = [...new Set(params.reelIds.filter(Boolean))];
+  for (const id of ids) {
+    result.set(id, {
+      reaction_counts: {},
+      reaction_count: 0,
+      comment_count: 0,
+      user_reaction: null,
+    });
+  }
+  if (ids.length === 0) return result;
+
+  try {
+    const supabase = await db();
+    const [{ data: reactions }, { data: comments }] = await Promise.all([
+      supabase
+        .from("post_reactions")
+        .select("reel_id, user_id, reaction_type")
+        .in("reel_id", ids),
+      supabase.from("post_comments").select("reel_id").in("reel_id", ids),
+    ]);
+
+    for (const row of reactions ?? []) {
+      const reelId = row.reel_id as string;
+      const entry = result.get(reelId);
+      if (!entry) continue;
+      const type = row.reaction_type as ReactionType;
+      entry.reaction_counts[type] = (entry.reaction_counts[type] ?? 0) + 1;
+      entry.reaction_count += 1;
+      if (params.userId && row.user_id === params.userId) {
+        entry.user_reaction = type;
+      }
+    }
+
+    for (const row of comments ?? []) {
+      const reelId = row.reel_id as string;
+      const entry = result.get(reelId);
+      if (entry) entry.comment_count += 1;
+    }
+  } catch (err) {
+    console.error("[getReelEngagementBatch]", err);
+  }
+
+  return result;
+}
+
 export async function toggleSave(params: {
   userId: string;
   postId?: string;

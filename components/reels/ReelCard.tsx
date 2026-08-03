@@ -183,6 +183,16 @@ export default function ReelCard({ reel }: Props) {
               onCommentClick={() => setCommentsOpen(true)}
               commentRefreshKey={commentRefreshKey}
               vertical
+              initialEngagement={
+                reel.reaction_count != null || reel.comment_count != null
+                  ? {
+                      reaction_counts: reel.reaction_counts,
+                      reaction_count: reel.reaction_count,
+                      comment_count: reel.comment_count,
+                      user_reaction: reel.user_reaction,
+                    }
+                  : null
+              }
             />
           </div>
         </div>

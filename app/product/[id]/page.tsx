@@ -5,6 +5,7 @@ import ProductGallery from "@/components/ProductGallery";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductVariantPicker from "@/components/shop/ProductVariantPicker";
 import Link from "next/link";
+import { ProductWhatsAppShare } from "@/components/commerce/WhatsAppCommerce";
 
 export default async function ProductPage({ params }: any) {
   const resolvedParams = await params;
@@ -177,6 +178,14 @@ export default async function ProductPage({ params }: any) {
               </Link>
 
               <AddToCartButton product={product} />
+              <div className="pt-1">
+                <ProductWhatsAppShare
+                  name={product.name}
+                  priceKes={Number(product.price)}
+                  productId={product.id}
+                  vendorName={product.stores?.name}
+                />
+              </div>
             </div>
 
             {/* ── STOCK + SKU INFO ── */}

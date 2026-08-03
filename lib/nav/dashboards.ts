@@ -171,6 +171,20 @@ export const VENDOR_NAV: NavGroup[] = [
         icon: Truck,
         accent: "text-amber-300",
       },
+      {
+        href: "/vendor/pos",
+        label: "In-store POS",
+        description: "Offline-friendly sales sync",
+        icon: Boxes,
+        accent: "text-emerald-300",
+      },
+      {
+        href: "/vendor/scan",
+        label: "SKU Scan",
+        description: "Barcode receive / count / pick",
+        icon: Boxes,
+        accent: "text-cyan-300",
+      },
     ],
   },
   {
@@ -182,6 +196,13 @@ export const VENDOR_NAV: NavGroup[] = [
         description: "Starter, Pro & Elite tiers",
         icon: Sparkles,
         accent: "text-amber-300",
+      },
+      {
+        href: "/dashboard/create-drop",
+        label: "Flash Drops",
+        description: "Timed sales & inventory holds",
+        icon: Megaphone,
+        accent: "text-orange-300",
       },
     ],
   },
@@ -208,6 +229,13 @@ export const VENDOR_NAV: NavGroup[] = [
         description: "Withdraw to mobile / bank",
         icon: CreditCard,
         accent: "text-cyan-300",
+      },
+      {
+        href: "/dashboard/creator-wallet",
+        label: "Creator Wallet",
+        description: "Tips, affiliate & tax CSV",
+        icon: Coins,
+        accent: "text-yellow-300",
       },
       {
         href: "/dashboard/vendor/payout-settings",

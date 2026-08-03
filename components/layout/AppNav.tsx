@@ -32,6 +32,8 @@ import {
   Megaphone,
   Lock,
   LogOut,
+  Flame,
+  Ruler,
 } from "lucide-react";
 
 import BrandLogo from "@/components/brand/BrandLogo";
@@ -68,6 +70,7 @@ const SIDEBAR_GROUPS = [
       { href: "/shop", label: "Shop", icon: ShoppingBag },
       { href: "/services", label: "Services", icon: Calendar },
       { href: "/live", label: "Live", icon: Radio },
+      { href: "/drops", label: "Drops", icon: Flame },
     ],
   },
   {
@@ -86,6 +89,7 @@ const SIDEBAR_GROUPS = [
       { href: "/bookings", label: "Bookings", icon: Calendar },
       { href: "/saved", label: "Saved", icon: Bookmark },
       { href: "/notifications", label: "Notifications", icon: Bell },
+      { href: "/fit-profile", label: "Fit Profile", icon: Ruler },
     ],
   },
   {

@@ -25,6 +25,7 @@ Where each experience lives and which shell provides persistent sidebar navigati
 | `/shop` | Shop | Commerce browse |
 | `/services` | Services | Bookable offerings |
 | `/live` | Live | Live sessions |
+| `/drops` | Drops | Flash sales & holds |
 | `/trending` | Trending | Social |
 | `/challenges` | Challenges | Social |
 | `/nearby` | Nearby | Geo |
@@ -33,6 +34,7 @@ Where each experience lives and which shell provides persistent sidebar navigati
 | `/bookings` | Bookings | My Space |
 | `/saved` | Saved | My Space |
 | `/notifications` | Notifications | My Space |
+| `/fit-profile` | Fit Profile | My Space |
 | `/ai/stylist` | AI Stylist | AI group |
 | `/ai/fitness` | AI Fitness | AI group |
 | `/ai/beauty` | AI Beauty | AI group |
@@ -69,10 +71,14 @@ Where each experience lives and which shell provides persistent sidebar navigati
 | `/vendor` | Overview | Operations |
 | `/vendor/products` | Product Studio | Operations |
 | `/vendor/orders` | Orders | Operations |
+| `/vendor/pos` | In-store POS | Operations |
+| `/vendor/scan` | SKU Scan | Operations |
 | `/dashboard/calendar` | Calendar | Operations |
+| `/dashboard/create-drop` | Flash Drops | Growth |
 | `/vendor/finance` | Financial Center | Finance |
 | `/dashboard/finance` | Live Ledger | Finance |
 | `/dashboard/vendor/wallet` | Payouts | Finance |
+| `/dashboard/creator-wallet` | Creator Wallet | Finance |
 | `/vendor/intelligence` | Vendor Intelligence | Intelligence |
 | `/intelligence` | Marketplace Intel | Intelligence |
 | `/dashboard/vendor/kyc` | KYC | Profile |

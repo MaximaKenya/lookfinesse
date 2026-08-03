@@ -463,7 +463,7 @@ async function attachFeedEngagement<T extends { id: string }>(
   }
 }
 
-export async function getReels(limit = 25) {
+export async function getReels(limit = 25, userId?: string) {
   for (const select of REEL_SELECTS) {
     const { data, error } = await supabase
       .from("reels")
@@ -471,13 +471,71 @@ export async function getReels(limit = 25) {
       .order("engagement_score", { ascending: false })
       .limit(limit);
     if (!error) {
-      if (!data || data.length === 0) return DEMO_REELS;
-      return dedupeReels(data.map((row) => normalizeReelRow(row as Record<string, unknown>)!));
+      if (!data || data.length === 0) return attachReelEngagement(DEMO_REELS, userId);
+      return attachReelEngagement(
+        dedupeReels(data.map((row) => normalizeReelRow(row as Record<string, unknown>)!)),
+        userId
+      );
     }
     const msg = error.message?.toLowerCase() ?? "";
     if (!msg.includes("does not exist") && !msg.includes("column") && !msg.includes("relationship")) break;
   }
-  return DEMO_REELS;
+  return attachReelEngagement(DEMO_REELS, userId);
+}
+
+async function attachReelEngagement<T extends { id: string }>(
+  reels: T[],
+  userId?: string
+): Promise<(T & {
+  reaction_counts: Partial<Record<string, number>>;
+  reaction_count: number;
+  comment_count: number;
+  user_reaction: string | null;
+})[]> {
+  const empty = {
+    reaction_counts: {} as Partial<Record<string, number>>,
+    reaction_count: 0,
+    comment_count: 0,
+    user_reaction: null as string | null,
+  };
+  if (!reels.length) return reels.map((r) => ({ ...r, ...empty }));
+  if (!isSupabaseConfigured()) {
+    return reels.map((r) => ({ ...r, ...empty }));
+  }
+  const ids = reels.map((r) => r.id).filter((id) => id && !String(id).startsWith("demo-"));
+  if (!ids.length) return reels.map((r) => ({ ...r, ...empty }));
+
+  try {
+    const [{ data: reactions }, { data: comments }] = await Promise.all([
+      supabase.from("post_reactions").select("reel_id, user_id, reaction_type").in("reel_id", ids),
+      supabase.from("post_comments").select("reel_id").in("reel_id", ids),
+    ]);
+    const byReel = new Map<string, typeof empty>();
+    for (const id of ids) {
+      byReel.set(id, {
+        reaction_counts: {},
+        reaction_count: 0,
+        comment_count: 0,
+        user_reaction: null,
+      });
+    }
+    for (const row of reactions ?? []) {
+      const entry = byReel.get(row.reel_id as string);
+      if (!entry) continue;
+      const type = row.reaction_type as string;
+      entry.reaction_counts[type] = (entry.reaction_counts[type] ?? 0) + 1;
+      entry.reaction_count += 1;
+      if (userId && row.user_id === userId) entry.user_reaction = type;
+    }
+    for (const row of comments ?? []) {
+      const entry = byReel.get(row.reel_id as string);
+      if (entry) entry.comment_count += 1;
+    }
+    return reels.map((reel) => ({ ...reel, ...(byReel.get(reel.id) ?? empty) }));
+  } catch (err) {
+    console.error("[attachReelEngagement]", err);
+    return reels.map((r) => ({ ...r, ...empty }));
+  }
 }
 
 export async function getReelById(id: string) {
