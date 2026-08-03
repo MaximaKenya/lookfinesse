@@ -451,6 +451,8 @@ export async function getFeedPostById(id: string) {
 }
 
 export async function getServices(category?: string) {
+  if (!isSupabaseConfigured()) return [];
+
   let query = supabase
     .from("services")
     .select("*")
@@ -492,6 +494,8 @@ export async function getAvailabilitySlots(serviceId: string) {
 }
 
 export async function getLiveSessions(upcomingOnly = true) {
+  if (!isSupabaseConfigured()) return DEMO_LIVE_SESSIONS;
+
   let query = supabase
     .from("live_sessions")
     .select(`
@@ -600,6 +604,16 @@ export async function getTrendingTopics() {
 }
 
 export async function getTrendingCreators(limit = 8) {
+  if (!isSupabaseConfigured()) {
+    return Object.values(DEMO_VENDORS).map((v, i) => ({
+      vendor_id: v.id,
+      subscriber_count: [3420, 2180, 5100, 890, 4250, 1340, 980, 2200][i] ?? 500,
+      rating: 4.5 + (i % 5) * 0.1,
+      verified: i % 2 === 0,
+      vendors: { id: v.id, business_name: v.name, name: v.name, avatar_url: v.avatar_url, is_verified: i % 2 === 0 },
+    }));
+  }
+
   const { data } = await supabase
     .from("creator_profiles")
     .select(`
@@ -621,6 +635,13 @@ export async function getTrendingCreators(limit = 8) {
 }
 
 export async function getChallenges(limit = 6) {
+  const demo = [
+    { id: "demo-ch1", title: "30-Day Glow Challenge", category: "beauty", participant_count: 1240, cover_url: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800" },
+    { id: "demo-ch2", title: "Nairobi Fit Week", category: "fitness", participant_count: 3560, cover_url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800" },
+    { id: "demo-ch3", title: "Style Your Roots", category: "fashion", participant_count: 890, cover_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800" },
+  ];
+  if (!isSupabaseConfigured()) return demo;
+
   const { data } = await supabase
     .from("challenges")
     .select("*")
@@ -629,25 +650,11 @@ export async function getChallenges(limit = 6) {
     .limit(limit);
 
   if (data && data.length > 0) return data;
-
-  return [
-    { id: "demo-ch1", title: "30-Day Glow Challenge", category: "beauty", participant_count: 1240, cover_url: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800" },
-    { id: "demo-ch2", title: "Nairobi Fit Week", category: "fitness", participant_count: 3560, cover_url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800" },
-    { id: "demo-ch3", title: "Style Your Roots", category: "fashion", participant_count: 890, cover_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800" },
-  ];
+  return demo;
 }
 
 export async function getCategories(limit = 16) {
-  const { data } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order")
-    .limit(limit);
-
-  if (data && data.length > 0) return data;
-
-  return [
+  const demo = [
     { slug: "fashion", name: "Fashion", icon: "👗" },
     { slug: "beauty", name: "Beauty", icon: "💄" },
     { slug: "fitness", name: "Fitness", icon: "💪" },
@@ -657,6 +664,17 @@ export async function getCategories(limit = 16) {
     { slug: "kids", name: "Kids", icon: "👶" },
     { slug: "skincare", name: "Skincare", icon: "✨" },
   ];
+  if (!isSupabaseConfigured()) return demo.slice(0, limit);
+
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order")
+    .limit(limit);
+
+  if (data && data.length > 0) return data;
+  return demo;
 }
 
 async function safeIlike<T = any>(
