@@ -38,13 +38,55 @@ function misconfiguredQuery(): any {
   return builder;
 }
 
+const AUTH_STUB = {
+  getSession: async () => ({ data: { session: null }, error: null }),
+  getUser: async () => ({ data: { user: null }, error: null }),
+  onAuthStateChange: () => ({
+    data: { subscription: { unsubscribe() {} } },
+  }),
+  signOut: async () => ({ error: null }),
+  signInWithPassword: async () => ({ data: { user: null, session: null }, error: { message: "SUPABASE_MISCONFIGURED" } }),
+  signInWithOAuth: async () => ({ data: { provider: null, url: null }, error: { message: "SUPABASE_MISCONFIGURED" } }),
+  signUp: async () => ({ data: { user: null, session: null }, error: { message: "SUPABASE_MISCONFIGURED" } }),
+};
+
+/** Never-throwing stub client for missing env / SSG. */
+function misconfiguredClient(): any {
+  return new Proxy(
+    {},
+    {
+      get(_t, prop) {
+        if (prop === "from" || prop === "rpc" || prop === "schema") {
+          return (..._args: unknown[]) => misconfiguredQuery();
+        }
+        if (prop === "auth") return AUTH_STUB;
+        if (prop === "storage" || prop === "functions" || prop === "realtime" || prop === "channel") {
+          return new Proxy(
+            {},
+            {
+              get() {
+                return (..._args: unknown[]) => misconfiguredQuery();
+              },
+            }
+          );
+        }
+        // Symbols / inspect / serialization — never throw during Next.js SSG
+        if (typeof prop === "symbol") return undefined;
+        if (prop === "then") return undefined;
+        if (prop === "toJSON") return () => null;
+        return (..._args: unknown[]) => misconfiguredQuery();
+      },
+    }
+  );
+}
+
 function getClient(): SupabaseClient {
   if (_client) return _client;
 
   const env = getSupabaseEnv();
   if (!env.ok) {
     logMisconfiguredOnce();
-    throw new Error("SUPABASE_MISCONFIGURED");
+    return misconfiguredClient() as SupabaseClient;
   }
 
   _client = createBrowserClient(env.url, env.anonKey);
@@ -55,28 +97,14 @@ function getClient(): SupabaseClient {
 export { isSupabaseConfigured };
 
 /**
- * Lazy browser Supabase client. When env is missing, `.from()` / `.rpc()` soft-fail
+ * Lazy browser Supabase client. When env is missing, all APIs soft-fail
  * (no throw) so Next.js "Collecting page data" / SSG can complete without credentials.
  */
 export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
   get(_t, prop, receiver) {
     if (!isSupabaseConfigured()) {
       logMisconfiguredOnce();
-      if (prop === "from" || prop === "rpc" || prop === "schema") {
-        return (..._args: unknown[]) => misconfiguredQuery();
-      }
-      if (prop === "auth") {
-        return {
-          getSession: async () => ({ data: { session: null }, error: null }),
-          getUser: async () => ({ data: { user: null }, error: null }),
-          onAuthStateChange: () => ({
-            data: { subscription: { unsubscribe() {} } },
-          }),
-          signOut: async () => ({ error: null }),
-        };
-      }
-      // Prefer isSupabaseConfigured() before other client APIs.
-      throw new Error("SUPABASE_MISCONFIGURED");
+      return Reflect.get(misconfiguredClient() as object, prop, receiver);
     }
     return Reflect.get(getClient() as object, prop, receiver);
   },
