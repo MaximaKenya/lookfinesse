@@ -37,6 +37,8 @@ type Stats = {
   fraud: Fraud[];
   treasuryBalance: number;
   loading: boolean;
+  empty: boolean;
+  seedHint?: string;
 };
 
 function KpiTile({
@@ -131,6 +133,7 @@ export default function AdminFinanceDashboard() {
     fraud: [],
     treasuryBalance: 0,
     loading: true,
+    empty: false,
   });
 
   useEffect(() => {
@@ -148,13 +151,26 @@ export default function AdminFinanceDashboard() {
         }
         const data = await res.json();
         if (!mounted) return;
+        const revenue = Number(data.revenue ?? 0);
+        const payouts = Number(data.payouts ?? 0);
+        const pendingPayouts = (data.pendingPayouts ?? []) as Payout[];
+        const fraud = (data.fraud ?? []) as Fraud[];
+        const treasuryBalance = Number(data.treasuryBalance ?? 0);
         setStats({
-          revenue: Number(data.revenue ?? 0),
-          payouts: Number(data.payouts ?? 0),
-          pendingPayouts: (data.pendingPayouts ?? []) as Payout[],
-          fraud: (data.fraud ?? []) as Fraud[],
-          treasuryBalance: Number(data.treasuryBalance ?? 0),
+          revenue,
+          payouts,
+          pendingPayouts,
+          fraud,
+          treasuryBalance,
           loading: false,
+          empty:
+            revenue === 0 &&
+            payouts === 0 &&
+            pendingPayouts.length === 0 &&
+            fraud.length === 0 &&
+            treasuryBalance === 0,
+          seedHint:
+            "Run supabase/seed_demo_metrics.sql then supabase/seed_admin_finance.sql on the Heroku-linked Supabase project.",
         });
       } catch (err) {
         console.error("Admin finance load failed", err);
@@ -252,6 +268,26 @@ export default function AdminFinanceDashboard() {
             icon={ShieldAlert}
           />
         </section>
+
+        {stats.empty && !stats.loading && (
+          <div className="rounded-3xl border border-dashed border-amber-500/30 bg-amber-500/5 p-6 sm:p-8 text-center space-y-4">
+            <h2 className="text-xl font-bold text-amber-100">
+              No finance data yet
+            </h2>
+            <p className="text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
+              {stats.seedHint}
+            </p>
+            <a
+              href="https://supabase.com/dashboard"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm font-semibold text-amber-200 hover:bg-amber-500/20"
+            >
+              Open Supabase SQL
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        )}
 
         {/* QUICK LINKS */}
         <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">

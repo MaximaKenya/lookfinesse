@@ -38,6 +38,70 @@ CREATE TABLE IF NOT EXISTS payout_forecasts (
   created_at timestamptz DEFAULT now()
 );
 
+-- ─── FX / COMPLIANCE / NETWORK / KYC TABLES (idempotent) ────────────────────
+CREATE TABLE IF NOT EXISTS fx_rates (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  pair            text NOT NULL UNIQUE,
+  rate            numeric NOT NULL,
+  base_currency   text NOT NULL,
+  quote_currency  text NOT NULL,
+  updated_at      timestamptz DEFAULT now(),
+  created_at      timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS fx_conversions (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  amount            numeric NOT NULL,
+  from_currency     text NOT NULL,
+  to_currency       text NOT NULL,
+  rate              numeric NOT NULL,
+  converted_amount  numeric NOT NULL,
+  actor_id          uuid,
+  metadata          jsonb DEFAULT '{}'::jsonb,
+  created_at        timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS aml_alerts (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_id    uuid,
+  alert_type   text NOT NULL,
+  severity     numeric NOT NULL DEFAULT 5,
+  description  text,
+  status       text DEFAULT 'open',
+  created_at   timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS compliance_audit_logs (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  action       text NOT NULL,
+  actor_id     uuid,
+  entity_type  text,
+  entity_id    uuid,
+  metadata     jsonb DEFAULT '{}'::jsonb,
+  created_at   timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS settlement_batches (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  total_amount  numeric NOT NULL DEFAULT 0,
+  payout_count  integer NOT NULL DEFAULT 0,
+  status        text NOT NULL DEFAULT 'PENDING',
+  rail          text DEFAULT 'mpesa',
+  currency      text DEFAULT 'KES',
+  metadata      jsonb DEFAULT '{}'::jsonb,
+  created_at    timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS kyc_verifications (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid,
+  document_url  text,
+  status        text DEFAULT 'pending',
+  tier          text,
+  created_at    timestamptz DEFAULT now(),
+  updated_at    timestamptz DEFAULT now()
+);
+
 DO $$
 DECLARE
   v_elitefit uuid := 'a1000000-0000-0000-0000-000000000001';
@@ -74,6 +138,31 @@ DECLARE
   fl3 uuid := '20000000-0000-4000-8000-000000000003';
 
   fe1 uuid := '20100000-0000-4000-8000-000000000001';
+  fe2 uuid := '20100000-0000-4000-8000-000000000002';
+
+  fx1 uuid := '21000000-0000-4000-8000-000000000001';
+  fx2 uuid := '21000000-0000-4000-8000-000000000002';
+  fx3 uuid := '21000000-0000-4000-8000-000000000003';
+  fx4 uuid := '21000000-0000-4000-8000-000000000004';
+  fx5 uuid := '21000000-0000-4000-8000-000000000005';
+
+  fxc1 uuid := '21100000-0000-4000-8000-000000000001';
+  fxc2 uuid := '21100000-0000-4000-8000-000000000002';
+  fxc3 uuid := '21100000-0000-4000-8000-000000000003';
+
+  aml1 uuid := '22000000-0000-4000-8000-000000000001';
+  aml2 uuid := '22000000-0000-4000-8000-000000000002';
+  aml3 uuid := '22000000-0000-4000-8000-000000000003';
+
+  cal1 uuid := '22100000-0000-4000-8000-000000000001';
+  cal2 uuid := '22100000-0000-4000-8000-000000000002';
+
+  sb1 uuid := '23000000-0000-4000-8000-000000000001';
+  sb2 uuid := '23000000-0000-4000-8000-000000000002';
+  sb3 uuid := '23000000-0000-4000-8000-000000000003';
+
+  kyc1 uuid := '24000000-0000-4000-8000-000000000001';
+  kyc2 uuid := '24000000-0000-4000-8000-000000000002';
 
   vendor_exists boolean;
 BEGIN
@@ -160,11 +249,109 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO fraud_events (id, vendor_id, event_type, severity, metadata, created_at)
 VALUES
   (fe1, v_glow, 'aml_review', 'MEDIUM',
-   '{"reason":"AML threshold review","amount":9200}'::jsonb, now() - interval '1 day')
+   '{"reason":"AML threshold review","amount":9200}'::jsonb, now() - interval '1 day'),
+  (fe2, v_elitefit, 'velocity_spike', 'HIGH',
+   '{"reason":"Repeated high-value payout attempts","amount":15000}'::jsonb, now() - interval '4 hours')
 ON CONFLICT (id) DO UPDATE SET
   event_type = EXCLUDED.event_type,
   severity = EXCLUDED.severity,
   metadata = EXCLUDED.metadata;
+
+-- ─── VENDOR RISK (Glow + EliteFit for risk dashboard) ───────────────────────
+INSERT INTO vendor_risk_scores (vendor_id, risk_score, trust_tier, is_frozen, last_updated)
+VALUES
+  (v_elitefit, 18, 'TRUSTED', false, now()),
+  (v_glow, 62, 'WATCH', false, now())
+ON CONFLICT (vendor_id) DO UPDATE SET
+  risk_score = EXCLUDED.risk_score,
+  trust_tier = EXCLUDED.trust_tier,
+  is_frozen = EXCLUDED.is_frozen,
+  last_updated = now();
+
+-- ─── FX RATES + CONVERSION HISTORY ──────────────────────────────────────────
+INSERT INTO fx_rates (id, pair, rate, base_currency, quote_currency, updated_at)
+VALUES
+  (fx1, 'USD_KES', 129.5, 'USD', 'KES', now()),
+  (fx2, 'EUR_KES', 142.1, 'EUR', 'KES', now()),
+  (fx3, 'GBP_KES', 166.3, 'GBP', 'KES', now()),
+  (fx4, 'KES_USD', round((1/129.5)::numeric, 6), 'KES', 'USD', now()),
+  (fx5, 'UGX_KES', 0.035, 'UGX', 'KES', now())
+ON CONFLICT (id) DO UPDATE SET
+  rate = EXCLUDED.rate,
+  pair = EXCLUDED.pair,
+  base_currency = EXCLUDED.base_currency,
+  quote_currency = EXCLUDED.quote_currency,
+  updated_at = now();
+
+-- Ensure pair uniqueness updates even if IDs differ on older installs
+UPDATE fx_rates SET rate = 129.5, updated_at = now() WHERE pair = 'USD_KES';
+UPDATE fx_rates SET rate = 142.1, updated_at = now() WHERE pair = 'EUR_KES';
+UPDATE fx_rates SET rate = 166.3, updated_at = now() WHERE pair = 'GBP_KES';
+
+INSERT INTO fx_conversions (id, amount, from_currency, to_currency, rate, converted_amount, metadata, created_at)
+VALUES
+  (fxc1, 500, 'USD', 'KES', 129.5, 64750, '{"source":"seed_admin_finance"}'::jsonb, now() - interval '2 days'),
+  (fxc2, 200, 'EUR', 'KES', 142.1, 28420, '{"source":"seed_admin_finance"}'::jsonb, now() - interval '1 day'),
+  (fxc3, 1000, 'USD', 'KES', 129.5, 129500, '{"source":"seed_admin_finance"}'::jsonb, now() - interval '6 hours')
+ON CONFLICT (id) DO UPDATE SET
+  amount = EXCLUDED.amount,
+  converted_amount = EXCLUDED.converted_amount,
+  rate = EXCLUDED.rate;
+
+-- ─── AML / COMPLIANCE ───────────────────────────────────────────────────────
+INSERT INTO aml_alerts (id, vendor_id, alert_type, severity, description, status, created_at)
+VALUES
+  (aml1, v_glow, 'LARGE_TRANSACTION', 8,
+   'Glow salon payout KES 9200 exceeded soft AML review threshold', 'open', now() - interval '18 hours'),
+  (aml2, v_elitefit, 'VELOCITY', 6,
+   'EliteFit disbursement velocity above 7-day baseline', 'open', now() - interval '2 days'),
+  (aml3, v_glow, 'GEO_ANOMALY', 5,
+   'Beneficiary device geo shifted Nairobi → Mombasa within 2h', 'open', now() - interval '5 hours')
+ON CONFLICT (id) DO UPDATE SET
+  severity = EXCLUDED.severity,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status;
+
+INSERT INTO compliance_audit_logs (id, action, entity_type, entity_id, metadata, created_at)
+VALUES
+  (cal1, 'aml_alert_opened', 'aml_alert', aml1,
+   '{"source":"seed_admin_finance"}'::jsonb, now() - interval '18 hours'),
+  (cal2, 'kyc_submitted', 'vendor_kyc', v_glow,
+   '{"source":"seed_admin_finance"}'::jsonb, now() - interval '3 days')
+ON CONFLICT (id) DO UPDATE SET
+  action = EXCLUDED.action,
+  metadata = EXCLUDED.metadata;
+
+-- ─── SETTLEMENT BATCHES (network ops) ───────────────────────────────────────
+INSERT INTO settlement_batches (id, total_amount, payout_count, status, rail, currency, metadata, created_at)
+VALUES
+  (sb1, 24500, 3, 'SETTLED', 'mpesa', 'KES', '{"source":"seed_admin_finance"}'::jsonb, now() - interval '4 days'),
+  (sb2, 18200, 2, 'SETTLED', 'mpesa', 'KES', '{"source":"seed_admin_finance"}'::jsonb, now() - interval '1 day'),
+  (sb3, 9200, 1, 'PENDING', 'mpesa', 'KES', '{"source":"seed_admin_finance"}'::jsonb, now() - interval '3 hours')
+ON CONFLICT (id) DO UPDATE SET
+  total_amount = EXCLUDED.total_amount,
+  payout_count = EXCLUDED.payout_count,
+  status = EXCLUDED.status;
+
+-- ─── KYC (user verifications + Glow vendor pending) ─────────────────────────
+INSERT INTO kyc_verifications (id, user_id, document_url, status, tier, created_at)
+VALUES
+  (kyc1, NULL, 'https://example.com/docs/seed-id-front.jpg', 'pending', 'standard', now() - interval '1 day'),
+  (kyc2, NULL, 'https://example.com/docs/seed-id-approved.jpg', 'approved', 'enhanced', now() - interval '5 days')
+ON CONFLICT (id) DO UPDATE SET
+  status = EXCLUDED.status,
+  document_url = EXCLUDED.document_url;
+
+INSERT INTO vendor_kyc (vendor_id, full_name, country, document_type, document_number, verification_status, created_at)
+SELECT v_glow, 'Glow Beauty Demo', 'KE', 'national_id', 'SEED-GLOW-001', 'PENDING', now() - interval '2 days'
+WHERE NOT EXISTS (SELECT 1 FROM vendor_kyc WHERE vendor_id = v_glow AND document_number = 'SEED-GLOW-001');
+
+UPDATE vendor_kyc
+SET verification_status = 'PENDING',
+    full_name = COALESCE(full_name, 'Glow Beauty Demo'),
+    country = COALESCE(country, 'KE')
+WHERE vendor_id = v_glow
+  AND verification_status IS DISTINCT FROM 'APPROVED';
 
 -- Financial events stream (admin control center)
 INSERT INTO financial_events (event_type, entity_type, entity_id, amount, metadata, created_at)
@@ -174,7 +361,6 @@ WHERE NOT EXISTS (
   WHERE event_type = 'platform_fee' AND entity_id = fee1
 );
 
-RAISE NOTICE 'seed_admin_finance: fees=% fees total expected ~3050 KES, treasury + payouts + fraud seeded',
-  (SELECT count(*) FROM ledger_entries WHERE category = 'fee' AND id IN (fee1,fee2,fee3,fee4,fee5,fee6));
+RAISE NOTICE 'seed_admin_finance: fees + treasury + fx + aml + settlements + kyc seeded';
 
 END $$;
