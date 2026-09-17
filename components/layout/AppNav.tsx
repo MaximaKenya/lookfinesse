@@ -38,6 +38,7 @@ import {
 
 import BrandLogo from "@/components/brand/BrandLogo";
 import AuthHeaderActions from "@/components/layout/AuthHeaderActions";
+import CartButton from "@/components/CartButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useUserRole } from "@/hooks/useUserRole";
 import { usePlatformSubscription } from "@/hooks/usePlatformSubscription";
@@ -179,8 +180,9 @@ export default function AppNav() {
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 w-64 flex-col bg-black/95 backdrop-blur-xl border-r border-white/8">
         <div className="px-5 py-5 border-b border-white/8 flex flex-col gap-3">
-          <BrandLogo href="/feed" size="md" className="max-w-[180px]" />
-          <div className="flex justify-end">
+          <BrandLogo href="/" size="md" className="max-w-[180px]" />
+          <div className="flex items-center justify-end gap-2">
+            <CartButton />
             <AuthHeaderActions />
           </div>
         </div>
@@ -304,10 +306,11 @@ export default function AppNav() {
           </button>
 
           <div className="flex-1 min-w-0 flex justify-center">
-            <BrandLogo href="/feed" size="sm" />
+            <BrandLogo href="/" size="sm" />
           </div>
 
           <div className="flex items-center gap-1 shrink-0 relative z-[61]">
+            <CartButton compact />
             <AuthHeaderActions />
             <Link
               href="/search"
@@ -322,7 +325,6 @@ export default function AppNav() {
               className="relative p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-500 rounded-full ring-2 ring-black" />
             </Link>
           </div>
         </div>

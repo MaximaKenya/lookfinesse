@@ -1,139 +1,183 @@
 "use client";
 
-import { useCart } from "@/context/CartContext";
 import Link from "next/link";
+import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+
+function formatKes(n: number) {
+  return `KES ${Number(n || 0).toLocaleString()}`;
+}
 
 export default function CartDrawer() {
-const { cart, open, setOpen, remove, increase, decrease } = useCart();
-const total = cart.reduce(
-  (sum: number, p: any) => sum + p.price * (p.quantity || 1),
-  0
-);
-
+  const { cart, open, setOpen, remove, increase, decrease } = useCart();
+  const itemCount = cart.reduce(
+    (sum: number, p: { quantity?: number }) => sum + (p.quantity || 1),
+    0
+  );
+  const total = cart.reduce(
+    (sum: number, p: { price: number; quantity?: number }) =>
+      sum + p.price * (p.quantity || 1),
+    0
+  );
 
   return (
     <>
-      {/* BACKDROP */}
       {open && (
         <div
+          role="presentation"
           onClick={() => setOpen(false)}
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
         />
       )}
 
-      {/* CART PANEL */}
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-[420px] z-50 transform transition-transform duration-300 ${
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
+        className={`fixed top-0 right-0 h-full w-full sm:w-[420px] z-50 transform transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="h-full bg-gradient-to-b from-[#0f0f11] via-[#111827] to-black text-white border-l border-white/10 shadow-2xl flex flex-col">
-
-          {/* HEADER */}
+        <div className="h-full bg-[#0a0a0c] text-white border-l border-white/10 shadow-2xl flex flex-col">
           <div className="p-5 border-b border-white/10 flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">Your Cart</h2>
-              <p className="text-xs text-gray-400">
-                {cart.length} item(s)
+              <h2 className="text-lg font-semibold tracking-tight">Your cart</h2>
+              <p className="text-xs text-white/45 mt-0.5">
+                {itemCount === 0
+                  ? "No items yet"
+                  : `${itemCount} item${itemCount === 1 ? "" : "s"}`}
               </p>
             </div>
-
             <button
+              type="button"
               onClick={() => setOpen(false)}
-              className="text-white/60 hover:text-white"
+              aria-label="Close cart"
+              className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition"
             >
-              ✕
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* ITEMS */}
           <div className="flex-1 overflow-auto p-4 space-y-3">
-           {cart.length === 0 ? (
-  <div className="text-center text-gray-500 mt-20">
-    Your cart is empty 🛒
-  </div>
-) : (
-  cart.map((item: any) => (
-  <div
-    key={item.id}
-    className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10"
-  >
-    <div className="flex gap-3 items-center">
+            {cart.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center px-6 py-16">
+                <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                  <ShoppingBag className="w-7 h-7 text-white/35" />
+                </div>
+                <p className="text-base font-medium text-white/80">Your cart is empty</p>
+                <p className="mt-2 text-sm text-white/40 max-w-xs leading-relaxed">
+                  Browse LookFinesse Shop for fashion, beauty, and wellness from Kenyan creators.
+                </p>
+                <Link
+                  href="/shop"
+                  onClick={() => setOpen(false)}
+                  className="mt-6 inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-black hover:bg-gray-100 transition"
+                >
+                  Start shopping
+                </Link>
+              </div>
+            ) : (
+              cart.map((item: any) => (
+                <div
+                  key={item.id}
+                  className="flex gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10"
+                >
+                  <div className="relative w-16 h-16 shrink-0 overflow-hidden rounded-xl bg-white/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.image_url || "/placeholder.png"}
+                      alt={item.name || "Product"}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-      {/* IMAGE */}
-      <img
-        src={item.image_url || "/placeholder.png"}
-        className="w-12 h-12 object-cover rounded-lg"
-      />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link
+                        href={`/product/${item.id}`}
+                        onClick={() => setOpen(false)}
+                        className="font-medium text-sm text-white truncate hover:text-purple-200 transition"
+                      >
+                        {item.name}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => remove(item.id)}
+                        aria-label={`Remove ${item.name}`}
+                        className="p-1.5 rounded-lg text-red-300/80 hover:text-red-200 hover:bg-red-500/10 transition shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
 
-      <div>
-        <p className="font-medium">{item.name}</p>
-        <p className="text-xs text-gray-400">
-  KES {item.price} × {item.quantity}
-</p>
+                    <p className="text-xs text-white/40 mt-0.5">
+                      {formatKes(item.price)} each
+                    </p>
+                    <p className="text-sm font-semibold mt-1">
+                      {formatKes(item.price * (item.quantity || 1))}
+                    </p>
 
-<p className="text-sm font-semibold">
-  KES {item.price * item.quantity}
-</p>
-
-        {/* QTY CONTROLS */}
-        <div className="flex items-center gap-2 mt-1">
-          <button
-            onClick={() => decrease(item.id)}
-            className="px-2 bg-white/10 rounded"
-          >
-            -
-          </button>
-
-          <span>{item.quantity}</span>
-
-          <button
-            onClick={() => increase(item.id)}
-            className="px-2 bg-white/10 rounded"
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <button
-      onClick={() => remove(item.id)}
-      className="text-red-400 text-sm"
-    >
-      Remove
-    </button>
-  </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => decrease(item.id)}
+                        aria-label="Decrease quantity"
+                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/15 flex items-center justify-center transition"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="min-w-[1.5rem] text-center text-sm font-medium">
+                        {item.quantity || 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => increase(item.id)}
+                        aria-label="Increase quantity"
+                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/15 flex items-center justify-center transition"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))
             )}
           </div>
 
-          {/* FOOTER */}
-          <div className="p-5 border-t border-white/10 space-y-4">
+          <div className="p-5 border-t border-white/10 space-y-3 safe-area-inset-bottom">
+            {cart.length > 0 && (
+              <div className="flex justify-between items-baseline text-base font-bold">
+                <span className="text-white/70 font-medium">Total</span>
+                <span>{formatKes(total)}</span>
+              </div>
+            )}
 
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total</span>
-              <span>KES {total}</span>
-            </div>
-
-            <Link
-  href="/checkout"
-  onClick={() => setOpen(false)}
-  className="block text-center bg-white text-black py-3 rounded-xl font-semibold"
->
-  Proceed to Checkout →
-</Link>
+            {cart.length > 0 ? (
+              <Link
+                href="/checkout"
+                onClick={() => setOpen(false)}
+                className="block text-center bg-white text-black py-3.5 rounded-2xl font-semibold hover:bg-gray-100 transition"
+              >
+                Proceed to checkout
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full text-center bg-white/10 text-white/35 py-3.5 rounded-2xl font-semibold cursor-not-allowed"
+              >
+                Proceed to checkout
+              </button>
+            )}
 
             <button
+              type="button"
               onClick={() => setOpen(false)}
-              className="w-full text-sm text-gray-400"
+              className="w-full text-sm text-white/45 hover:text-white transition py-1"
             >
-              Continue shopping
+              {cart.length > 0 ? "Continue shopping" : "Close"}
             </button>
-
           </div>
-
         </div>
       </div>
     </>

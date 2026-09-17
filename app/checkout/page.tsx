@@ -526,9 +526,18 @@ function CheckoutInner() {
 
 
 
-            {items.length === 0 && (
+            {items.length === 0 && !bookingLoading && (
 
-              <p className="text-sm text-gray-500">Your cart is empty.</p>
+              <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-8 text-center">
+                <p className="text-sm font-medium text-white/70">Your cart is empty</p>
+                <p className="mt-1 text-xs text-white/40">Add products from the shop to checkout.</p>
+                <Link
+                  href="/shop"
+                  className="mt-4 inline-flex rounded-xl bg-white px-4 py-2 text-xs font-semibold text-black"
+                >
+                  Browse shop
+                </Link>
+              </div>
 
             )}
 

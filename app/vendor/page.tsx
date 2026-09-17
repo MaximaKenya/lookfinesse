@@ -511,8 +511,24 @@ export default function VendorDashboardPage() {
             </div>
 
             {orderTimeline.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/15 bg-black/30 p-8 text-center text-sm text-zinc-500">
-                Transactions will appear here as orders flow in.
+              <div className="rounded-2xl border border-dashed border-white/15 bg-black/30 p-8 text-center space-y-3">
+                <p className="text-sm text-zinc-400">
+                  Transactions will appear here as orders flow in.
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Link
+                    href="/vendor/orders"
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10"
+                  >
+                    View orders
+                  </Link>
+                  <Link
+                    href="/dashboard/create-product"
+                    className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-black"
+                  >
+                    Add a product
+                  </Link>
+                </div>
               </div>
             ) : (
               <TransactionTimeline orderId={data?.recentOrders?.[0]?.id ?? "demo-order"} />

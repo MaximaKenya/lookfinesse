@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { SlidersHorizontal, Sparkles } from "lucide-react";
+import { SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { DEMO_PRODUCTS } from "@/lib/social/queries";
 import Pagination, { getPageSlice } from "@/components/ui/Pagination";

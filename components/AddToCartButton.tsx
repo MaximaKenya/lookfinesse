@@ -38,9 +38,11 @@ export default function AddToCartButton({ product }: any) {
 
   return (
     <button
+      type="button"
       onClick={handleAdd}
       disabled={loading}
-      className="flex items-center justify-center gap-1.5 flex-1 border border-white/15 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl text-sm font-semibold transition disabled:opacity-50"
+      aria-label={added ? "Added to cart" : `Add ${product?.name ?? "product"} to cart`}
+      className="flex items-center justify-center gap-1.5 w-full border border-white/15 bg-white/5 hover:bg-white/10 text-white py-3.5 rounded-2xl text-sm font-semibold transition disabled:opacity-50"
     >
       {added ? <Check className="w-4 h-4 text-green-400" /> : <ShoppingBag className="w-4 h-4" />}
       {loading ? "Adding..." : added ? "Added!" : "Add to Cart"}

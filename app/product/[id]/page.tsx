@@ -104,7 +104,7 @@ export default async function ProductPage({ params }: any) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-white truncate">{product.stores.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Official Store · Verified</p>
+                    <p className="text-xs text-gray-500 mt-0.5">View storefront</p>
                   </div>
                   <div className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition flex-shrink-0">
                     <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

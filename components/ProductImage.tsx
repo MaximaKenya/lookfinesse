@@ -14,7 +14,7 @@ export default function ProductImage({
   const [imgSrc, setImgSrc] = useState("/placeholder.png");
 
   useEffect(() => {
-    if (src && src.startsWith("http")) {
+    if (src && (src.startsWith("http") || src.startsWith("/"))) {
       setImgSrc(src);
     } else {
       setImgSrc("/placeholder.png");
@@ -24,7 +24,7 @@ export default function ProductImage({
   return (
     <img
       src={imgSrc}
-      alt={alt}
+      alt={alt || "Product image"}
       className={className}
       onError={() => setImgSrc("/placeholder.png")}
     />
