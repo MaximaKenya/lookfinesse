@@ -16,12 +16,14 @@ New vendors get a **30-day Pro trial** (`platform_subscriptions.status = trialin
 
 | Trigger | Where |
 |---------|--------|
-| Vendor signup / create store | `POST` store → `GET /api/platform-subscriptions` calls `ensureVendorTrial` |
+| Vendor signup / create store | `POST /api/stores` → `ensureVendorTrial` |
 | First vendor dashboard access | `GET /api/platform-subscriptions` (idempotent) |
 | Seed roles | `supabase/seed_auth_roles.sql` inserts trial for `vendor@test.com` if no paid sub |
 | Seed demo | `supabase/seed.sql` + `seed_demo_metrics.sql` keep trial unless already `active` + paid |
 
 `trialing` is treated as **full Pro access** (same entitlements as paid Pro) until the period ends — see `lib/subscriptions/vendorSubscription.ts`, `apiGate.ts`, and `proxy.ts`. Dashboard shows **"Free trial — X days left"** with a CTA to `/dashboard/subscription`.
+
+Vendor login lands on **`/dashboard`**. The command center (`/vendor`) and create flows (`/dashboard/create-product`, `create-service`, `create-post`) are **Starter surfaces** — they are not Elite-locked. Intelligence, Go Live, staff, and payout settings stay Elite.
 
 Legacy DBs: run **`supabase/migrations/025_platform_subscription_trial.sql`** before seeding trial rows (adds `trialing` to the status check + `trial_ends_at`). Fresh `000_fresh_bootstrap.sql` already includes these.
 

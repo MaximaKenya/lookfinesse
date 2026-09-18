@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
 import {
   guardSupabaseEnv,
   isNetworkError,
@@ -7,6 +6,7 @@ import {
 } from "@/lib/api/supabaseRoute";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import { createFeedPost } from "@/lib/social/createFeedPost";
+import { requireVendorSession } from "@/lib/vendor/requireVendorSession";
 import type { FeedCategory, FeedPostType } from "@/lib/types/social";
 import {
   countVendorPostsThisMonth,
@@ -78,7 +78,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
-      vendor_id,
       type = "product",
       feed_category = "discover",
       caption,
@@ -95,11 +94,10 @@ export async function POST(req: Request) {
       promote_as_ad,
     } = body;
 
-    if (!vendor_id) {
-      return NextResponse.json({ error: "vendor_id is required" }, { status: 400 });
-    }
-
-    const server = await createSupabaseServer();
+    const session = await requireVendorSession();
+    if (!session.ok) return session.response;
+    const server = session.supabase;
+    const scopedVendorId = session.scope.vendorId;
     const {
       data: { user: authUser },
     } = await server.auth.getUser();
@@ -116,10 +114,10 @@ export async function POST(req: Request) {
       });
     }
 
-    const sub = await getVendorSubscriptionState(server, vendor_id);
+    const sub = await getVendorSubscriptionState(server, scopedVendorId);
 
     if (!feedIsAdmin && sub.entitlements.monthlyPostLimit != null) {
-      const count = await countVendorPostsThisMonth(server, vendor_id);
+      const count = await countVendorPostsThisMonth(server, scopedVendorId);
       if (count >= sub.entitlements.monthlyPostLimit) {
         return NextResponse.json(
           {
@@ -154,29 +152,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Add media or a caption" }, { status: 400 });
     }
 
-    const post = await createFeedPost({
-      vendorId: vendor_id,
-      productId: primaryProductId ?? undefined,
-      serviceId: primaryServiceId ?? undefined,
-      type: type as FeedPostType,
-      feedCategory: feed_category as FeedCategory,
-      caption: caption?.trim(),
-      mediaUrls: mediaItems,
-      thumbnailUrl: thumbnail_url ?? mediaItems[0],
-      location,
-      hashtags: Array.isArray(hashtags)
-        ? hashtags
-        : typeof hashtags === "string"
-          ? hashtags.split(/[,#\s]+/).filter(Boolean)
-          : [],
-    });
+    const post = await createFeedPost(
+      {
+        vendorId: scopedVendorId,
+        productId: primaryProductId ?? undefined,
+        serviceId: primaryServiceId ?? undefined,
+        type: type as FeedPostType,
+        feedCategory: feed_category as FeedCategory,
+        caption: caption?.trim(),
+        mediaUrls: mediaItems,
+        thumbnailUrl: thumbnail_url ?? mediaItems[0],
+        location,
+        hashtags: Array.isArray(hashtags)
+          ? hashtags
+          : typeof hashtags === "string"
+            ? hashtags.split(/[,#\s]+/).filter(Boolean)
+            : [],
+      },
+      server
+    );
 
     const extra: Record<string, unknown> = {};
     if (video_url) extra.video_url = video_url;
     if (audio_url) extra.audio_url = audio_url;
 
     if (Object.keys(extra).length > 0 && post?.id) {
-      await supabase.from("feed_posts").update(extra).eq("id", post.id);
+      await server.from("feed_posts").update(extra).eq("id", post.id);
     }
 
     let campaign = null;
@@ -198,7 +199,7 @@ export async function POST(req: Request) {
             ad_credits_remaining: Math.max(0, sub.adCreditsRemaining - adSpend),
             updated_at: new Date().toISOString(),
           })
-          .eq("vendor_id", vendor_id);
+          .eq("vendor_id", scopedVendorId);
       }
 
       const imageUrl = thumbnail_url ?? mediaItems[0] ?? "";
@@ -208,10 +209,10 @@ export async function POST(req: Request) {
           ? `/services/${primaryServiceId}`
           : `/feed`;
 
-      const { data: ad } = await supabase
+      const { data: ad } = await server
         .from("ad_campaigns")
         .insert({
-          vendor_id,
+          vendor_id: scopedVendorId,
           post_id: post.id,
           product_id: primaryProductId,
           service_id: primaryServiceId,
@@ -238,7 +239,7 @@ export async function POST(req: Request) {
       queueSentimentAnalysis({
         sourceType: "feed_post",
         sourceId: post.id,
-        userId: vendor_id,
+        userId: scopedVendorId,
         text: textForSentiment,
       }).catch(() => {});
     }

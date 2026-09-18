@@ -121,7 +121,6 @@ export async function POST(req: Request) {
 
     // Create drop
     const {
-      vendor_id,
       product_id,
       title,
       description,
@@ -132,14 +131,18 @@ export async function POST(req: Request) {
       live_session_id,
     } = body;
 
-    if (!vendor_id || !title || !starts_at || !ends_at) {
+    if (!title || !starts_at || !ends_at) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { requireVendorSession } = await import("@/lib/vendor/requireVendorSession");
+    const session = await requireVendorSession();
+    if (!session.ok) return session.response;
+
+    const { data, error } = await session.supabase
       .from("flash_drops")
       .insert({
-        vendor_id,
+        vendor_id: session.scope.vendorId,
         product_id: product_id || null,
         title,
         description: description || null,

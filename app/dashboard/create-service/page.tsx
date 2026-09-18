@@ -37,6 +37,7 @@ export default function CreateServicePage() {
       const res = await fetch("/api/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           vendor_id: vendorId,
           title: form.title.trim(),
@@ -93,6 +94,14 @@ export default function CreateServicePage() {
       isDemoMode={isDemoMode}
       hasVendorStore={hasVendorStore}
     >
+      {!hasVendorStore && !loading && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          Create a storefront first so this service is attached to your brand.{" "}
+          <a href="/dashboard/create-store" className="underline font-semibold">
+            Create a store
+          </a>
+        </div>
+      )}
       <div className="bg-[#0f0f0f]/80 backdrop-blur-xl border border-white/8 rounded-3xl p-6 space-y-5">
         <div className="flex items-center gap-2 text-purple-300">
           <Sparkles className="w-4 h-4" />
@@ -150,7 +159,7 @@ export default function CreateServicePage() {
       <button
         type="button"
         onClick={handleCreate}
-        disabled={submitting || loading}
+        disabled={submitting || loading || !vendorId}
         className="w-full flex items-center justify-center gap-2 bg-white text-black py-4 rounded-2xl font-bold disabled:opacity-60"
       >
         {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Publish Service"}

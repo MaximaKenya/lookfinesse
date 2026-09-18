@@ -33,11 +33,13 @@ export function destinationAfterOnboarding(
 export function postSignupRedirect(
   profile: { onboarded_at?: string | null; preferences?: UserPreferences | null } | null,
   returnUrl = "/feed",
-  opts?: { skipOnboarding?: boolean }
+  opts?: { skipOnboarding?: boolean; isVendor?: boolean }
 ): string {
   if (opts?.skipOnboarding || isProfileOnboarded(profile)) {
-    if (profile?.preferences?.intended_role === "vendor" && returnUrl === "/onboarding") {
-      return "/dashboard/create-store";
+    const vendorHome =
+      opts?.isVendor || profile?.preferences?.intended_role === "vendor";
+    if (vendorHome && (returnUrl === "/onboarding" || returnUrl === "/feed" || returnUrl === "/")) {
+      return opts?.isVendor ? "/dashboard" : "/dashboard/create-store";
     }
     if (returnUrl === "/onboarding") return "/feed";
     return returnUrl || "/feed";

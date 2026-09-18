@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabaseClient";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabase as defaultClient } from "@/lib/supabaseClient";
 import type { FeedPostType, FeedCategory } from "@/lib/types/social";
 
 type CreateFeedPostParams = {
@@ -14,19 +15,23 @@ type CreateFeedPostParams = {
   hashtags?: string[];
 };
 
-export async function createFeedPost({
-  vendorId,
-  productId,
-  serviceId,
-  type = "product",
-  feedCategory = "discover",
-  caption,
-  mediaUrls = [],
-  thumbnailUrl,
-  location,
-  hashtags,
-}: CreateFeedPostParams) {
-  const { data, error } = await supabase
+export async function createFeedPost(
+  {
+    vendorId,
+    productId,
+    serviceId,
+    type = "product",
+    feedCategory = "discover",
+    caption,
+    mediaUrls = [],
+    thumbnailUrl,
+    location,
+    hashtags,
+  }: CreateFeedPostParams,
+  client?: SupabaseClient
+) {
+  const db = client ?? defaultClient;
+  const { data, error } = await db
     .from("feed_posts")
     .insert({
       vendor_id: vendorId,

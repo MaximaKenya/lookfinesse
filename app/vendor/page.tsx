@@ -281,6 +281,27 @@ export default function VendorDashboardPage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             <QuickTile
+              href="/dashboard/create-product"
+              label="New product"
+              description="List an item in your shop"
+              icon={Package}
+              accent="text-cyan-300"
+            />
+            <QuickTile
+              href="/dashboard/create-service"
+              label="New service"
+              description="Bookable session or class"
+              icon={ShoppingBag}
+              accent="text-teal-300"
+            />
+            <QuickTile
+              href="/dashboard/create-post"
+              label="New post"
+              description="Feed drop for your brand"
+              icon={Sparkles}
+              accent="text-pink-300"
+            />
+            <QuickTile
               href="/vendor/finance"
               label="Finance Center"
               description="Wallets, FX, payouts, KYC"

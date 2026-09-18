@@ -74,31 +74,26 @@ export default function CreateStorePage() {
     const lat = Number(latitude);
     const lng = Number(longitude);
 
-    const { error } = await supabase.from("stores").insert([
-      {
+    const res = await fetch("/api/stores", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
         name,
         description,
-        user_id: data.user.id,
         ownerName,
         phone,
         city,
         address,
         latitude: lat || null,
         longitude: lng || null,
-        location: lat && lng ? `POINT(${lng} ${lat})` : null,
-      },
-    ]);
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
 
     setLoading(false);
 
-    if (error) return alert(error.message);
-
-    // Start 30-day Pro trial on first vendor store (idempotent)
-    try {
-      await fetch("/api/platform-subscriptions");
-    } catch {
-      /* non-blocking */
-    }
+    if (!res.ok) return alert(json.error || "Failed to create store");
 
     router.push("/dashboard");
   };

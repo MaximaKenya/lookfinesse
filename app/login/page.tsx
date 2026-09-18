@@ -60,21 +60,26 @@ function LoginForm() {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const { data: roleRows } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
+    const [{ data: roleRows }, { data: vendorRows }, { data: storeRows }] = await Promise.all([
+      supabase.from("user_roles").select("role").eq("user_id", user.id),
+      supabase.from("vendors").select("id").eq("user_id", user.id).limit(1),
+      supabase.from("stores").select("id").eq("user_id", user.id).limit(1),
+    ]);
     const roles = (roleRows ?? []).map((r) => r.role);
+    const isVendor =
+      roles.includes("vendor") ||
+      (vendorRows?.length ?? 0) > 0 ||
+      (storeRows?.length ?? 0) > 0;
     const skipOnboarding =
       isPlatformAdmin({
         email: user.email,
         roles,
         appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
-      }) || roles.includes("vendor");
+      }) || isVendor;
 
     setLoading(false);
 
-    hardNavigate(postSignupRedirect(profile, returnUrl, { skipOnboarding }));
+    hardNavigate(postSignupRedirect(profile, returnUrl, { skipOnboarding, isVendor }));
   }
 
   async function handleGoogle() {

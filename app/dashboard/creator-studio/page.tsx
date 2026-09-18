@@ -163,8 +163,10 @@ export default function CreatorStudioPage() {
             return (
               <Link
                 key={tile.href}
-                href={tile.href}
-                className={`group flex flex-col gap-3 p-5 rounded-3xl border bg-gradient-to-br backdrop-blur-xl transition-all hover:scale-[1.02] hover:border-white/25 ${tile.accent}`}
+                href={tile.locked ? tile.upgradeHref : tile.href}
+                className={`group flex flex-col gap-3 p-5 rounded-3xl border bg-gradient-to-br backdrop-blur-xl transition-all hover:scale-[1.02] hover:border-white/25 ${tile.accent} ${
+                  tile.locked ? "opacity-70" : ""
+                }`}
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black/40 border border-white/10">
                   <Icon className={`w-5 h-5 ${tile.iconColor}`} />
@@ -172,6 +174,7 @@ export default function CreatorStudioPage() {
                 <div>
                   <h2 className="font-semibold text-white group-hover:text-purple-200 transition-colors">
                     {tile.label}
+                    {tile.locked ? " · upgrade" : ""}
                   </h2>
                   <p className="text-xs text-white/40 mt-1 leading-relaxed">{tile.desc}</p>
                 </div>

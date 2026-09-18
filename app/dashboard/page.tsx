@@ -399,6 +399,12 @@ export default function DashboardPage() {
                 color: "hover:border-purple-500/40 hover:bg-purple-500/5",
               },
               {
+                label: "New Service",
+                icon: "📅",
+                href: "/dashboard/create-service",
+                color: "hover:border-teal-500/40 hover:bg-teal-500/5",
+              },
+              {
                 label: "New Post",
                 icon: "✨",
                 href: "/dashboard/create-post",

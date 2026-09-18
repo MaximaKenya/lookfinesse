@@ -80,13 +80,21 @@ export default function PlatformSubscriptionGate({
   const subscriptionPage = pathname.startsWith("/dashboard/subscription");
   const starterSurface =
     pathInList(pathname, [
+      "/vendor",
+      "/vendor/products",
+      "/vendor/orders",
+      "/vendor/customers",
+      "/vendor/pos",
+      "/vendor/scan",
       "/dashboard/creator-studio",
       "/dashboard/create-post",
       "/dashboard/create-reel",
       "/dashboard/create-product",
       "/dashboard/create-service",
-      "/vendor/products",
-      "/vendor/orders",
+      "/dashboard/create-drop",
+      "/dashboard/vendor",
+      "/dashboard/provider",
+      "/dashboard/sessions",
     ]) || pathname === "/dashboard";
 
   const allowed =

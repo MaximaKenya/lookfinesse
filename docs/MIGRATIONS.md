@@ -16,7 +16,8 @@ If you have a **new empty project** (no tables yet), use this path. Do **not** r
 | **4** | `supabase/seed.sql` | Demo vendors, products, feed, bookings, ads |
 | **5** | `supabase/seed_demo_metrics.sql` | Orders, wallets, ledger, payouts, Pro trial — **non-zero** `/dashboard` & `/vendor/finance`. **Re-run anytime** if KPIs show zeros. |
 | **6** | `supabase/seed_admin_finance.sql` | Platform fees (`category=fee`), treasury accounts, liquidity pools, payout forecasts, fraud telemetry — **non-zero** `/admin/finance`, `/admin/payouts`, `/admin/treasury`. **Required on the same Supabase project as Heroku.** |
-| **7** | Dashboard → Storage → New bucket **`profile-media`** (public) | Required for profile avatar/banner uploads — **not** created by `000` (Dashboard-only on many hosted projects) |
+| **7** | `supabase/migrations/028_signup_nearby_geo.sql` then **`029_vendor_create_rls.sql`** | Signup trigger + nearby RPC; vendor create RLS for products/stores/slots (safe if `000` already applied an older copy) |
+| **8** | Dashboard → Storage → New bucket **`profile-media`** (public) | Required for profile avatar/banner uploads — **not** created by `000` (Dashboard-only on many hosted projects) |
 
 After step 6 you can log in and use the app with populated KPIs (vendor + admin finance). **Skip migrations 001–024** unless you are repairing a legacy install (see below). Legacy installs that already ran an older `000` should also run **`025_platform_subscription_trial.sql`** (trialing status) and **`026_platform_subscriptions_rls.sql`** (owner RLS for trial inserts) before seeding trial rows.
 
@@ -76,6 +77,7 @@ Run **001 → 020** in order. Each file is idempotent (`IF NOT EXISTS` / conditi
 | 026 | `026_platform_subscriptions_rls.sql` | RLS SELECT/INSERT/UPDATE for own `platform_subscriptions` (+ vendors insert) |
 | 027 | `027_roadmap_mvp.sql` | Roadmap MVP (push, WhatsApp, drops, KYC) |
 | 028 | `028_signup_nearby_geo.sql` | Signup trigger (profile + shopper role), profile/role RLS, `nearby_vendors` RPC, delivery radius + order address columns |
+| 029 | `029_vendor_create_rls.sql` | Products/stores/availability_slots RLS so cookie-session vendors can create catalog, stores, and booking slots |
 
 ### Virtual Dresser preferences (no new migration)
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
 import { checkVendorProductLimit, productLimitMessage } from "@/lib/subscriptions/productLimits";
 import { createSupabaseServer } from "@/lib/supabaseServer";
+import { requireVendorSession } from "@/lib/vendor/requireVendorSession";
 import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 
 async function resolveIsAdmin(): Promise<boolean> {
@@ -27,10 +27,12 @@ async function resolveIsAdmin(): Promise<boolean> {
 
 export async function POST(req: Request) {
   try {
+    const session = await requireVendorSession();
+    if (!session.ok) return session.response;
+
+    const { supabase, scope } = session;
     const body = await req.json();
     const {
-      vendor_id,
-      store_id,
       name,
       short_description,
       description,
@@ -45,32 +47,31 @@ export async function POST(req: Request) {
       image_url,
     } = body;
 
-    if (!vendor_id && !store_id) {
-      return NextResponse.json({ error: "vendor_id or store_id required" }, { status: 400 });
-    }
     if (!name?.trim()) {
       return NextResponse.json({ error: "Product name is required" }, { status: 400 });
     }
 
-    if (vendor_id) {
-      const isAdmin = await resolveIsAdmin();
-      const limit = await checkVendorProductLimit(supabase, vendor_id, { isAdmin });
-      if (!limit.allowed) {
-        return NextResponse.json(
-          {
-            error: productLimitMessage(limit),
-            code: "PRODUCT_LIMIT",
-            current: limit.current,
-            max: limit.max,
-            tier: limit.tier,
-          },
-          { status: 403 }
-        );
-      }
+    const vendorId = scope.vendorId;
+    const storeId = scope.storeId;
+    const isAdmin = await resolveIsAdmin();
+    const limit = await checkVendorProductLimit(supabase, vendorId, { isAdmin });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          error: productLimitMessage(limit),
+          code: "PRODUCT_LIMIT",
+          current: limit.current,
+          max: limit.max,
+          tier: limit.tier,
+        },
+        { status: 403 }
+      );
     }
 
     const gallery: string[] = Array.isArray(images)
-      ? images.map((img: string | { url: string }) => (typeof img === "string" ? img : img.url))
+      ? images
+          .map((img: string | { url: string }) => (typeof img === "string" ? img : img.url))
+          .filter((url: string) => typeof url === "string" && url.length > 0 && !url.startsWith("blob:"))
       : image_url
         ? [image_url]
         : [];
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
       description: description ?? short_description ?? "",
       short_description: short_description ?? description ?? "",
       category: category ?? null,
-      category_id: category_id ?? null,
+      category_id: category_id || null,
       image_url: gallery[0] ?? null,
       image_gallery: gallery,
       images: gallery,
@@ -93,10 +94,9 @@ export async function POST(req: Request) {
       status: "active",
       is_active: true,
       is_public: true,
+      vendor_id: vendorId,
     };
-
-    if (vendor_id) insert.vendor_id = vendor_id;
-    if (store_id) insert.store_id = store_id;
+    if (storeId) insert.store_id = storeId;
 
     const { data: product, error } = await supabase
       .from("products")

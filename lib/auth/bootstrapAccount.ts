@@ -57,6 +57,21 @@ export async function bootstrapAccount(
     console.warn("[bootstrapAccount] user_roles:", roleError.message);
   }
 
+  // Existing vendors (seeded or returning) get a trial + vendors row if missing.
+  // New intended vendors still create the store themselves on /dashboard/create-store.
+  const [{ data: vendor }, { data: store }] = await Promise.all([
+    supabase.from("vendors").select("id").eq("user_id", user.id).maybeSingle(),
+    supabase.from("stores").select("id, name").eq("user_id", user.id).limit(1).maybeSingle(),
+  ]);
+  if (vendor?.id || store?.id) {
+    const { ensureVendorTrial } = await import("@/lib/subscriptions/ensureVendorTrial");
+    await ensureVendorTrial(supabase, user.id, {
+      vendorId: vendor?.id,
+      businessName: store?.name,
+      email: user.email ?? null,
+    });
+  }
+
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   if (meta.intended_role !== intended || (!meta.username && opts?.username)) {
     await supabase.auth

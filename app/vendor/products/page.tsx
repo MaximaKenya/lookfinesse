@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 
 import VendorProductsList from "@/components/vendor/VendorProductsList";
+import { useVendorContext } from "@/hooks/useVendorContext";
+import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
 
 import {
   useEffect,
@@ -33,6 +36,7 @@ interface ProductImage {
 
 export default function VendorProductStudio() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { vendorId, storeId, loading: vendorLoading, hasVendorStore } = useVendorContext();
 
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -88,15 +92,36 @@ export default function VendorProductStudio() {
 
     if (!files.length) return;
 
-    const mapped = files.map((file, index) => ({
-      id: `${Date.now()}-${index}`,
-      url: URL.createObjectURL(file),
-    }));
+    const prefix = storeId ?? vendorId ?? "products";
+    const uploaded: ProductImage[] = [];
 
-    setImages((prev) => [...prev, ...mapped]);
+    for (const [index, file] of files.entries()) {
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${prefix}/${Date.now()}-${index}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(filePath, file);
+      if (error) {
+        alert(error.message || "Image upload failed");
+        continue;
+      }
+      const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
+      uploaded.push({ id: filePath, url: data.publicUrl });
+    }
+
+    if (uploaded.length) {
+      setImages((prev) => [...prev, ...uploaded]);
+    }
   }
 
   async function createProduct() {
+    if (!vendorId) {
+      alert("Create a store first so this listing is attached to your brand.");
+      return;
+    }
+    if (!form.name.trim() || !form.price) {
+      alert("Name and price are required");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -107,17 +132,20 @@ export default function VendorProductStudio() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({
             ...form,
+            vendor_id: vendorId,
+            store_id: storeId,
             images,
           }),
         }
       );
 
+      const json = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        throw new Error(
-          "Failed to create product"
-        );
+        throw new Error(json.error || "Failed to create product");
       }
 
       alert("Product created successfully");
@@ -179,6 +207,15 @@ export default function VendorProductStudio() {
         <div>
           <h1 className="text-4xl font-black tracking-tight">Product Studio</h1>
           <p className="text-zinc-500 text-sm mt-1">Create and manage your marketplace products</p>
+          {!vendorLoading && !hasVendorStore && (
+            <p className="text-amber-300 text-sm mt-3">
+              No storefront yet.{" "}
+              <Link href="/dashboard/create-store" className="underline font-semibold">
+                Create a store
+              </Link>{" "}
+              to publish under your brand.
+            </p>
+          )}
         </div>
     <VendorProductsList />
     <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -592,7 +629,7 @@ export default function VendorProductStudio() {
 
           <button
             onClick={createProduct}
-            disabled={loading}
+            disabled={loading || vendorLoading || !vendorId}
             className="w-full h-14 rounded-2xl bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-black mt-8"
           >
             {loading

@@ -66,11 +66,39 @@ function KpiCard({
 
 const QUICK_ACTIONS = [
   {
+    href: "/dashboard/create-product",
+    label: "New product",
+    icon: Package,
+    desc: "List an item in your shop",
+    accent: "text-cyan-300",
+  },
+  {
+    href: "/dashboard/create-service",
+    label: "New service",
+    icon: Calendar,
+    desc: "Bookable session or class",
+    accent: "text-teal-300",
+  },
+  {
+    href: "/dashboard/create-post",
+    label: "New post",
+    icon: Clapperboard,
+    desc: "Feed drop or story",
+    accent: "text-pink-300",
+  },
+  {
     href: "/dashboard/creator-studio",
     label: "Creator Studio",
     icon: Clapperboard,
-    desc: "Posts, reels & ads",
+    desc: "Posts, reels, products & ads",
     accent: "text-pink-300",
+  },
+  {
+    href: "/vendor/products",
+    label: "Inventory",
+    icon: Package,
+    desc: "Manage listings & stock",
+    accent: "text-purple-300",
   },
   {
     href: "/vendor/finance",
@@ -78,13 +106,6 @@ const QUICK_ACTIONS = [
     icon: Wallet,
     desc: "Wallets & payouts",
     accent: "text-green-300",
-  },
-  {
-    href: "/vendor/products",
-    label: "Products",
-    icon: Package,
-    desc: "Inventory studio",
-    accent: "text-purple-300",
   },
   {
     href: "/dashboard/calendar",

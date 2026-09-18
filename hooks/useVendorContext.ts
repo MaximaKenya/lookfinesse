@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { DEMO_VENDOR_ID } from "@/lib/creator/constants";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export type VendorContext = {
@@ -42,43 +40,19 @@ export function useVendorContext(): VendorContext {
     async function load() {
       setLoading(true);
       try {
-        const { data: vendor } = await supabase
-          .from("vendors")
-          .select("id, business_name, name")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        const { data: store } = await supabase
-          .from("stores")
-          .select("id, name")
-          .eq("user_id", userId)
-          .maybeSingle();
-
+        const res = await fetch("/api/vendor/context", { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
         if (!mounted) return;
-
-        if (vendor?.id) {
-          setVendorId(vendor.id);
-          setVendorName(vendor.business_name || vendor.name || "Your Store");
-          setStoreId(store?.id ?? null);
-          setHasVendorStore(true);
-          setIsDemoMode(false);
-        } else if (store?.id) {
-          setStoreId(store.id);
-          setVendorId(DEMO_VENDOR_ID);
-          setVendorName(store.name || "Your Store");
-          setHasVendorStore(true);
-          setIsDemoMode(true);
-        } else {
-          setStoreId(null);
-          setVendorId(DEMO_VENDOR_ID);
-          setVendorName("Demo Creator");
-          setHasVendorStore(false);
-          setIsDemoMode(true);
-        }
+        setVendorId(typeof data.vendorId === "string" ? data.vendorId : null);
+        setVendorName(typeof data.vendorName === "string" ? data.vendorName : null);
+        setStoreId(typeof data.storeId === "string" ? data.storeId : null);
+        setHasVendorStore(Boolean(data.hasVendorStore && data.vendorId));
+        setIsDemoMode(Boolean(data.isDemoMode) || !data.vendorId);
       } catch {
         if (!mounted) return;
-        setVendorId(DEMO_VENDOR_ID);
-        setVendorName("Demo Creator");
+        setVendorId(null);
+        setVendorName(null);
+        setStoreId(null);
         setIsDemoMode(true);
         setHasVendorStore(false);
       } finally {

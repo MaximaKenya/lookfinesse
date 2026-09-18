@@ -85,6 +85,8 @@ Where each experience lives and which shell provides persistent sidebar navigati
 | `/dashboard/vendor/staff` | Staff | Profile |
 | `/profile` | Public Profile | Profile |
 
+Vendor login (`vendor@test.com` / Pro trial) lands on `/dashboard`. `/vendor` and create routes are **Starter** (not Elite). `/vendor/intelligence`, `/dashboard/create-live`, staff, and payout settings stay Elite.
+
 ## Vendor — command center (`/vendor/*`)
 
 Same vendor sidebar via `app/vendor/layout.tsx`. Key paths:
