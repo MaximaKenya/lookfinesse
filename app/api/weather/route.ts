@@ -1,39 +1,24 @@
 import { NextResponse } from "next/server";
-import {
-  fetchOpenMeteoWeather,
-  geocodeCity,
-  WEATHER_ATTRIBUTION,
-  WEATHER_SOURCE,
-} from "@/lib/weather/openMeteo";
+import { resolveLocationWeather } from "@/lib/weather/resolveLocationWeather";
+import { WEATHER_ATTRIBUTION, WEATHER_SOURCE } from "@/lib/weather/openMeteo";
+import { parseCoord } from "@/lib/geo/haversine";
 
 export const runtime = "nodejs";
 
-const NAIROBI = { lat: -1.2921, lng: 36.8219, city: "Nairobi" };
-
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const cityParam = searchParams.get("city")?.trim() || NAIROBI.city;
-  let lat = parseFloat(searchParams.get("lat") ?? "");
-  let lng = parseFloat(searchParams.get("lng") ?? "");
-  let city = cityParam;
+  const cityParam = searchParams.get("city")?.trim() || null;
+  const lat = parseCoord(searchParams.get("lat"));
+  const lng = parseCoord(searchParams.get("lng"));
+  const geocodeFlag = searchParams.get("geocode") === "1" || searchParams.get("geocode") === "true";
+  const geocodeOnly = geocodeFlag && lat == null && lng == null;
 
-  const geocodeOnly = searchParams.get("geocode") === "1";
-  const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
-
-  if (!hasCoords || geocodeOnly) {
-    const geo = await geocodeCity(cityParam);
-    if (geo) {
-      lat = geo.lat;
-      lng = geo.lng;
-      city = geo.name;
-    } else if (!hasCoords) {
-      lat = NAIROBI.lat;
-      lng = NAIROBI.lng;
-      city = cityParam || NAIROBI.city;
-    }
-  }
-
-  const summary = await fetchOpenMeteoWeather({ lat, lng, city });
+  const summary = await resolveLocationWeather({
+    city: cityParam,
+    lat,
+    lng,
+    geocodeOnly,
+  });
 
   if (!summary) {
     return NextResponse.json(

@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       accountReference,
       description,
       metadata,
+      delivery,
     } = body as {
       phone: string;
       amount: number;
@@ -32,6 +33,14 @@ export async function POST(req: Request) {
       accountReference?: string;
       description?: string;
       metadata?: Record<string, unknown>;
+      delivery?: {
+        fulfillment?: string;
+        address?: string;
+        city?: string;
+        notes?: string;
+        lat?: number | null;
+        lng?: number | null;
+      };
     };
 
     const isServicePayment = !!metadata?.kind;
@@ -84,6 +93,12 @@ export async function POST(req: Request) {
           total: Number(amount),
           phone: formattedPhone,
           status: "pending",
+          fulfillment: delivery?.fulfillment ?? "delivery",
+          delivery_address: delivery?.address ?? null,
+          delivery_city: delivery?.city ?? null,
+          delivery_lat: delivery?.lat ?? null,
+          delivery_lng: delivery?.lng ?? null,
+          delivery_notes: delivery?.notes ?? null,
         })
         .select()
         .single();

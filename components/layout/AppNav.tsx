@@ -49,8 +49,8 @@ import { signOutAndRedirect } from "@/lib/logout";
 
 const MOBILE_NAV_BASE = [
   { href: "/feed", label: "Feed", icon: Home },
-  { href: "/reels", label: "Reels", icon: Clapperboard },
-  { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/shop", label: "Shop", icon: ShoppingBag },
+  { href: "/nearby", label: "Near", icon: MapPin },
   { href: "/services", label: "Book", icon: Calendar },
   { href: "/profile", label: "Me", icon: User },
 ] as const;
@@ -69,6 +69,7 @@ const SIDEBAR_GROUPS = [
     label: "Commerce",
     items: [
       { href: "/shop", label: "Shop", icon: ShoppingBag },
+      { href: "/nearby", label: "Near me", icon: MapPin },
       { href: "/services", label: "Services", icon: Calendar },
       { href: "/live", label: "Live", icon: Radio },
       { href: "/drops", label: "Drops", icon: Flame },
@@ -79,7 +80,6 @@ const SIDEBAR_GROUPS = [
     items: [
       { href: "/trending", label: "Trending", icon: TrendingUp },
       { href: "/challenges", label: "Challenges", icon: Trophy },
-      { href: "/nearby", label: "Nearby", icon: MapPin },
       { href: "/search", label: "Search", icon: Search },
     ],
   },
@@ -98,7 +98,7 @@ const SIDEBAR_GROUPS = [
     items: [
       { href: "/ai/stylist", label: "AI Stylist", icon: Shirt },
       { href: "/ai/virtual-dresser", label: "Virtual Dresser", icon: Sparkles },
-      { href: "/ai/fitness", label: "AI Fitness", icon: Dumbbell },
+      { href: "/ai/fitness", label: "Gym Buddy", icon: Dumbbell },
       { href: "/ai/beauty", label: "AI Beauty", icon: Flower2 },
     ],
   },
@@ -194,7 +194,7 @@ export default function AppNav() {
                 {group.label}
               </p>
               <ul className="space-y-0.5">
-                {mapNavItemsWithLocks(group.items, navCtx).map(
+                {mapNavItemsWithLocks([...group.items], navCtx).map(
                   ({ href, label, icon: Icon, locked, upgradeHref }) => {
                   const active = isActive(href);
                   const targetHref = locked ? upgradeHref : href;
@@ -355,7 +355,7 @@ export default function AppNav() {
                 {group.label}
               </p>
               <ul className="space-y-0.5">
-                {mapNavItemsWithLocks(group.items, navCtx).map(
+                {mapNavItemsWithLocks([...group.items], navCtx).map(
                   ({ href, label, icon: Icon, locked, upgradeHref }) => {
                   const active = isActive(href);
                   const targetHref = locked ? upgradeHref : href;

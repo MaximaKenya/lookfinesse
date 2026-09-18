@@ -3,9 +3,10 @@ import {
   ArrowRight,
   ShoppingBag,
   Sparkles,
-  Clapperboard,
   ShieldCheck,
   Smartphone,
+  MapPin,
+  Dumbbell,
 } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 
@@ -17,15 +18,15 @@ const FEATURES = [
     href: "/shop",
   },
   {
-    icon: Clapperboard,
-    title: "Social feed",
-    body: "Follow drops, reels, and live sessions from the creators you love.",
-    href: "/feed",
+    icon: MapPin,
+    title: "Near me",
+    body: "Discover shops, bookings, and same-area deliveries sorted by distance from you.",
+    href: "/nearby",
   },
   {
     icon: Sparkles,
     title: "AI stylist",
-    body: "Get outfit ideas and beauty tips tailored to your look and fit profile.",
+    body: "Outfit ideas for Nairobi weather, occasions, and your closet — plus Gym Buddy training plans.",
     href: "/ai/stylist",
   },
 ];
@@ -53,6 +54,12 @@ export default function HomePage() {
             className="hidden sm:inline-flex rounded-full border border-white/12 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white transition"
           >
             Shop
+          </Link>
+          <Link
+            href="/nearby"
+            className="hidden sm:inline-flex rounded-full border border-white/12 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white transition"
+          >
+            Near me
           </Link>
           <Link
             href="/feed"
@@ -102,12 +109,24 @@ export default function HomePage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/feed"
+              href="/nearby"
               className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white hover:bg-white/10 transition"
             >
-              Open feed
+              Near me
             </Link>
           </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-xs text-white/40">
+          <Link href="/ai/fitness" className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 hover:text-white">
+            <Dumbbell className="h-3 w-3" /> Gym Buddy
+          </Link>
+          <Link href="/ai/stylist" className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 hover:text-white">
+            <Sparkles className="h-3 w-3" /> AI Stylist
+          </Link>
+          <Link href="/services" className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 hover:text-white">
+            Book services
+          </Link>
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">

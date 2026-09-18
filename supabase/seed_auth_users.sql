@@ -4,9 +4,11 @@
 -- Safe to re-run (skips existing emails; ON CONFLICT on identities)
 --
 -- Password for all accounts: Test123456!
---   vendor@test.com  → vendor / creator (role applied in seed_auth_roles.sql)
+--   vendor@test.com  → vendor / fitness gym (EliteFit)
 --   admin@test.com   → platform admin
---   user@test.com    → buyer / fan
+--   user@test.com    → shopper / buyer
+--   glow@test.com    → vendor / beauty salon (Glow Salon & Spa)
+--   style@test.com   → vendor / fashion boutique (Style Bank)
 -- ═══════════════════════════════════════════════════════════════════════════
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -22,7 +24,9 @@ DECLARE
   v_users         constant jsonb := '[
     {"id":"f1000000-0000-0000-0000-000000000001","email":"vendor@test.com","display_name":"Demo Vendor"},
     {"id":"f1000000-0000-0000-0000-000000000002","email":"admin@test.com","display_name":"Platform Admin"},
-    {"id":"f1000000-0000-0000-0000-000000000003","email":"user@test.com","display_name":"Demo User"}
+    {"id":"f1000000-0000-0000-0000-000000000003","email":"user@test.com","display_name":"Demo User"},
+    {"id":"f1000000-0000-0000-0000-000000000004","email":"glow@test.com","display_name":"Glow Salon"},
+    {"id":"f1000000-0000-0000-0000-000000000005","email":"style@test.com","display_name":"Style Bank"}
   ]'::jsonb;
   v_row           jsonb;
 BEGIN
@@ -119,7 +123,7 @@ DECLARE
   v_email    text;
   v_ok       boolean;
 BEGIN
-  FOREACH v_email IN ARRAY ARRAY['vendor@test.com', 'admin@test.com', 'user@test.com']
+  FOREACH v_email IN ARRAY ARRAY['vendor@test.com', 'admin@test.com', 'user@test.com', 'glow@test.com', 'style@test.com']
   LOOP
     SELECT extensions.crypt(v_password, u.encrypted_password) = u.encrypted_password
       INTO v_ok
@@ -131,5 +135,5 @@ BEGIN
     END IF;
   END LOOP;
 
-  RAISE NOTICE 'seed_auth_users: 3 test accounts ready (vendor@test.com, admin@test.com, user@test.com)';
+  RAISE NOTICE 'seed_auth_users: 5 test accounts ready (vendor, admin, user, glow, style @test.com)';
 END $$;

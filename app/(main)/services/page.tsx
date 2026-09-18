@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServices } from "@/lib/social/queries";
 import ServicesCategoryFilter from "@/components/services/ServicesCategoryFilter";
 import ServicesList from "@/components/services/ServicesList";
+import NearMeStrip from "@/components/nearby/NearMeStrip";
 import { Sparkles } from "lucide-react";
 
 export default async function ServicesPage({
@@ -24,6 +25,8 @@ export default async function ServicesPage({
       </div>
 
       <ServicesCategoryFilter activeCategory={activeCategory} />
+
+      <NearMeStrip kind="services" />
 
       {services.length > 0 ? (
         <ServicesList services={services} />

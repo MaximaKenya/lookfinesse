@@ -11,6 +11,8 @@ import {
 import { getPersonalizedToday } from "@/lib/ai/todayPersonalization";
 import type { WeatherInput } from "@/lib/ai/weatherTips";
 import { WEATHER_ATTRIBUTION, WEATHER_SOURCE } from "@/lib/weather/openMeteo";
+import { resolveLocationWeather } from "@/lib/weather/resolveLocationWeather";
+import { parseCoord } from "@/lib/geo/haversine";
 
 export const runtime = "nodejs";
 
@@ -58,38 +60,22 @@ export async function GET(req: Request) {
   const explicitCity = searchParams.get("city")?.trim() || null;
   const profileResolvedCity = profileCity ?? preferences.city ?? null;
   const city = explicitCity || profileResolvedCity || "Nairobi";
-  const useGeocode =
-    searchParams.get("geocode") === "1" ||
-    searchParams.get("geocode") === "true" ||
-    (!!profileResolvedCity && city === profileResolvedCity && profileLat == null);
 
-  const origin = new URL(req.url).origin;
-  const weatherQs = new URLSearchParams();
-  weatherQs.set("city", city);
-  if (useGeocode) {
-    weatherQs.set("geocode", "1");
-  } else {
-    const latParam = searchParams.get("lat") ?? (profileLat != null ? String(profileLat) : "");
-    const lngParam = searchParams.get("lng") ?? (profileLng != null ? String(profileLng) : "");
-    if (latParam) weatherQs.set("lat", latParam);
-    if (lngParam) weatherQs.set("lng", lngParam);
-    if (!latParam && !lngParam) weatherQs.set("geocode", "1");
-  }
+  const requestLat = parseCoord(searchParams.get("lat"));
+  const requestLng = parseCoord(searchParams.get("lng"));
+  const lat = requestLat ?? profileLat;
+  const lng = requestLng ?? profileLng;
+  const geocodeFlag = searchParams.get("geocode") === "1" || searchParams.get("geocode") === "true";
+  const geocodeOnly = geocodeFlag && lat == null && lng == null;
 
-  const wRes = await fetch(`${origin}/api/weather?${weatherQs}`).catch(() => null);
-  if (!wRes?.ok) {
-    return NextResponse.json(
-      {
-        error: "Weather unavailable",
-        source: WEATHER_SOURCE,
-        attribution: WEATHER_ATTRIBUTION,
-      },
-      { status: 503 }
-    );
-  }
+  const wJson = await resolveLocationWeather({
+    city,
+    lat,
+    lng,
+    geocodeOnly,
+  });
 
-  const wJson = await wRes.json();
-  if (wJson.error) {
+  if (!wJson) {
     return NextResponse.json(
       {
         error: "Weather unavailable",

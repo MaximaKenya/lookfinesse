@@ -28,7 +28,7 @@ Where each experience lives and which shell provides persistent sidebar navigati
 | `/drops` | Drops | Flash sales & holds |
 | `/trending` | Trending | Social |
 | `/challenges` | Challenges | Social |
-| `/nearby` | Nearby | Geo |
+| `/nearby` | Near me | Geo — shop, book, deliver |
 | `/search` | Search | Global search |
 | `/profile` | Profile | My Space |
 | `/bookings` | Bookings | My Space |
@@ -36,7 +36,7 @@ Where each experience lives and which shell provides persistent sidebar navigati
 | `/notifications` | Notifications | My Space |
 | `/fit-profile` | Fit Profile | My Space |
 | `/ai/stylist` | AI Stylist | AI group |
-| `/ai/fitness` | AI Fitness | AI group |
+| `/ai/fitness` | Gym Buddy | AI group (`/ai/gym` redirects here) |
 | `/ai/beauty` | AI Beauty | AI group |
 | `/dashboard` | Dashboard | Footer (non-vendor) |
 

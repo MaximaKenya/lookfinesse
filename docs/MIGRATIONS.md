@@ -74,6 +74,8 @@ Run **001 → 020** in order. Each file is idempotent (`IF NOT EXISTS` / conditi
 | 024 | `024_bookings_fk_and_capacity.sql` | Bookings FK + capacity |
 | 025 | `025_platform_subscription_trial.sql` | `trialing` status + `trial_ends_at` for free trials |
 | 026 | `026_platform_subscriptions_rls.sql` | RLS SELECT/INSERT/UPDATE for own `platform_subscriptions` (+ vendors insert) |
+| 027 | `027_roadmap_mvp.sql` | Roadmap MVP (push, WhatsApp, drops, KYC) |
+| 028 | `028_signup_nearby_geo.sql` | Signup trigger (profile + shopper role), profile/role RLS, `nearby_vendors` RPC, delivery radius + order address columns |
 
 ### Virtual Dresser preferences (no new migration)
 

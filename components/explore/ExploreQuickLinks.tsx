@@ -5,11 +5,13 @@ import ScrollableFilterBar from "@/components/ui/ScrollableFilterBar";
 
 const QUICK_LINKS = [
   { href: "/feed", label: "Feed", emoji: "🏠" },
-  { href: "/reels", label: "Reels", emoji: "🎬" },
-  { href: "/services", label: "Services", emoji: "📅" },
-  { href: "/live", label: "Live", emoji: "🔴" },
+  { href: "/nearby", label: "Near me", emoji: "📍" },
   { href: "/shop", label: "Shop", emoji: "🛍️" },
-  { href: "/challenges", label: "Challenges", emoji: "🏆" },
+  { href: "/services", label: "Services", emoji: "📅" },
+  { href: "/ai/fitness", label: "Gym Buddy", emoji: "💪" },
+  { href: "/ai/stylist", label: "AI Stylist", emoji: "👗" },
+  { href: "/reels", label: "Reels", emoji: "🎬" },
+  { href: "/live", label: "Live", emoji: "🔴" },
 ];
 
 export default function ExploreQuickLinks() {

@@ -17,6 +17,7 @@ import { getProduct } from "@/lib/marketplace";
 import Link from "next/link";
 import CheckoutCurrencyPicker from "@/components/checkout/CheckoutCurrencyPicker";
 import { CheckoutWhatsAppShare } from "@/components/commerce/WhatsAppCommerce";
+import DeliveryPanel, { type DeliveryDetails } from "@/components/checkout/DeliveryPanel";
 
 
 
@@ -95,6 +96,7 @@ function CheckoutInner() {
   const [bookingLoading, setBookingLoading] = useState(!!bookingId);
 
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [delivery, setDelivery] = useState<DeliveryDetails | null>(null);
 
 
 
@@ -292,7 +294,7 @@ function CheckoutInner() {
 
       headers: { "Content-Type": "application/json" },
 
-      body: JSON.stringify({ phone: phone.trim(), amount: total, userId, cart: items }),
+      body: JSON.stringify({ phone: phone.trim(), amount: total, userId, cart: items, delivery }),
 
     });
 
@@ -320,7 +322,7 @@ function CheckoutInner() {
 
       ? { amount: total, userId, bookingId: booking.id, description: `Booking: ${booking.services?.title ?? "Service"}` }
 
-      : { amount: total, userId, cart: items };
+      : { amount: total, userId, cart: items, delivery };
 
 
 
@@ -616,6 +618,8 @@ function CheckoutInner() {
           <CheckoutCurrencyPicker totalKes={total} />
 
           <CheckoutWhatsAppShare totalKes={total} />
+
+          <DeliveryPanel hidden={isBookingCheckout} onChange={setDelivery} />
 
           <div className="bg-white/5 border border-white/10 rounded-3xl p-5 backdrop-blur-xl space-y-5">
 

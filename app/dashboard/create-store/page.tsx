@@ -49,6 +49,21 @@ export default function CreateStorePage() {
   const [longitude, setLongitude] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
 
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not available in this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(pos.coords.latitude);
+        setLongitude(pos.coords.longitude);
+        if (!city) setCity("Nairobi");
+      },
+      () => alert("Could not read GPS. Enter coordinates manually.")
+    );
+  };
+
   const handleCreate = async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return router.push("/login");
@@ -241,6 +256,14 @@ export default function CreateStorePage() {
                   />
                 </Field>
               </div>
+
+              <button
+                type="button"
+                onClick={useMyLocation}
+                className="text-xs font-semibold text-cyan-300 hover:text-cyan-200"
+              >
+                Use my current location
+              </button>
 
               <p className="text-xs text-zinc-600 flex items-center gap-1">
                 <Globe size={12} />

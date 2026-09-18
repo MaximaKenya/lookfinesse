@@ -1,9 +1,11 @@
 # Seed Test Credentials
 
 ```
-vendor@test.com / Test123456!
-admin@test.com  / Test123456!
-user@test.com   / Test123456!
+vendor@test.com / Test123456!   → vendor (EliteFit Gym — fitness)
+glow@test.com   / Test123456!   → vendor (Glow Salon & Spa — beauty)
+style@test.com  / Test123456!   → vendor (Style Bank — fashion)
+admin@test.com  / Test123456!   → platform admin
+user@test.com   / Test123456!   → shopper / buyer
 ```
 
 Demo data lives in `supabase/seed.sql` plus `supabase/seed_demo_metrics.sql` (orders, wallets, ledger — non-zero `/dashboard` and `/vendor/finance` KPIs). Auth login accounts are created by **`supabase/seed_auth_users.sql`** (not the Dashboard). User-dependent rows resolve `user_id` from `auth.users` by email — never fake UUID users.
@@ -28,10 +30,12 @@ Legacy DBs: run **`supabase/migrations/025_platform_subscription_trial.sql`** be
 | Email | Password | Role | What you can access |
 |-------|----------|------|---------------------|
 | `admin@test.com` | `Test123456!` | **Platform admin** | **Only account with admin surfaces.** `user_roles.role=admin` **or** `isPlatformAdmin` (this email / JWT `app_metadata.role=admin`). Full access to `/admin/*`, `/finance`, `/intelligence`, `/dashboard/admin/*`, treasury, risk, compliance, payouts admin APIs. Also bypasses vendor tier gates on `/dashboard` / `/vendor/*`. |
-| `vendor@test.com` | `Test123456!` | **Vendor / creator** | Creator Studio, `/dashboard`, `/vendor/*`, shop & feed publishing — **Pro trial** by default after seed. **Cannot** open `/admin/*`, `/finance`, `/intelligence`, or `/dashboard/admin/*` even with an active subscription. |
-| `user@test.com` | `Test123456!` | **Buyer / fan** | Feed, shop, checkout, bookings, fan memberships, profile — no vendor or admin routes |
+| `vendor@test.com` | `Test123456!` | **Vendor / fitness** | EliteFit Gym. Creator Studio, `/dashboard`, `/vendor/*`. **Cannot** open admin surfaces. |
+| `glow@test.com` | `Test123456!` | **Vendor / beauty** | Glow Salon & Spa — salon bookings & beauty catalog. |
+| `style@test.com` | `Test123456!` | **Vendor / fashion** | Style Bank boutique. |
+| `user@test.com` | `Test123456!` | **Shopper / buyer** | Feed, shop, checkout, bookings, nearby, AI stylist / Gym Buddy — no vendor or admin routes |
 
-Optional second vendor: `glow@test.com` — **Glow Salon & Spa** service provider store (not a seeded login account).
+There is **no delivery-driver role** in this app. Delivery is a fulfilment option at checkout, proximity-sorted via `/nearby`. Stylist / trainer / gym are **vendor categories**, not separate auth roles.
 
 ---
 
@@ -50,7 +54,7 @@ Optional second vendor: `glow@test.com` — **Glow Salon & Spa** service provide
 
 1. **SQL** → **New query**
 2. Paste and run **`supabase/seed_auth_users.sql`**
-3. Creates `vendor@test.com`, `admin@test.com`, and `user@test.com` with password `Test123456!`
+3. Creates `vendor@test.com`, `admin@test.com`, `user@test.com`, `glow@test.com`, and `style@test.com` with password `Test123456!`
 4. Inserts into `auth.users` + `auth.identities` (bcrypt via `pgcrypto` — works with GoTrue sign-in)
 5. Safe to re-run; skips accounts that already exist by email
 
