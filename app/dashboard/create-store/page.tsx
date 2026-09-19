@@ -122,7 +122,7 @@ export default function CreateStorePage() {
 
         {/* Hero banner */}
         <div className="relative overflow-hidden bg-gradient-to-br from-zinc-900 via-black to-zinc-950 border border-zinc-800 rounded-[32px] p-8">
-          <div className="absolute inset-0 opacity-15">
+          <div className="absolute inset-0 opacity-15 pointer-events-none">
             <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-500 blur-3xl rounded-full" />
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500 blur-3xl rounded-full" />
           </div>

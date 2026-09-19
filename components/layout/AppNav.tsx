@@ -339,8 +339,9 @@ export default function AppNav() {
 
       <div
         className={`md:hidden fixed top-0 right-0 bottom-0 z-[80] w-72 bg-[#0a0a0a] border-l border-white/8 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "translate-x-full"
+          sidebarOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
         }`}
+        aria-hidden={!sidebarOpen}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <span className="text-white font-bold">Menu</span>

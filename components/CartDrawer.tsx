@@ -32,10 +32,12 @@ export default function CartDrawer() {
 
       <div
         role="dialog"
-        aria-modal="true"
+        aria-modal={open}
+        aria-hidden={!open}
+        inert={!open ? true : undefined}
         aria-label="Shopping cart"
         className={`fixed top-0 right-0 h-full w-full sm:w-[420px] z-50 transform transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
+          open ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
         }`}
       >
         <div className="h-full bg-[#0a0a0c] text-white border-l border-white/10 shadow-2xl flex flex-col">

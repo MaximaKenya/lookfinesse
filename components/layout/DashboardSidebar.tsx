@@ -305,8 +305,9 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
 
       <div
         className={`lg:hidden fixed inset-y-0 right-0 z-[60] flex w-80 max-w-[88vw] flex-col bg-[#0a0a0a] border-l border-white/10 transition-transform duration-300 ${
-          open ? "translate-x-0" : "translate-x-full"
+          open ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
         }`}
+        aria-hidden={!open}
       >
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>

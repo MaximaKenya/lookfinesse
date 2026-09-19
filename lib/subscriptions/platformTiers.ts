@@ -139,29 +139,29 @@ export const ELITE_VENDOR_PATHS = [
   "/dashboard/vendor/payout-settings",
 ] as const;
 
-/** Surfaces that show PlatformSubscriptionGate overlay when access denied. */
+/** Surfaces that show PlatformSubscriptionGate overlay when access denied.
+ *  Do NOT include `/dashboard` or `/vendor` — those prefixes would lock the
+ *  entire cockpit. Overlay only true upgrade-gated tools. */
 export const GATED_VENDOR_SURFACES = [
-  "/dashboard",
-  "/vendor",
   "/vendor/intelligence",
   "/dashboard/ads",
   "/dashboard/create-live",
   "/dashboard/vendor/staff",
   "/dashboard/vendor/payout-settings",
   "/intelligence",
+  "/vendor/finance",
+  "/dashboard/finance",
+  "/dashboard/calendar",
 ] as const;
 
 function pathInList(pathname: string, paths: readonly string[]): boolean {
   return paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
-function matchesCommandCenter(pathname: string): boolean {
-  return pathname === "/vendor";
-}
-
 export function pathRequiresPlatformSub(pathname: string): boolean {
   return GATED_VENDOR_SURFACES.some((p) => {
-    if (p === "/vendor") return matchesCommandCenter(pathname);
+    if (p === "/vendor") return pathname === "/vendor";
+    if (p === "/dashboard") return pathname === "/dashboard";
     return pathname === p || pathname.startsWith(p + "/");
   });
 }
