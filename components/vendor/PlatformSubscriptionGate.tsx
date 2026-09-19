@@ -6,6 +6,7 @@ import { Crown, Lock } from "lucide-react";
 import { usePlatformSubscription } from "@/hooks/usePlatformSubscription";
 import { useUserRole } from "@/hooks/useUserRole";
 import {
+  STARTER_VENDOR_PATHS,
   pathRequiresPlatformSub,
   pathRequiresProTier,
   pathRequiresEliteTier,
@@ -29,8 +30,8 @@ function gateMessage(
     return {
       title: hasRow ? "Elite plan required" : "Unlock Elite features",
       body: hasRow
-        ? "Unlock the full command center, AI intelligence, live commerce, staff management, and advanced payout settings with an active Elite vendor plan."
-        : "Start with Starter basics for free, then upgrade to Elite for the command center, AI intelligence, live commerce, and advanced payout settings.",
+        ? "Unlock AI intelligence, live commerce, staff management, and advanced payout settings with an active Elite vendor plan."
+        : "Start with Starter basics for free, then upgrade to Elite for AI intelligence, live commerce, and advanced payout settings.",
     };
   }
   if (needsPro) {
@@ -72,35 +73,35 @@ export default function PlatformSubscriptionGate({
     return <>{children}</>;
   }
 
-  // trialing Pro/Elite unlocks the same surfaces as an active paid plan
   const trialOrActive =
     active || (status === "trialing" && (tier === "pro" || tier === "elite"));
 
   const gated = pathRequiresPlatformSub(pathname);
   const subscriptionPage = pathname.startsWith("/dashboard/subscription");
-  const starterSurface =
-    pathInList(pathname, [
-      "/dashboard/creator-studio",
-      "/dashboard/create-post",
-      "/dashboard/create-reel",
-      "/dashboard/create-product",
-      "/dashboard/create-service",
-      "/vendor/products",
-      "/vendor/orders",
-    ]) || pathname === "/dashboard";
+
+  // Hub + Starter create/inventory must never be covered by the paywall overlay.
+  // `/dashboard` and `/vendor` are exact-only so `/dashboard/ads` still gates.
+  const starterCockpit =
+    pathname === "/dashboard" ||
+    pathname === "/vendor" ||
+    (pathInList(pathname, STARTER_VENDOR_PATHS) &&
+      !pathRequiresProTier(pathname) &&
+      !pathRequiresEliteTier(pathname));
 
   const allowed =
     vendorCanAccessPath(pathname, trialOrActive, tier, {
       isAdmin: false,
       hasSubscriptionRow: hasRow || status === "trialing",
-    }) ||
-    (!hasRow &&
-      starterSurface &&
-      !pathRequiresEliteTier(pathname) &&
-      !pathRequiresProTier(pathname));
+    });
 
-  // Wait for role + subscription so admin identity can't flash as locked
-  if (roleLoading || loading || !gated || allowed || subscriptionPage) {
+  if (
+    starterCockpit ||
+    roleLoading ||
+    loading ||
+    !gated ||
+    allowed ||
+    subscriptionPage
+  ) {
     return <>{children}</>;
   }
 
@@ -108,9 +109,11 @@ export default function PlatformSubscriptionGate({
 
   return (
     <div className="relative min-h-[60vh]">
-      <div className="pointer-events-none select-none opacity-30 blur-[1px]">{children}</div>
-      <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
-        <div className="max-w-md w-full rounded-3xl border border-amber-500/25 bg-gradient-to-br from-amber-950/40 via-black to-rose-950/30 p-8 text-center space-y-4">
+      <div className="select-none opacity-30 blur-[1px]" aria-hidden>
+        {children}
+      </div>
+      <div className="absolute inset-0 z-30 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
+        <div className="max-w-md w-full rounded-3xl border border-amber-500/25 bg-gradient-to-br from-amber-950/40 via-black to-rose-950/30 p-8 text-center space-y-4 pointer-events-auto">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
             <Lock className="w-7 h-7 text-amber-300" />
           </div>

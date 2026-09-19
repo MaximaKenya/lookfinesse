@@ -1,17 +1,26 @@
 import { getForYouData } from "@/lib/ai/getForYouData";
 import FeedCard from "@/components/feed/FeedCard";
-import ReelCard from "@/components/reels/ReelCard";
 import ServiceCard from "@/components/services/ServiceCard";
 import Link from "next/link";
-import { Sparkles, Shirt, Dumbbell, Flower2, ChevronRight } from "lucide-react";
+import { Sparkles, Shirt, Dumbbell, Flower2, ChevronRight, MapPin } from "lucide-react";
+import { createSupabaseServer } from "@/lib/supabaseServer";
 
 export default async function ForYouPage() {
-  const userId = "demo-user-id";
+  let userId = "anonymous";
+  try {
+    const supabase = await createSupabaseServer();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user?.id) userId = user.id;
+  } catch {
+    /* demo / unconfigured */
+  }
+
   const data = await getForYouData(userId);
 
   return (
     <div className="min-h-screen bg-black text-white pb-10">
-      {/* Hero */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-black to-pink-900/20" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full" />
@@ -21,17 +30,21 @@ export default async function ForYouPage() {
             <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">AI Curated</span>
           </div>
           <h1 className="text-4xl font-bold text-white">For You</h1>
-          <p className="text-white/40 mt-1.5">Your personalised lifestyle hub</p>
+          <p className="text-white/40 mt-1.5">
+            {userId === "anonymous"
+              ? "Sign in to personalize this hub"
+              : "Your personalised lifestyle hub"}
+          </p>
         </div>
       </div>
 
-      {/* AI Tools quick access */}
       <div className="px-6 mb-8">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { href: "/ai/stylist", label: "AI Stylist", icon: Shirt, color: "from-purple-500/20 to-pink-500/20", border: "border-purple-500/20" },
-            { href: "/ai/fitness", label: "AI Fitness", icon: Dumbbell, color: "from-cyan-500/20 to-blue-500/20", border: "border-cyan-500/20" },
+            { href: "/ai/fitness", label: "Gym Buddy", icon: Dumbbell, color: "from-cyan-500/20 to-blue-500/20", border: "border-cyan-500/20" },
             { href: "/ai/beauty", label: "AI Beauty", icon: Flower2, color: "from-pink-500/20 to-rose-500/20", border: "border-pink-500/20" },
+            { href: "/nearby", label: "Near me", icon: MapPin, color: "from-cyan-500/15 to-emerald-500/15", border: "border-cyan-500/20" },
           ].map(({ href, label, icon: Icon, color, border }) => (
             <Link key={href} href={href} className={`bg-gradient-to-br ${color} border ${border} rounded-2xl p-4 flex flex-col items-center gap-2 hover:scale-[1.02] transition-transform`}>
               <Icon className="w-5 h-5 text-white/70" />
@@ -41,7 +54,6 @@ export default async function ForYouPage() {
         </div>
       </div>
 
-      {/* Recommended Reels */}
       {data.reels?.length > 0 && (
         <section className="mb-10">
           <div className="flex items-center justify-between px-6 mb-4">
@@ -65,7 +77,6 @@ export default async function ForYouPage() {
         </section>
       )}
 
-      {/* Outfit Picks */}
       {data.outfits?.length > 0 && (
         <section className="mb-10 px-6">
           <div className="flex items-center justify-between mb-4">
@@ -92,13 +103,12 @@ export default async function ForYouPage() {
         </section>
       )}
 
-      {/* Workout Plans */}
       {data.workouts?.length > 0 && (
         <section className="mb-10 px-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white">Workout Plans</h2>
-            <Link href="/services?category=fitness" className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors">
-              Browse <ChevronRight className="w-3 h-3" />
+            <Link href="/ai/fitness" className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors">
+              Gym Buddy <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
@@ -109,7 +119,6 @@ export default async function ForYouPage() {
         </section>
       )}
 
-      {/* Beauty Picks */}
       {data.beauty?.length > 0 && (
         <section className="mb-10 px-6">
           <div className="flex items-center justify-between mb-4">
@@ -132,7 +141,6 @@ export default async function ForYouPage() {
         </section>
       )}
 
-      {/* Live Classes */}
       {data.liveSessions?.length > 0 && (
         <section className="mb-10 px-6">
           <div className="flex items-center justify-between mb-4">
@@ -158,13 +166,12 @@ export default async function ForYouPage() {
         </section>
       )}
 
-      {/* Services */}
       {data.services?.length > 0 && (
-        <section className="px-6">
+        <section className="px-6 pb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white">Trending Experiences</h2>
-            <Link href="/services" className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors">
-              Browse all <ChevronRight className="w-3 h-3" />
+            <Link href="/nearby" className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors">
+              Near me <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-4">

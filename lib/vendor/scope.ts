@@ -56,11 +56,16 @@ export async function resolveVendorScope(
     return { ok: false, reason: "not_vendor" };
   }
 
+  // Never use auth user id as vendor_id — products/services FK to vendors.id.
+  if (!vendorRow?.id) {
+    return { ok: false, reason: "not_vendor" };
+  }
+
   return {
     ok: true,
     scope: {
       userId: user.id,
-      vendorId: vendorRow?.id ?? user.id,
+      vendorId: vendorRow.id,
       storeId: stores?.[0]?.id ?? null,
     },
   };

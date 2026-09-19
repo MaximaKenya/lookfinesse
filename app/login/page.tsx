@@ -3,24 +3,25 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import AuthCarousel from "@/components/auth/AuthCarousel";
 import BrandLogo from "@/components/brand/BrandLogo";
-import { postSignupRedirect } from "@/lib/auth/onboarding";
+import { hardNavigate, postSignupRedirect } from "@/lib/auth/onboarding";
+import { friendlyAuthError } from "@/lib/auth/signupErrors";
+import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.08 * i, duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+    transition: { delay: 0.08 * i, duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") ?? "/feed";
 
@@ -36,10 +37,10 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
 
     if (error) {
-      setError(error.message);
+      setError(friendlyAuthError(error.message));
       setLoading(false);
       return;
     }
@@ -51,15 +52,34 @@ function LoginForm() {
       return;
     }
 
+    await fetch("/api/auth/bootstrap", { method: "POST" }).catch(() => {});
+
     const { data: profile } = await supabase
       .from("user_profiles")
       .select("onboarded_at, preferences")
       .eq("user_id", user.id)
       .maybeSingle();
 
+    const [{ data: roleRows }, { data: vendorRows }, { data: storeRows }] = await Promise.all([
+      supabase.from("user_roles").select("role").eq("user_id", user.id),
+      supabase.from("vendors").select("id").eq("user_id", user.id).limit(1),
+      supabase.from("stores").select("id").eq("user_id", user.id).limit(1),
+    ]);
+    const roles = (roleRows ?? []).map((r) => r.role);
+    const isVendor =
+      roles.includes("vendor") ||
+      (vendorRows?.length ?? 0) > 0 ||
+      (storeRows?.length ?? 0) > 0;
+    const skipOnboarding =
+      isPlatformAdmin({
+        email: user.email,
+        roles,
+        appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,
+      }) || isVendor;
+
     setLoading(false);
 
-    router.push(postSignupRedirect(profile, returnUrl));
+    hardNavigate(postSignupRedirect(profile, returnUrl, { skipOnboarding, isVendor }));
   }
 
   async function handleGoogle() {
@@ -72,12 +92,7 @@ function LoginForm() {
       },
     });
     if (error) {
-      const msg = error.message.toLowerCase();
-      if (msg.includes("provider") || msg.includes("not enabled") || msg.includes("unsupported")) {
-        setError("Google sign-in is not enabled yet. Please use email & password below, or contact support to enable Google OAuth in the Supabase dashboard.");
-      } else {
-        setError(error.message);
-      }
+      setError(friendlyAuthError(error.message));
       setGoogleLoading(false);
     }
   }

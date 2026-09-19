@@ -49,6 +49,21 @@ export default function CreateStorePage() {
   const [longitude, setLongitude] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
 
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not available in this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(pos.coords.latitude);
+        setLongitude(pos.coords.longitude);
+        if (!city) setCity("Nairobi");
+      },
+      () => alert("Could not read GPS. Enter coordinates manually.")
+    );
+  };
+
   const handleCreate = async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return router.push("/login");
@@ -59,31 +74,26 @@ export default function CreateStorePage() {
     const lat = Number(latitude);
     const lng = Number(longitude);
 
-    const { error } = await supabase.from("stores").insert([
-      {
+    const res = await fetch("/api/stores", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
         name,
         description,
-        user_id: data.user.id,
         ownerName,
         phone,
         city,
         address,
         latitude: lat || null,
         longitude: lng || null,
-        location: lat && lng ? `POINT(${lng} ${lat})` : null,
-      },
-    ]);
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
 
     setLoading(false);
 
-    if (error) return alert(error.message);
-
-    // Start 30-day Pro trial on first vendor store (idempotent)
-    try {
-      await fetch("/api/platform-subscriptions");
-    } catch {
-      /* non-blocking */
-    }
+    if (!res.ok) return alert(json.error || "Failed to create store");
 
     router.push("/dashboard");
   };
@@ -112,7 +122,7 @@ export default function CreateStorePage() {
 
         {/* Hero banner */}
         <div className="relative overflow-hidden bg-gradient-to-br from-zinc-900 via-black to-zinc-950 border border-zinc-800 rounded-[32px] p-8">
-          <div className="absolute inset-0 opacity-15">
+          <div className="absolute inset-0 opacity-15 pointer-events-none">
             <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-500 blur-3xl rounded-full" />
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500 blur-3xl rounded-full" />
           </div>
@@ -241,6 +251,14 @@ export default function CreateStorePage() {
                   />
                 </Field>
               </div>
+
+              <button
+                type="button"
+                onClick={useMyLocation}
+                className="text-xs font-semibold text-cyan-300 hover:text-cyan-200"
+              >
+                Use my current location
+              </button>
 
               <p className="text-xs text-zinc-600 flex items-center gap-1">
                 <Globe size={12} />

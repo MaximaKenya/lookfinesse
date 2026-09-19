@@ -9,6 +9,7 @@ import { DEMO_PRODUCTS } from "@/lib/social/queries";
 import Pagination, { getPageSlice } from "@/components/ui/Pagination";
 import ShopCategoryBar from "@/components/shop/ShopCategoryBar";
 import SearchInput from "@/components/ui/SearchInput";
+import NearMeStrip from "@/components/nearby/NearMeStrip";
 
 import {
   SHOP_CATEGORY_OPTIONS,
@@ -27,6 +28,7 @@ const PRICE_RANGES = [
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest" },
+  { value: "nearest", label: "Nearest to me" },
   { value: "price_asc", label: "Price: Low → High" },
   { value: "price_desc", label: "Price: High → Low" },
 ];
@@ -107,7 +109,9 @@ function ShopContent() {
 
   const [category, setCategory] = useState(searchParams.get("category") ?? "all");
   const [priceRange, setPriceRange] = useState(searchParams.get("price") ?? "all");
-  const [sort, setSort] = useState(searchParams.get("sort") ?? "newest");
+  const [sort, setSort] = useState(
+    searchParams.get("sort") ?? (searchParams.get("near") === "1" ? "nearest" : "newest")
+  );
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -133,6 +137,36 @@ function ShopContent() {
       const [min, max] = priceRange.replace("+", "-99999").split("-").map(Number);
       query = query.gte("price", min);
       if (max !== 99999) query = query.lte("price", max);
+    }
+
+    if (sort === "nearest") {
+      try {
+        const coords = await new Promise<GeolocationPosition | null>((resolve) => {
+          if (!navigator.geolocation) return resolve(null);
+          navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
+            timeout: 8000,
+            maximumAge: 60_000,
+          });
+        });
+        const lat = coords?.coords.latitude ?? -1.2921;
+        const lng = coords?.coords.longitude ?? 36.8219;
+        const res = await fetch(`/api/nearby?lat=${lat}&lng=${lng}&kind=products&radius=25`);
+        const data = await res.json();
+        let nearby = (data.products ?? []) as any[];
+        if (category !== "all") nearby = nearby.filter((p) => p.category === category);
+        if (search) nearby = nearby.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+        nearby = nearby.map((p) => ({
+          ...p,
+          image_url: p.image_url,
+          stores: p.vendor_name ? { name: p.vendor_name } : undefined,
+        }));
+        setProducts(nearby.length ? nearby : filterDemoProducts(category, search, priceRange, "newest"));
+        setTotal(nearby.length);
+        setLoading(false);
+        return;
+      } catch {
+        /* fall through to default catalog */
+      }
     }
 
     if (sort === "price_asc") query = query.order("price", { ascending: true });
@@ -198,6 +232,8 @@ function ShopContent() {
         </header>
 
         <ShopCategoryBar category={category} onChange={setCategory} />
+
+        <NearMeStrip kind="products" />
 
         <div className="flex gap-2">
           <SearchInput

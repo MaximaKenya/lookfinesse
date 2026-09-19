@@ -23,7 +23,11 @@ import {
   ExternalLink,
   type LucideIcon,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAiChat } from "@/hooks/useAiChat";
+import { isVendorOpsPath } from "@/context/CartContext";
+import AiMarkdown from "@/components/ai/AiMarkdown";
 
 type AssistantType =
   | "finance"
@@ -87,8 +91,8 @@ const AI_MENU: AiMenuItem[] = [
   },
   {
     id: "fitness",
-    label: "AI Fitness",
-    description: "Workouts & trainer bookings",
+    label: "Gym Buddy",
+    description: "Workouts, trainers & nearby gyms",
     icon: Dumbbell,
     href: "/ai/fitness",
     assistant: "fitness",
@@ -220,7 +224,9 @@ function MessageTime({ iso }: { iso: string }) {
 type PanelView = "menu" | "chat";
 
 export default function CopilotPanel() {
+  const pathname = usePathname() ?? "";
   const { isAdmin, isVendor, loading: roleLoading } = useUserRole();
+  const { send } = useAiChat();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -230,7 +236,6 @@ export default function CopilotPanel() {
   const [collapsed, setCollapsed] = useState(false);
   const [view, setView] = useState<PanelView>("menu");
   const [mounted, setMounted] = useState(false);
-  const [geo, setGeo] = useState<{ lat?: number; lng?: number }>({});
   const [fabPos, setFabPos] = useState<FabPosition>({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -272,36 +277,35 @@ export default function CopilotPanel() {
   const onFabPointerDown = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
       dragMoved.current = false;
-      setDragging(true);
       dragOffset.current = {
         x: e.clientX - fabPos.x,
         y: e.clientY - fabPos.y,
       };
-      e.currentTarget.setPointerCapture(e.pointerId);
+      setDragging(true);
     },
     [fabPos]
   );
 
-  const onFabPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLButtonElement>) => {
-      if (!dragging) return;
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: PointerEvent) => {
       dragMoved.current = true;
       persistFab({
         x: e.clientX - dragOffset.current.x,
         y: e.clientY - dragOffset.current.y,
       });
-    },
-    [dragging, persistFab]
-  );
-
-  const onFabPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    setDragging(false);
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    };
+    const endDrag = () => setDragging(false);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", endDrag);
+      setDragging(false);
+    };
+  }, [dragging, persistFab]);
 
   const openCopilot = useCallback(() => {
     setIsOpen(true);
@@ -309,20 +313,18 @@ export default function CopilotPanel() {
     setView("menu");
   }, []);
 
-  useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { timeout: 3000, maximumAge: 1000 * 60 * 30 }
-    );
-  }, []);
-
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen, view]);
+
+  useEffect(() => {
+    if (isVendorOpsPath(pathname)) {
+      setIsOpen(false);
+      setCollapsed(false);
+    }
+  }, [pathname]);
 
   function openChat(assistant: AssistantType) {
     setAssistantType(assistant);
@@ -344,30 +346,38 @@ export default function CopilotPanel() {
     setLoading(true);
     setError(null);
 
+    const assistantPlaceholder: CopilotMessage = {
+      role: "assistant",
+      content: "",
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, assistantPlaceholder]);
+
     try {
-      const response = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const reply = await send(
+        {
           assistantType,
           message: currentInput,
-          lat: geo.lat,
-          lng: geo.lng,
           role,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Copilot request failed");
-
-      const data = await response.json();
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-          created_at: new Date().toISOString(),
+          history: [...messages, userMessage],
         },
-      ]);
+        (delta) => {
+          setMessages((prev) => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last?.role === "assistant") copy[copy.length - 1] = { ...last, content: delta };
+            return copy;
+          });
+        }
+      );
+      setMessages((prev) => {
+        const copy = [...prev];
+        const last = copy[copy.length - 1];
+        if (last?.role === "assistant") {
+          copy[copy.length - 1] = { ...last, content: reply || last.content };
+        }
+        return copy;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error");
     } finally {
@@ -375,7 +385,7 @@ export default function CopilotPanel() {
     }
   }
 
-  if (!mounted) return null;
+  if (!mounted || isVendorOpsPath(pathname)) return null;
 
   const panelBottom = "calc(5rem + env(safe-area-inset-bottom, 0px))";
 
@@ -390,9 +400,6 @@ export default function CopilotPanel() {
       <button
         type="button"
         onPointerDown={onFabPointerDown}
-        onPointerMove={onFabPointerMove}
-        onPointerUp={onFabPointerUp}
-        onPointerCancel={onFabPointerUp}
         onClick={() => {
           if (!dragMoved.current) openCopilot();
         }}
@@ -410,9 +417,6 @@ export default function CopilotPanel() {
       <button
         type="button"
         onPointerDown={onFabPointerDown}
-        onPointerMove={onFabPointerMove}
-        onPointerUp={onFabPointerUp}
-        onPointerCancel={onFabPointerUp}
         onClick={() => {
           if (!dragMoved.current) setCollapsed(false);
         }}
@@ -554,7 +558,7 @@ export default function CopilotPanel() {
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                   <div className="text-white font-semibold capitalize">{assistantType} chat</div>
                   <div className="text-zinc-400 mt-2 text-xs leading-relaxed">
-                    Ask anything — answers use your prefs, weather, and role context when available.
+                    Ask anything — weather, outfits, Gym Buddy plans, or what’s near you.
                   </div>
                 </div>
               )}
@@ -571,8 +575,16 @@ export default function CopilotPanel() {
                         : "bg-white/8 text-white border border-white/10"
                     }`}
                   >
-                    <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {message.content}
+                    <div className="text-sm leading-relaxed">
+                      {message.role === "assistant" ? (
+                        message.content ? (
+                          <AiMarkdown content={message.content} />
+                        ) : (
+                          <span className="text-white/40 text-xs">Thinking…</span>
+                        )
+                      ) : (
+                        <span className="whitespace-pre-wrap">{message.content}</span>
+                      )}
                     </div>
                     <MessageTime iso={message.created_at} />
                   </div>

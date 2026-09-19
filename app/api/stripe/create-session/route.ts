@@ -29,6 +29,7 @@ export async function POST(req: Request) {
       bookingId,
       subscriptionId,
       description,
+      delivery,
     } = body as {
       amount: number;
       userId?: string;
@@ -37,6 +38,14 @@ export async function POST(req: Request) {
       bookingId?: string;
       subscriptionId?: string;
       description?: string;
+      delivery?: {
+        fulfillment?: string;
+        address?: string;
+        city?: string;
+        notes?: string;
+        lat?: number | null;
+        lng?: number | null;
+      };
     };
 
     if (!amount) {
@@ -99,6 +108,12 @@ export async function POST(req: Request) {
           user_id: userId ?? null,
           total: Number(amount),
           status: "pending",
+          fulfillment: delivery?.fulfillment ?? "delivery",
+          delivery_address: delivery?.address ?? null,
+          delivery_city: delivery?.city ?? null,
+          delivery_lat: delivery?.lat ?? null,
+          delivery_lng: delivery?.lng ?? null,
+          delivery_notes: delivery?.notes ?? null,
         })
         .select()
         .single();

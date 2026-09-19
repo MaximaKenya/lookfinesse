@@ -104,7 +104,7 @@ export default function CreateProductPage() {
   };
 
   const handleCreate = async () => {
-    if (!vendorId) return toast.error("Vendor context unavailable");
+    if (!vendorId) return toast.error("Create a store first so we can attach this listing to your brand");
     if (!adminBypass && productLimit && !productLimit.allowed) {
       return toast.error("Product limit reached — upgrade your plan");
     }
@@ -115,6 +115,7 @@ export default function CreateProductPage() {
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           vendor_id: vendorId,
           store_id: storeId,
@@ -167,6 +168,14 @@ export default function CreateProductPage() {
       isDemoMode={isDemoMode}
       hasVendorStore={hasVendorStore}
     >
+      {!hasVendorStore && !vendorLoading && (
+        <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          You need a storefront before publishing.{" "}
+          <Link href="/dashboard/create-store" className="underline font-semibold">
+            Create a store
+          </Link>
+        </div>
+      )}
       {!adminBypass && productLimit && productLimit.max != null && (
         <div
           className={`mb-6 rounded-2xl border px-4 py-3 flex items-start gap-3 ${
@@ -291,7 +300,7 @@ export default function CreateProductPage() {
             <button
               type="button"
               onClick={handleCreate}
-              disabled={submitting || vendorLoading || productHealth < 75 || (!adminBypass && productLimit != null && !productLimit.allowed)}
+              disabled={submitting || vendorLoading || !vendorId || !name || price === "" || stock === "" || (!adminBypass && productLimit != null && !productLimit.allowed)}
               className="w-full h-12 rounded-2xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-black font-black flex items-center justify-center gap-2"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish Product"}

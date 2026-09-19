@@ -2,7 +2,13 @@
 
 import ScrollableFilterBar from "@/components/ui/ScrollableFilterBar";
 
-const TYPES = ["all", "gym", "salon", "stylist", "wellness", "beauty"];
+const TYPES = [
+  { id: "all", label: "All" },
+  { id: "fashion", label: "Fashion" },
+  { id: "beauty", label: "Beauty" },
+  { id: "fitness", label: "Fitness" },
+  { id: "wellness", label: "Wellness" },
+];
 
 type Props = {
   filter: string;
@@ -14,14 +20,14 @@ export default function NearbyTypeFilter({ filter, onChange }: Props) {
     <ScrollableFilterBar>
       {TYPES.map((t) => (
         <button
-          key={t}
+          key={t.id}
           type="button"
-          onClick={() => onChange(t)}
+          onClick={() => onChange(t.id)}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap snap-start shrink-0 capitalize transition-all ${
-            filter === t ? "bg-white text-black" : "bg-white/5 text-white/50 border border-white/8 hover:text-white"
+            filter === t.id ? "bg-white text-black" : "bg-white/5 text-white/50 border border-white/8 hover:text-white"
           }`}
         >
-          {t}
+          {t.label}
         </button>
       ))}
     </ScrollableFilterBar>

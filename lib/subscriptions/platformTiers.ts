@@ -95,19 +95,29 @@ export function isConsumerAppPath(pathname: string): boolean {
   );
 }
 
-/** Active Starter tier — basic dashboard & limited create flows. */
+/** Active Starter tier — cockpit, catalog, and limited create flows. */
 export const STARTER_VENDOR_PATHS = [
+  "/vendor",
+  "/vendor/products",
+  "/vendor/orders",
+  "/vendor/customers",
+  "/vendor/pos",
+  "/vendor/scan",
   "/dashboard/creator-studio",
   "/dashboard/create-post",
   "/dashboard/create-reel",
   "/dashboard/create-product",
   "/dashboard/create-service",
   "/dashboard/create-store",
+  "/dashboard/create-drop",
   "/dashboard/subscription",
+  "/dashboard/vendor",
   "/dashboard/vendor/wallet",
   "/dashboard/vendor/kyc",
-  "/vendor/products",
-  "/vendor/orders",
+  "/dashboard/vendor/profile",
+  "/dashboard/vendor/onboarding",
+  "/dashboard/provider",
+  "/dashboard/sessions",
   "/profile",
   "/profile/edit",
 ] as const;
@@ -129,31 +139,29 @@ export const ELITE_VENDOR_PATHS = [
   "/dashboard/vendor/payout-settings",
 ] as const;
 
-/** Surfaces that show PlatformSubscriptionGate overlay when access denied. */
+/** Surfaces that show PlatformSubscriptionGate overlay when access denied.
+ *  Do NOT include `/dashboard` or `/vendor` — those prefixes would lock the
+ *  entire cockpit. Overlay only true upgrade-gated tools. */
 export const GATED_VENDOR_SURFACES = [
-  "/dashboard",
-  "/vendor",
   "/vendor/intelligence",
   "/dashboard/ads",
   "/dashboard/create-live",
   "/dashboard/vendor/staff",
   "/dashboard/vendor/payout-settings",
   "/intelligence",
+  "/vendor/finance",
+  "/dashboard/finance",
+  "/dashboard/calendar",
 ] as const;
 
 function pathInList(pathname: string, paths: readonly string[]): boolean {
   return paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
-function matchesCommandCenter(pathname: string): boolean {
-  return pathname === "/vendor";
-}
-
 export function pathRequiresPlatformSub(pathname: string): boolean {
-  return GATED_VENDOR_SURFACES.some((p) => {
-    if (p === "/vendor") return matchesCommandCenter(pathname);
-    return pathname === p || pathname.startsWith(p + "/");
-  });
+  // Hub routes must never match a prefix gate.
+  if (pathname === "/dashboard" || pathname === "/vendor") return false;
+  return GATED_VENDOR_SURFACES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
 export function pathRequiresProTier(pathname: string): boolean {
@@ -161,9 +169,7 @@ export function pathRequiresProTier(pathname: string): boolean {
 }
 
 export function pathRequiresEliteTier(pathname: string): boolean {
-  return (
-    pathInList(pathname, ELITE_VENDOR_PATHS) || matchesCommandCenter(pathname)
-  );
+  return pathInList(pathname, ELITE_VENDOR_PATHS);
 }
 
 function matchesStarterPath(pathname: string): boolean {
@@ -197,7 +203,9 @@ export function vendorCanAccessPath(
   const effectiveTier = tier ?? "starter";
   const paidAccess = active && !!tier;
 
-  if (matchesCommandCenter(pathname) || pathInList(pathname, ELITE_VENDOR_PATHS)) {
+  // Elite/Pro checks first so `/dashboard/vendor/staff` is not opened by the
+  // `/dashboard/vendor` starter prefix.
+  if (pathInList(pathname, ELITE_VENDOR_PATHS)) {
     if (!hasRow) return false;
     return paidAccess && tierMeetsMinimum(effectiveTier, "elite");
   }

@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-
-import { supabase } from "@/lib/supabaseClient";
-
 import { createFeedPost } from "@/lib/social/createFeedPost";
-
 import { sendFollowerNotifications } from "@/lib/social/sendFollowerNotifications";
+import { checkVendorProductLimit, productLimitMessage } from "@/lib/subscriptions/productLimits";
+import { requireVendorSession } from "@/lib/vendor/requireVendorSession";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const session = await requireVendorSession();
+    if (!session.ok) return session.response;
 
+    const { supabase, scope } = session;
+    const body = await req.json();
     const {
-      vendor_id,
       name,
       short_description,
       description,
@@ -24,134 +24,86 @@ export async function POST(req: Request) {
       caption,
     } = body;
 
-    if (!vendor_id) {
+    if (!name?.trim()) {
+      return NextResponse.json({ error: "Product name is required" }, { status: 400 });
+    }
+
+    const limit = await checkVendorProductLimit(supabase, scope.vendorId);
+    if (!limit.allowed) {
       return NextResponse.json(
         {
-          error: "vendor_id is required",
+          error: productLimitMessage(limit),
+          code: "PRODUCT_LIMIT",
+          current: limit.current,
+          max: limit.max,
+          tier: limit.tier,
         },
-        {
-          status: 400,
-        }
+        { status: 403 }
       );
     }
 
-    if (!name) {
-      return NextResponse.json(
-        {
-          error: "Product name is required",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    const gallery = Array.isArray(images)
+      ? images
+          .map((img: string | { url: string }) => (typeof img === "string" ? img : img?.url))
+          .filter((url: string) => typeof url === "string" && url.length > 0 && !url.startsWith("blob:"))
+      : [];
 
-    const primaryImage =
-      images?.[0]?.url || null;
+    const insert: Record<string, unknown> = {
+      vendor_id: scope.vendorId,
+      name: name.trim(),
+      short_description: short_description ?? "",
+      description: description ?? short_description ?? "",
+      category_id: category_id || null,
+      price: Number(price || 0),
+      inventory: Number(inventory || 0),
+      stock: Number(inventory || 0),
+      stock_quantity: Number(inventory || 0),
+      sku: sku ?? null,
+      shipping_fee: Number(shipping_fee || 0),
+      image_url: gallery[0] ?? null,
+      image_gallery: gallery,
+      images: gallery,
+      status: "active",
+      is_active: true,
+      is_public: true,
+    };
+    if (scope.storeId) insert.store_id = scope.storeId;
 
-    const gallery =
-      images?.map(
-        (img: { url: string }) => img.url
-      ) || [];
-
-    /*
-      CREATE PRODUCT
-    */
-
-    const {
-      data: product,
-      error,
-    } = await supabase
+    const { data: product, error } = await supabase
       .from("products")
-      .insert({
-        vendor_id,
-
-        name,
-
-        short_description,
-
-        description,
-
-        category_id,
-
-        price: Number(price || 0),
-
-        inventory: Number(
-          inventory || 0
-        ),
-
-        sku,
-
-        shipping_fee: Number(
-          shipping_fee || 0
-        ),
-
-        image_url: primaryImage,
-
-        image_gallery: gallery,
-
-        status: "active",
-      })
+      .insert(insert)
       .select()
       .single();
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    /*
-      CREATE SOCIAL FEED POST
-    */
-
-    const feedPost =
-      await createFeedPost({
-        vendorId: vendor_id,
-
+    const feedPost = await createFeedPost(
+      {
+        vendorId: scope.vendorId,
         productId: product.id,
-
-        caption:
-          caption ||
-          short_description ||
-          `New drop: ${name}`,
-
+        caption: caption || short_description || `New drop: ${name}`,
         mediaUrls: gallery,
-
-        thumbnailUrl:
-          primaryImage || undefined,
-      });
-
-    /*
-      NOTIFY FOLLOWERS
-    */
+        thumbnailUrl: gallery[0],
+      },
+      supabase
+    ).catch((err) => {
+      console.warn("[create-product] feed post:", err);
+      return null;
+    });
 
     await sendFollowerNotifications({
-      vendorId: vendor_id,
-
+      vendorId: scope.vendorId,
       title: "New Product Drop",
-
       message: `${name} is now available`,
+      imageUrl: gallery[0],
+    }).catch(() => null);
 
-      imageUrl: primaryImage || undefined,
-    });
-
-    return NextResponse.json({
-      success: true,
-
-      product,
-
-      feedPost,
-    });
+    return NextResponse.json({ success: true, product, feedPost });
   } catch (err) {
     console.error(err);
-
     return NextResponse.json(
-      {
-        error:
-          "Failed to create product",
-      },
-      {
-        status: 500,
-      }
+      { error: err instanceof Error ? err.message : "Failed to create product" },
+      { status: 500 }
     );
   }
 }

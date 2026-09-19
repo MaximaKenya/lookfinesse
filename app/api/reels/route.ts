@@ -39,9 +39,12 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const { requireVendorSession } = await import("@/lib/vendor/requireVendorSession");
+    const session = await requireVendorSession();
+    if (!session.ok) return session.response;
+
     const body = await req.json();
     const {
-      vendor_id,
       caption,
       video_url,
       thumbnail_url,
@@ -53,9 +56,9 @@ export async function POST(req: Request) {
       category,
     } = body;
 
-    if (!vendor_id || !video_url?.trim() || !caption?.trim()) {
+    if (!video_url?.trim() || !caption?.trim()) {
       return NextResponse.json(
-        { error: "vendor_id, video_url, and caption are required" },
+        { error: "video_url and caption are required" },
         { status: 400 }
       );
     }
@@ -64,7 +67,7 @@ export async function POST(req: Request) {
     const primaryServiceId = service_id ?? service_ids?.[0] ?? null;
 
     const payload: Record<string, unknown> = {
-      vendor_id,
+      vendor_id: session.scope.vendorId,
       caption: caption.trim(),
       video_url: video_url.trim(),
       thumbnail_url: thumbnail_url || null,
@@ -82,7 +85,7 @@ export async function POST(req: Request) {
     }
     if (category) payload.category = category;
 
-    const { data, error } = await supabase.from("reels").insert(payload).select().single();
+    const { data, error } = await session.supabase.from("reels").insert(payload).select().single();
     if (error) throw error;
 
     return NextResponse.json({ success: true, reel: normalizeReelRow(data as Record<string, unknown>) }, { status: 201 });

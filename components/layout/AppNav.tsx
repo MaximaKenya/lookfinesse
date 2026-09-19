@@ -49,8 +49,8 @@ import { signOutAndRedirect } from "@/lib/logout";
 
 const MOBILE_NAV_BASE = [
   { href: "/feed", label: "Feed", icon: Home },
-  { href: "/reels", label: "Reels", icon: Clapperboard },
-  { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/shop", label: "Shop", icon: ShoppingBag },
+  { href: "/nearby", label: "Near", icon: MapPin },
   { href: "/services", label: "Book", icon: Calendar },
   { href: "/profile", label: "Me", icon: User },
 ] as const;
@@ -69,6 +69,7 @@ const SIDEBAR_GROUPS = [
     label: "Commerce",
     items: [
       { href: "/shop", label: "Shop", icon: ShoppingBag },
+      { href: "/nearby", label: "Near me", icon: MapPin },
       { href: "/services", label: "Services", icon: Calendar },
       { href: "/live", label: "Live", icon: Radio },
       { href: "/drops", label: "Drops", icon: Flame },
@@ -79,7 +80,6 @@ const SIDEBAR_GROUPS = [
     items: [
       { href: "/trending", label: "Trending", icon: TrendingUp },
       { href: "/challenges", label: "Challenges", icon: Trophy },
-      { href: "/nearby", label: "Nearby", icon: MapPin },
       { href: "/search", label: "Search", icon: Search },
     ],
   },
@@ -98,7 +98,7 @@ const SIDEBAR_GROUPS = [
     items: [
       { href: "/ai/stylist", label: "AI Stylist", icon: Shirt },
       { href: "/ai/virtual-dresser", label: "Virtual Dresser", icon: Sparkles },
-      { href: "/ai/fitness", label: "AI Fitness", icon: Dumbbell },
+      { href: "/ai/fitness", label: "Gym Buddy", icon: Dumbbell },
       { href: "/ai/beauty", label: "AI Beauty", icon: Flower2 },
     ],
   },
@@ -194,7 +194,7 @@ export default function AppNav() {
                 {group.label}
               </p>
               <ul className="space-y-0.5">
-                {mapNavItemsWithLocks(group.items, navCtx).map(
+                {mapNavItemsWithLocks([...group.items], navCtx).map(
                   ({ href, label, icon: Icon, locked, upgradeHref }) => {
                   const active = isActive(href);
                   const targetHref = locked ? upgradeHref : href;
@@ -330,21 +330,22 @@ export default function AppNav() {
         </div>
       </header>
 
-      {sidebarOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {sidebarOpen ? (
+        <>
+      <div
+        className="md:hidden fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
+        onClick={() => setSidebarOpen(false)}
+      />
 
       <div
-        className={`md:hidden fixed top-0 right-0 bottom-0 z-[80] w-72 bg-[#0a0a0a] border-l border-white/8 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        className="md:hidden fixed top-0 right-0 bottom-0 z-[80] w-72 bg-[#0a0a0a] border-l border-white/8 pointer-events-auto"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <span className="text-white font-bold">Menu</span>
-          <button onClick={() => setSidebarOpen(false)}>
+          <button type="button" onClick={() => setSidebarOpen(false)} aria-label="Close menu">
             <X className="w-5 h-5 text-white/60" />
           </button>
         </div>
@@ -355,7 +356,7 @@ export default function AppNav() {
                 {group.label}
               </p>
               <ul className="space-y-0.5">
-                {mapNavItemsWithLocks(group.items, navCtx).map(
+                {mapNavItemsWithLocks([...group.items], navCtx).map(
                   ({ href, label, icon: Icon, locked, upgradeHref }) => {
                   const active = isActive(href);
                   const targetHref = locked ? upgradeHref : href;
@@ -454,6 +455,8 @@ export default function AppNav() {
           </div>
         </nav>
       </div>
+        </>
+      ) : null}
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/8">
         <div className="grid grid-cols-5 h-16 px-1">

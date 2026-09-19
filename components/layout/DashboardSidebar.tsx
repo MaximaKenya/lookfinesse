@@ -288,6 +288,7 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
           <span className="truncate max-w-[120px] text-sm font-semibold">{brand.title}</span>
         </div>
         <button
+          type="button"
           onClick={() => setOpen(true)}
           className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/70 hover:text-white"
           aria-label="Open navigation"
@@ -296,47 +297,50 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
         </button>
       </header>
 
-      {open && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      <div
-        className={`lg:hidden fixed inset-y-0 right-0 z-[60] flex w-80 max-w-[88vw] flex-col bg-[#0a0a0a] border-l border-white/10 transition-transform duration-300 ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <div>
-            <div className="font-bold">{brand.title}</div>
-            <div className="text-[11px] text-zinc-500">{brand.subtitle}</div>
+      {open ? (
+        <>
+          <div
+            className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Dashboard navigation"
+            className="lg:hidden fixed inset-y-0 right-0 z-[60] flex w-80 max-w-[88vw] flex-col bg-[#0a0a0a] border-l border-white/10 pointer-events-auto"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <div>
+                <div className="font-bold">{brand.title}</div>
+                <div className="text-[11px] text-zinc-500">{brand.subtitle}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/70"
+                aria-label="Close navigation"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <NavBody
+              groups={groups}
+              pathname={pathname}
+              onSelect={() => setOpen(false)}
+            />
+            <div className="border-t border-white/10 p-3 space-y-2">
+              <Link
+                href="/feed"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-medium text-zinc-400"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Marketplace
+              </Link>
+            </div>
           </div>
-          <button
-            onClick={() => setOpen(false)}
-            className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/70"
-            aria-label="Close navigation"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <NavBody
-          groups={groups}
-          pathname={pathname}
-          onSelect={() => setOpen(false)}
-        />
-        <div className="border-t border-white/10 p-3 space-y-2">
-          <Link
-            href="/feed"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-medium text-zinc-400"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Marketplace
-          </Link>
-        </div>
-      </div>
+        </>
+      ) : null}
     </>
   );
 }

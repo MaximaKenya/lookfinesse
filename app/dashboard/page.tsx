@@ -251,7 +251,10 @@ export default function DashboardPage() {
         {stores.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-1">
             {stores.map((s) => (
-              <button key={s.id} onClick={() => setActiveStore(s)}
+              <button
+                type="button"
+                key={s.id}
+                onClick={() => setActiveStore(s)}
                 className={`px-4 py-2 rounded-xl text-sm whitespace-nowrap transition font-medium ${
                   activeStore?.id === s.id
                     ? "bg-white text-black"
@@ -399,6 +402,12 @@ export default function DashboardPage() {
                 color: "hover:border-purple-500/40 hover:bg-purple-500/5",
               },
               {
+                label: "New Service",
+                icon: "📅",
+                href: "/dashboard/create-service",
+                color: "hover:border-teal-500/40 hover:bg-teal-500/5",
+              },
+              {
                 label: "New Post",
                 icon: "✨",
                 href: "/dashboard/create-post",
@@ -441,12 +450,12 @@ export default function DashboardPage() {
                 color: "hover:border-green-500/40 hover:bg-green-500/5",
               },
             ].map((action) => (
-              <button key={action.label}
-                onClick={() => router.push(action.href)}
+              <Link key={action.label}
+                href={action.href}
                 className={`flex flex-col items-center gap-2 py-5 rounded-2xl bg-white/3 border border-white/8 transition ${action.color}`}>
                 <span className="text-2xl">{action.icon}</span>
                 <span className="text-sm font-medium text-gray-300">{action.label}</span>
-              </button>
+              </Link>
             ))}
           </div>
         </div>
@@ -518,7 +527,7 @@ export default function DashboardPage() {
                         src={getImage(p)}
                         className="w-full h-48 object-cover group-hover:scale-110 transition duration-700"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                       {(p.stock ?? 0) <= 0 && (
                         <div className="absolute top-2 right-2 bg-red-500/80 text-white text-xs px-2 py-0.5 rounded-full">
                           Out of stock

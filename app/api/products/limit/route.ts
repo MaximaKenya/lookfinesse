@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
 import { checkVendorProductLimit } from "@/lib/subscriptions/productLimits";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
@@ -32,6 +31,7 @@ export async function GET(req: Request) {
   }
 
   const isAdmin = await resolveIsAdmin();
-  const check = await checkVendorProductLimit(supabase, vendorId, { isAdmin });
+  const server = await createSupabaseServer();
+  const check = await checkVendorProductLimit(server, vendorId, { isAdmin });
   return NextResponse.json(check);
 }

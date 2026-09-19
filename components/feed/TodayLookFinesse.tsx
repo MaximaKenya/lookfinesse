@@ -142,7 +142,7 @@ const COLORS = {
 
 
 
-type Geo = { lat: number; lng: number; city: string };
+type Geo = { lat?: number; lng?: number; city: string };
 
 
 
@@ -153,6 +153,7 @@ export default function TodayLookFinesse() {
   const [profileReady, setProfileReady] = useState(false);
 
   const [profileCity, setProfileCity] = useState<string | null>(null);
+  const [profileCoords, setProfileCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const [prefsSummary, setPrefsSummary] = useState<string | null>(null);
 
@@ -190,7 +191,9 @@ export default function TodayLookFinesse() {
 
       qs.set("city", geo.city);
 
-      if (opts?.geocode || !geo.lat || !geo.lng) {
+      const coordsOk = Number.isFinite(geo.lat) && Number.isFinite(geo.lng);
+
+      if (opts?.geocode || !coordsOk) {
 
         qs.set("geocode", "1");
 
@@ -298,6 +301,12 @@ export default function TodayLookFinesse() {
 
         }
 
+        if (Number.isFinite(p?.lat) && Number.isFinite(p?.lng)) {
+
+          setProfileCoords({ lat: p.lat, lng: p.lng });
+
+        }
+
         const summaryParts = [
 
           pr.gender === "female" ? "woman" : pr.gender === "male" ? "man" : pr.gender,
@@ -346,45 +355,51 @@ export default function TodayLookFinesse() {
 
       setLocationNote(note);
 
-      void fetchTips(geo, { geocode: !geo.lat || !geo.lng });
+      void fetchTips(geo, { geocode: !Number.isFinite(geo.lat) || !Number.isFinite(geo.lng) });
 
     };
 
 
 
-    if (profileCity) {
+    const fallback = () => {
 
-      load(
+      if (profileCoords) {
 
-        { lat: 0, lng: 0, city: profileCity },
+        load(
 
-        `Using your profile city (${profileCity}) — geocoded via Open-Meteo.`
+          { lat: profileCoords.lat, lng: profileCoords.lng, city: initialCity },
 
-      );
+          profileCity ? `Using saved coordinates for ${profileCity}.` : "Using your saved location."
 
-      return () => {
+        );
 
-        cancelled = true;
+        return;
 
-      };
+      }
 
-    }
+      if (profileCity) {
 
+        load(
 
+          { city: profileCity },
 
-    const fallback = () =>
+          `Using your profile city (${profileCity}) — geocoded via Open-Meteo.`
+
+        );
+
+        return;
+
+      }
 
       load(
 
         { lat: DEFAULT_LAT, lng: DEFAULT_LNG, city: initialCity },
 
-        profileCity
-
-          ? `Using ${profileCity} — geocoded via Open-Meteo.`
-
-          : "Using Nairobi coordinates. Enter your city below or enable GPS."
+        "Using Nairobi coordinates. Enter your city below or enable GPS."
 
       );
+
+    };
 
 
 
@@ -426,7 +441,7 @@ export default function TodayLookFinesse() {
 
     };
 
-  }, [profileReady, profileCity, fetchTips]);
+  }, [profileReady, profileCity, profileCoords, fetchTips]);
 
 
 
@@ -434,7 +449,7 @@ export default function TodayLookFinesse() {
 
     const next = manualCity.trim() || profileCity || DEFAULT_CITY;
 
-    const geo = { lat: 0, lng: 0, city: next };
+    const geo = { city: next };
 
     geoRef.current = geo;
 

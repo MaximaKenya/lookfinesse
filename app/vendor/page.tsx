@@ -64,7 +64,7 @@ function MetricCard({
   return (
     <Link
       href={href}
-      className={`group relative overflow-hidden rounded-3xl border border-white/8 bg-white/[0.03] p-6 backdrop-blur-xl transition-all hover:border-white/15 hover:bg-white/[0.06] shadow-2xl ${glow}`}
+      className={`group relative overflow-hidden rounded-3xl border border-white/8 bg-white/[0.03] p-6 backdrop-blur-xl transition-all hover:border-white/15 hover:bg-white/[0.06] shadow-2xl cursor-pointer ${glow}`}
     >
       <div className="flex items-start justify-between">
         <div>
@@ -81,7 +81,7 @@ function MetricCard({
           {icon}
         </div>
       </div>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl rounded-full" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl rounded-full pointer-events-none" />
     </Link>
   );
 }
@@ -162,7 +162,7 @@ export default function VendorDashboardPage() {
       <div className="mx-auto max-w-7xl space-y-8">
         {/* HERO */}
         <section className="relative overflow-hidden rounded-[32px] border border-white/8 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 p-8">
-          <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
             <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500 blur-3xl rounded-full" />
             <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-500 blur-3xl rounded-full" />
           </div>
@@ -280,6 +280,27 @@ export default function VendorDashboardPage() {
             )}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            <QuickTile
+              href="/dashboard/create-product"
+              label="New product"
+              description="List an item in your shop"
+              icon={Package}
+              accent="text-cyan-300"
+            />
+            <QuickTile
+              href="/dashboard/create-service"
+              label="New service"
+              description="Bookable session or class"
+              icon={ShoppingBag}
+              accent="text-teal-300"
+            />
+            <QuickTile
+              href="/dashboard/create-post"
+              label="New post"
+              description="Feed drop for your brand"
+              icon={Sparkles}
+              accent="text-pink-300"
+            />
             <QuickTile
               href="/vendor/finance"
               label="Finance Center"

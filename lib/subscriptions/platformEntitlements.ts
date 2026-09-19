@@ -21,7 +21,6 @@ export type PlatformEntitlements = {
 export const ENTITLEMENT_ROUTE_GATES = {
   pro: ["/dashboard/ads", "/dashboard/calendar", "/vendor/finance", "/dashboard/finance"],
   elite: [
-    "/vendor",
     "/intelligence",
     "/vendor/intelligence",
     "/dashboard/create-live",
@@ -29,10 +28,14 @@ export const ENTITLEMENT_ROUTE_GATES = {
     "/dashboard/vendor/payout-settings",
   ],
   starterAlways: [
+    "/vendor",
+    "/dashboard/vendor",
     "/dashboard/creator-studio",
     "/dashboard/create-post",
     "/dashboard/create-reel",
     "/dashboard/create-product",
+    "/dashboard/create-service",
+    "/dashboard/create-drop",
     "/dashboard/subscription",
     "/vendor/products",
     "/vendor/orders",

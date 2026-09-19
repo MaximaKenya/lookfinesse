@@ -232,6 +232,7 @@ export default function RealtimeRevenueChart({ data }: { data?: any }) {
       <div className="flex flex-wrap items-center gap-2 mb-5">
         {filters.map((item) => (
           <button
+            type="button"
             key={item}
             onClick={() => setFilter(item)}
             className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border capitalize ${

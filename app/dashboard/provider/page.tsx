@@ -78,7 +78,7 @@ export default function ProviderHubPage() {
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-6xl">
       <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-purple-950/40 via-black/60 to-cyan-950/30 p-8 backdrop-blur-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(168,85,247,0.12),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(168,85,247,0.12),transparent_50%)] pointer-events-none" />
         <div className="relative">
           <p className="text-[10px] uppercase tracking-widest text-purple-300/80 font-semibold">Provider Hub</p>
           <h1 className="text-3xl font-bold text-white mt-1">Memberships & Sessions</h1>

@@ -45,7 +45,7 @@ export async function ensureVendorRow(
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name")
+    .select("id, name, latitude, longitude, city")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
@@ -64,6 +64,10 @@ export async function ensureVendorRow(
       business_name: businessName,
       email: opts?.email ?? null,
       is_verified: false,
+      lat: store?.latitude ?? null,
+      lng: store?.longitude ?? null,
+      location: store?.city ?? null,
+      delivery_radius_km: 20,
     })
     .select("id")
     .single();

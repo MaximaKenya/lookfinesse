@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { isVendorOpsPath, useCart } from "@/context/CartContext";
+import { usePathname } from "next/navigation";
 
 function formatKes(n: number) {
   return `KES ${Number(n || 0).toLocaleString()}`;
 }
 
 export default function CartDrawer() {
+  const pathname = usePathname() ?? "";
   const { cart, open, setOpen, remove, increase, decrease } = useCart();
   const itemCount = cart.reduce(
     (sum: number, p: { quantity?: number }) => sum + (p.quantity || 1),
@@ -20,23 +22,23 @@ export default function CartDrawer() {
     0
   );
 
+  // Closed (or ops) carts must not remain in the DOM. A fixed + inert sibling
+  // can freeze the whole document, and translate-x-full still occupies a hit box.
+  if (!open || isVendorOpsPath(pathname)) return null;
+
   return (
     <>
-      {open && (
-        <div
-          role="presentation"
-          onClick={() => setOpen(false)}
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
-        />
-      )}
+      <div
+        role="presentation"
+        onClick={() => setOpen(false)}
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+      />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
-        className={`fixed top-0 right-0 h-full w-full sm:w-[420px] z-50 transform transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="fixed top-0 right-0 h-full w-full sm:w-[420px] z-50 pointer-events-auto"
       >
         <div className="h-full bg-[#0a0a0c] text-white border-l border-white/10 shadow-2xl flex flex-col">
           <div className="p-5 border-b border-white/10 flex justify-between items-center">

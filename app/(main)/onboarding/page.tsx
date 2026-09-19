@@ -27,6 +27,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { destinationAfterOnboarding } from "@/lib/auth/onboarding";
+import { readIntendedRole, clearIntendedRole } from "@/lib/auth/signupErrors";
 
 import { Sparkles, Shirt, Flower2, Dumbbell, Heart, ChevronRight, Check } from "lucide-react";
 
@@ -184,6 +186,8 @@ export default function OnboardingPage() {
 
     try {
 
+      const intended = readIntendedRole();
+
       const res = await fetch("/api/profile", {
 
         method: "PATCH",
@@ -207,6 +211,8 @@ export default function OnboardingPage() {
             style,
 
             city,
+
+            intended_role: intended,
 
           },
 
@@ -254,7 +260,9 @@ export default function OnboardingPage() {
 
       toast.success("Profile personalized!");
 
-      router.push("/feed");
+      clearIntendedRole();
+
+      router.push(destinationAfterOnboarding({ intended_role: intended }));
 
     } catch (e) {
 

@@ -145,12 +145,13 @@ export async function getEdgeAuth(request: NextRequest): Promise<EdgeAuth & { re
     let isVendor = roles.includes("vendor") || isAdmin;
 
     if (!isVendor) {
-      const { data: stores } = await supabase
-        .from("stores")
-        .select("id")
-        .eq("user_id", user.id)
-        .limit(1);
-      if (stores && stores.length > 0) isVendor = true;
+      const [{ data: stores }, { data: vendorRows }] = await Promise.all([
+        supabase.from("stores").select("id").eq("user_id", user.id).limit(1),
+        supabase.from("vendors").select("id").eq("user_id", user.id).limit(1),
+      ]);
+      if ((stores && stores.length > 0) || (vendorRows && vendorRows.length > 0)) {
+        isVendor = true;
+      }
     }
 
     return { userId: user.id, isAdmin, isVendor, response: getResponse() };
