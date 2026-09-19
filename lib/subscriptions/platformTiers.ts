@@ -159,11 +159,9 @@ function pathInList(pathname: string, paths: readonly string[]): boolean {
 }
 
 export function pathRequiresPlatformSub(pathname: string): boolean {
-  return GATED_VENDOR_SURFACES.some((p) => {
-    if (p === "/vendor") return pathname === "/vendor";
-    if (p === "/dashboard") return pathname === "/dashboard";
-    return pathname === p || pathname.startsWith(p + "/");
-  });
+  // Hub routes must never match a prefix gate.
+  if (pathname === "/dashboard" || pathname === "/vendor") return false;
+  return GATED_VENDOR_SURFACES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
 export function pathRequiresProTier(pathname: string): boolean {

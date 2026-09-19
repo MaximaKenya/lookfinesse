@@ -23,8 +23,10 @@ import {
   ExternalLink,
   type LucideIcon,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAiChat } from "@/hooks/useAiChat";
+import { isVendorOpsPath } from "@/context/CartContext";
 import AiMarkdown from "@/components/ai/AiMarkdown";
 
 type AssistantType =
@@ -222,6 +224,7 @@ function MessageTime({ iso }: { iso: string }) {
 type PanelView = "menu" | "chat";
 
 export default function CopilotPanel() {
+  const pathname = usePathname() ?? "";
   const { isAdmin, isVendor, loading: roleLoading } = useUserRole();
   const { send } = useAiChat();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
@@ -274,36 +277,35 @@ export default function CopilotPanel() {
   const onFabPointerDown = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
       dragMoved.current = false;
-      setDragging(true);
       dragOffset.current = {
         x: e.clientX - fabPos.x,
         y: e.clientY - fabPos.y,
       };
-      e.currentTarget.setPointerCapture(e.pointerId);
+      setDragging(true);
     },
     [fabPos]
   );
 
-  const onFabPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLButtonElement>) => {
-      if (!dragging) return;
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: PointerEvent) => {
       dragMoved.current = true;
       persistFab({
         x: e.clientX - dragOffset.current.x,
         y: e.clientY - dragOffset.current.y,
       });
-    },
-    [dragging, persistFab]
-  );
-
-  const onFabPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    setDragging(false);
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    };
+    const endDrag = () => setDragging(false);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", endDrag);
+      setDragging(false);
+    };
+  }, [dragging, persistFab]);
 
   const openCopilot = useCallback(() => {
     setIsOpen(true);
@@ -316,6 +318,13 @@ export default function CopilotPanel() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen, view]);
+
+  useEffect(() => {
+    if (isVendorOpsPath(pathname)) {
+      setIsOpen(false);
+      setCollapsed(false);
+    }
+  }, [pathname]);
 
   function openChat(assistant: AssistantType) {
     setAssistantType(assistant);
@@ -376,7 +385,7 @@ export default function CopilotPanel() {
     }
   }
 
-  if (!mounted) return null;
+  if (!mounted || isVendorOpsPath(pathname)) return null;
 
   const panelBottom = "calc(5rem + env(safe-area-inset-bottom, 0px))";
 
@@ -391,9 +400,6 @@ export default function CopilotPanel() {
       <button
         type="button"
         onPointerDown={onFabPointerDown}
-        onPointerMove={onFabPointerMove}
-        onPointerUp={onFabPointerUp}
-        onPointerCancel={onFabPointerUp}
         onClick={() => {
           if (!dragMoved.current) openCopilot();
         }}
@@ -411,9 +417,6 @@ export default function CopilotPanel() {
       <button
         type="button"
         onPointerDown={onFabPointerDown}
-        onPointerMove={onFabPointerMove}
-        onPointerUp={onFabPointerUp}
-        onPointerCancel={onFabPointerUp}
         onClick={() => {
           if (!dragMoved.current) setCollapsed(false);
         }}

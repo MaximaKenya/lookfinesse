@@ -330,22 +330,22 @@ export default function AppNav() {
         </div>
       </header>
 
-      {sidebarOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {sidebarOpen ? (
+        <>
+      <div
+        className="md:hidden fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
+        onClick={() => setSidebarOpen(false)}
+      />
 
       <div
-        className={`md:hidden fixed top-0 right-0 bottom-0 z-[80] w-72 bg-[#0a0a0a] border-l border-white/8 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
-        }`}
-        aria-hidden={!sidebarOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        className="md:hidden fixed top-0 right-0 bottom-0 z-[80] w-72 bg-[#0a0a0a] border-l border-white/8 pointer-events-auto"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <span className="text-white font-bold">Menu</span>
-          <button onClick={() => setSidebarOpen(false)}>
+          <button type="button" onClick={() => setSidebarOpen(false)} aria-label="Close menu">
             <X className="w-5 h-5 text-white/60" />
           </button>
         </div>
@@ -455,6 +455,8 @@ export default function AppNav() {
           </div>
         </nav>
       </div>
+        </>
+      ) : null}
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/8">
         <div className="grid grid-cols-5 h-16 px-1">

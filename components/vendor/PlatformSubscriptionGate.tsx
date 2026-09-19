@@ -79,9 +79,8 @@ export default function PlatformSubscriptionGate({
   const gated = pathRequiresPlatformSub(pathname);
   const subscriptionPage = pathname.startsWith("/dashboard/subscription");
 
-  // Starter cockpit (hub, create, inventory) must NEVER be covered by the
-  // lock overlay — that overlay uses pointer-events-none on all children and
-  // swallows card/tab clicks.
+  // Hub + Starter create/inventory must never be covered by the paywall overlay.
+  // `/dashboard` and `/vendor` are exact-only so `/dashboard/ads` still gates.
   const starterCockpit =
     pathname === "/dashboard" ||
     pathname === "/vendor" ||
