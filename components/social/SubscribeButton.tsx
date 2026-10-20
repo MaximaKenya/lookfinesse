@@ -16,13 +16,20 @@ export default function SubscribeButton({ vendorId, vendorName }: { vendorId: st
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/create-subscription", {
+      const res = await fetch("/api/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: userId,
-          vendor_id: vendorId,
-          tier: "fan",
+          amount: 299,
+          userId,
+          description: `Membership: ${vendorName ?? "creator"}`,
+          metadata: {
+            app: "lookfinesse",
+            kind: "membership",
+            user_id: userId,
+            vendor_id: vendorId,
+            tier: "supporter",
+          },
         }),
       });
       const data = await res.json();

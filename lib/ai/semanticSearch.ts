@@ -3,7 +3,7 @@
  *
  * Strategy:
  *  1. Parse the raw query into detected intents + expanded keywords.
- *  2. If OPENAI_API_KEY is present, generate an embedding and re-rank results.
+ *  2. Rank the Supabase rows by keyword overlap.
  *  3. Otherwise fall back to the expanded multi-keyword ilike search.
  */
 
@@ -92,25 +92,7 @@ export function parseQuery(raw: string): ParsedQuery {
   };
 }
 
-// ─── OpenAI embedding (optional) ────────────────────────────────────────────
-
-async function getEmbedding(text: string): Promise<number[] | null> {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return null;
-  try {
-    const { OpenAI } = await import("openai");
-    const client = new OpenAI({ apiKey: key });
-    const res = await client.embeddings.create({
-      model: "text-embedding-3-small",
-      input: text,
-    });
-    return res.data[0].embedding;
-  } catch {
-    return null;
-  }
-}
-
-// Simple keyword relevance score (0–1) for fallback ranking
+// Simple keyword relevance score (0–1) for ranking
 function keywordScore(text: string, keywords: string[]): number {
   const lower = text.toLowerCase();
   const hits = keywords.filter((k) => lower.includes(k)).length;
@@ -208,40 +190,7 @@ async function searchWithKeywords(parsed: ParsedQuery) {
   return { products, services, creators, posts };
 }
 
-// ─── Demo fallbacks ──────────────────────────────────────────────────────────
-
-const DEMO_SEARCH = {
-  products: [
-    { id: "demo-p1", name: "Ankara Blazer — Desert Gold", price: 4500, image_url: "https://images.unsplash.com/photo-1594938298603-c8148c4b4057?w=400" },
-    { id: "demo-p2", name: "Vitamin C Brightening Serum", price: 1800, image_url: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400" },
-    { id: "demo-p8", name: "Korean Glass Skin Kit", price: 5800, image_url: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400" },
-  ],
-  services: [
-    { id: "demo-s1", title: "HIIT Bootcamp — 60 mins", price: 1500, cover_image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400", category: "fitness" },
-    { id: "demo-s2", title: "Signature Facial Treatment", price: 3500, cover_image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400", category: "beauty" },
-    { id: "demo-s4", title: "Yoga & Breathwork", price: 1200, cover_image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400", category: "wellness" },
-  ],
-  creators: [
-    { id: "a1000000-0000-0000-0000-000000000001", name: "EliteFit Gym", avatar_url: "https://api.dicebear.com/7.x/initials/svg?seed=EliteFit", specialty: ["fitness"] },
-    { id: "a1000000-0000-0000-0000-000000000002", name: "Glow Salon & Spa", avatar_url: "https://api.dicebear.com/7.x/initials/svg?seed=GlowSalon", specialty: ["beauty"] },
-    { id: "a1000000-0000-0000-0000-000000000003", name: "Style Bank", avatar_url: "https://api.dicebear.com/7.x/initials/svg?seed=StyleBank", specialty: ["fashion"] },
-  ],
-  posts: [
-    { id: "demo-fp1", caption: "New season Ankara is here", thumbnail_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400", type: "style_drop" },
-    { id: "demo-fp3", caption: "Glass skin in 3 steps", thumbnail_url: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400", type: "tutorial" },
-  ],
-};
-
-function applyDemoFilter(q: string) {
-  const lower = q.toLowerCase();
-  const m = (text: string) => !lower || text.toLowerCase().includes(lower);
-  return {
-    products: DEMO_SEARCH.products.filter((p) => m(p.name)),
-    services: DEMO_SEARCH.services.filter((s) => m(s.title) || m(s.category)),
-    creators: DEMO_SEARCH.creators.filter((c) => m(c.name) || c.specialty.some((s) => m(s))),
-    posts: DEMO_SEARCH.posts.filter((p) => m(p.caption)),
-  };
-}
+const EMPTY_SEARCH = { products: [] as any[], services: [] as any[], creators: [] as any[], posts: [] as any[] };
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
@@ -262,35 +211,23 @@ export async function semanticSearch(raw: string): Promise<SearchResults> {
   const parsed = parseQuery(raw);
   let base;
   try {
-    base = await withTimeout(searchWithKeywords(parsed), 10000, applyDemoFilter(raw));
+    base = await withTimeout(searchWithKeywords(parsed), 10000, EMPTY_SEARCH);
   } catch {
-    base = applyDemoFilter(raw);
+    base = EMPTY_SEARCH;
   }
 
-  const totalLive =
-    base.products.length + base.services.length + base.creators.length + base.posts.length;
-  if (totalLive === 0) {
-    base = applyDemoFilter(raw);
-  }
+  const rerank = (items: any[], textFn: (i: any) => string) =>
+    items
+      .map((item) => ({ ...item, _score: keywordScore(textFn(item), parsed.keywords) }))
+      .sort((a, b) => b._score - a._score)
+      .map(({ _score: _unused, ...item }) => item);
 
-  // If OpenAI key available, do a lightweight re-rank using keyword overlap
-  const embedding = await withTimeout(getEmbedding(raw), 4000, null);
-  if (embedding) {
-    const rerank = (items: any[], textFn: (i: any) => string) =>
-      items
-        .map((item) => ({ ...item, _score: keywordScore(textFn(item), parsed.keywords) }))
-        .sort((a, b) => b._score - a._score)
-        .map(({ _score: _unused, ...item }) => item);
-
-    return {
-      products: rerank(base.products, (i) => i.name ?? ""),
-      services: rerank(base.services, (i) => `${i.title} ${i.category} ${i.short_description ?? ""}`),
-      creators: rerank(base.creators, (i) => `${i.name ?? i.business_name} ${(i.specialty ?? []).join(" ")}`),
-      posts: rerank(base.posts, (i) => i.caption ?? ""),
-      intent: parsed.intents,
-      semantic: true,
-    };
-  }
-
-  return { ...base, intent: parsed.intents, semantic: false };
+  return {
+    products: rerank(base.products, (i) => i.name ?? ""),
+    services: rerank(base.services, (i) => `${i.title} ${i.category} ${i.short_description ?? ""}`),
+    creators: rerank(base.creators, (i) => `${i.name ?? i.business_name} ${(i.specialty ?? []).join(" ")}`),
+    posts: rerank(base.posts, (i) => i.caption ?? ""),
+    intent: parsed.intents,
+    semantic: false,
+  };
 }

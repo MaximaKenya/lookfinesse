@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { CreditCard, Smartphone, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 type SubCheckout = {
@@ -16,12 +16,9 @@ type SubCheckout = {
 function SubscribeInner() {
   const searchParams = useSearchParams();
   const subscriptionId = searchParams.get("subscription_id");
-  const router = useRouter();
   const [sub, setSub] = useState<SubCheckout | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
-  const [method, setMethod] = useState<"mpesa" | "card">("mpesa");
-  const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,42 +43,26 @@ function SubscribeInner() {
       const { data: { user } } = await supabase.auth.getUser();
       const vendorId = sub.service_plans?.vendor_id;
 
-      if (method === "mpesa") {
-        if (!phone.trim()) throw new Error("Enter M-Pesa number");
-        const res = await fetch("/api/mpesa/stk", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phone: phone.trim(),
-            amount,
-            userId: user?.id,
-            accountReference: `SUB-${sub.id.slice(0, 8)}`,
-            description: `Subscription: ${label}`,
-            metadata: {
-              kind: "service_subscription",
-              subscription_id: sub.id,
-              vendor_id: vendorId,
-            },
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "M-Pesa failed");
-        router.push(`/bookings?sub=pending`);
-      } else {
-        const res = await fetch("/api/stripe/create-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount,
-            userId: user?.id,
-            subscriptionId: sub.id,
-            description: `Subscription: ${label}`,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Stripe failed");
-        if (data.url) window.location.href = data.url;
-      }
+      const res = await fetch("/api/paystack/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          userId: user?.id,
+          email: user?.email,
+          subscriptionId: sub.id,
+          description: `Subscription: ${label}`,
+          metadata: {
+            app: "lookfinesse",
+            kind: "service_subscription",
+            subscription_id: sub.id,
+            vendor_id: vendorId ?? "",
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Paystack checkout failed");
+      if (data.url) window.location.href = data.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Payment failed");
     } finally {
@@ -118,41 +99,19 @@ function SubscribeInner() {
           <p className="text-3xl font-bold">KES {amount.toLocaleString()}<span className="text-sm font-normal text-white/40">/mo</span></p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setMethod("mpesa")}
-            className={`flex items-center justify-center gap-2 p-3 rounded-2xl border ${method === "mpesa" ? "bg-white text-black" : "border-white/10 text-white/60"}`}
-          >
-            <Smartphone className="w-4 h-4" /> M-Pesa
-          </button>
-          <button
-            type="button"
-            onClick={() => setMethod("card")}
-            className={`flex items-center justify-center gap-2 p-3 rounded-2xl border ${method === "card" ? "bg-white text-black" : "border-white/10 text-white/60"}`}
-          >
-            <CreditCard className="w-4 h-4" /> Card
-          </button>
-        </div>
-
-        {method === "mpesa" && (
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="2547XXXXXXXX"
-            className="w-full p-3 rounded-xl bg-black/40 border border-white/10 text-white"
-          />
-        )}
+        <p className="text-sm text-white/70">
+          Paystack accepts card, M-Pesa, and bank transfer. The plan is confirmed only after Paystack verifies the payment.
+        </p>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
 
         <button
           type="button"
           onClick={pay}
-          disabled={paying}
+          disabled={paying || amount <= 0}
           className="w-full bg-white text-black py-3 rounded-xl font-semibold disabled:opacity-50"
         >
-          {paying ? "Processing…" : `Pay KES ${amount.toLocaleString()}`}
+          {paying ? "Opening Paystack…" : `Pay KES ${amount.toLocaleString()} with Paystack`}
         </button>
       </div>
     </div>

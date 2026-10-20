@@ -1,183 +1,73 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 import { supabase } from "@/lib/supabaseClient";
-
-import {
-  getAccessToken,
-  generatePassword,
-  getTimestamp,
-} from "@/lib/mpesa";
 import { cronUnauthorized, isCronAuthorized } from "@/lib/cron/authorize";
+import { isPaystackConfigured } from "@/lib/paystack/client";
+import { fulfillPaystackReference } from "@/lib/paystack/fulfill";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Vercel Cron (vercel.json) calls this daily with Authorization: Bearer CRON_SECRET.
+/**
+ * Daily reconciliation. Verifies every pending Paystack payment before granting value.
+ */
 export async function GET(req: Request) {
   if (!isCronAuthorized(req)) return cronUnauthorized();
 
-  try {
-    console.log("🔄 Starting reconciliation...");
-
-    // 🔍 1. FIND STUCK PAYMENTS
-    const { data: stuckPayments, error } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("status", "pending")
-      .lt("created_at", new Date(Date.now() - 5 * 60 * 1000).toISOString());
-
-    if (error) {
-      console.error("❌ Fetch error:", error);
-      return NextResponse.json({ error }, { status: 500 });
-    }
-
-    console.log(`🧠 Found ${stuckPayments?.length || 0} stuck payments`);
-
-    const results: any[] = [];
-
-    // 🔁 2. PROCESS EACH PAYMENT
-    for (const payment of stuckPayments || []) {
-      try {
-        if (payment.provider === "stripe") {
-          const res = await reconcileStripe(payment);
-          results.push(res);
-        }
-
-        if (payment.provider === "mpesa") {
-          const res = await reconcileMpesa(payment);
-          results.push(res);
-        }
-      } catch (err) {
-        console.error("⚠️ Error processing payment:", payment.id, err);
-      }
-    }
-
-    return NextResponse.json({
-      message: "Reconciliation complete",
-      checked: stuckPayments?.length || 0,
-      results,
-    });
-
-  } catch (err) {
-    console.error("🔥 Reconciliation error:", err);
-
+  if (!isPaystackConfigured()) {
     return NextResponse.json(
-      { message: "Server error", error: String(err) },
-      { status: 500 }
+      { message: "Paystack is not configured", checked: 0, results: [] },
+      { status: 503 }
     );
   }
-}
 
-async function reconcileStripe(payment: any) {
-  if (!payment.stripe_session_id) {
-    return { id: payment.id, status: "skipped_no_session" };
-  }
+  const { data: stuckPayments, error } = await supabase
+    .from("payments")
+    .select("id, provider, status, checkout_request_id, provider_ref, created_at")
+    .eq("provider", "paystack")
+    .in("status", ["pending", "processing"])
+    .lt("created_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
+    .limit(100);
 
-  const stripe = process.env.STRIPE_SECRET_KEY
-    ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-03-25.dahlia" as any })
-    : null;
-
-  if (!stripe) {
-    return { id: payment.id, status: "skipped_no_stripe_key" };
-  }
-
-  const session = await stripe.checkout.sessions.retrieve(
-    payment.stripe_session_id
-  );
-
-  if (session.payment_status === "paid") {
-    // ✅ FIX MISSED WEBHOOK
-    await supabase
-      .from("payments")
-      .update({
-        status: "paid",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", payment.id);
-
-    await supabase
-      .from("orders")
-      .update({ status: "paid" })
-      .eq("id", payment.order_id);
-
-    return { id: payment.id, status: "fixed_paid" };
-  }
-
-  if (session.status === "expired") {
-    await supabase
-      .from("payments")
-      .update({
-        status: "failed",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", payment.id);
-
-    return { id: payment.id, status: "marked_failed" };
-  }
-
-  return { id: payment.id, status: "still_pending" };
-}
-
-async function reconcileMpesa(payment: any) {
-  if (!payment.checkout_request_id) {
-    return { id: payment.id, status: "skipped_no_checkout_id" };
-  }
-
-  const token = await getAccessToken();
-  const timestamp = getTimestamp();
-  const password = generatePassword(timestamp);
-
-  const res = await fetch(
-    "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        BusinessShortCode: process.env.MPESA_SHORTCODE,
-        Password: password,
-        Timestamp: timestamp,
-        CheckoutRequestID: payment.checkout_request_id,
-      }),
+  if (error) {
+    const missing = /provider_ref|column/i.test(error.message ?? "");
+    if (missing) {
+      const retry = await supabase
+        .from("payments")
+        .select("id, provider, status, checkout_request_id, created_at")
+        .eq("provider", "paystack")
+        .eq("status", "pending")
+        .limit(100);
+      if (retry.error) {
+        return NextResponse.json({ message: "Could not list payments" }, { status: 503 });
+      }
+      return reconcileRows(retry.data ?? []);
     }
-  );
-
-  const data = await res.json();
-
-  const resultCode = String(data.ResultCode ?? data.resultCode ?? "");
-
-  if (resultCode === "0") {
-    // ✅ PAID
-    await supabase
-      .from("payments")
-      .update({
-        status: "paid",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", payment.id);
-
-    await supabase
-      .from("orders")
-      .update({ status: "paid" })
-      .eq("id", payment.order_id);
-
-    return { id: payment.id, status: "fixed_paid" };
+    return NextResponse.json({ message: "Could not list payments" }, { status: 503 });
   }
 
-  if (resultCode && resultCode !== "") {
-    // ❌ FAILED
-    await supabase
-      .from("payments")
-      .update({
-        status: "failed",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", payment.id);
+  return reconcileRows(stuckPayments ?? []);
+}
 
-    return { id: payment.id, status: "marked_failed" };
+async function reconcileRows(rows: { id: string; checkout_request_id?: string | null; provider_ref?: string | null }[]) {
+  const results: { id: string; status: string }[] = [];
+  for (const payment of rows) {
+    const reference = payment.provider_ref || payment.checkout_request_id;
+    if (!reference) {
+      results.push({ id: payment.id, status: "skipped_no_reference" });
+      continue;
+    }
+    try {
+      const result = await fulfillPaystackReference(reference);
+      results.push({ id: payment.id, status: result.ok ? result.status : result.status });
+    } catch (err) {
+      console.error("[reconcile]", payment.id, err);
+      results.push({ id: payment.id, status: "verify_failed" });
+    }
   }
 
-  return { id: payment.id, status: "unknown" };
+  return NextResponse.json({
+    message: "Reconciliation complete",
+    checked: rows.length,
+    results,
+  });
 }

@@ -174,7 +174,7 @@ export default function BookServicePage() {
       >
         {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Confirming…</> : capacity?.isFull ? "Fully booked" : "Confirm booking"}
       </button>
-      <p className="text-center text-[11px] text-white/30">You'll receive a notification after the creator confirms.</p>
+      <p className="text-center text-[11px] text-white/30">You&apos;ll receive a notification after the creator confirms.</p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import { sendMpesaPayout } from "@/lib/mpesa/payout";
+import { sendPaystackPayout } from "@/lib/paystack/payout";
 
 export async function POST() {
   try {
@@ -20,7 +20,7 @@ export async function POST() {
 
         if (!vendor?.phone) throw new Error("No phone");
 
-        await sendMpesaPayout(vendor.phone, p.amount);
+        await sendPaystackPayout({ amountKes: Number(p.amount), phone: vendor.phone });
 
         await supabase
           .from("payouts")

@@ -1,8 +1,8 @@
-import { getOpenAI } from "@/lib/openai";
+import { groqChat } from "@/lib/ai/groq";
 import { supabase } from "@/lib/supabaseClient";
 import { trackBehavior } from "@/lib/ai/trackBehavior";
 import type { SentimentLabel, SentimentSourceType } from "@/lib/ai/sentimentTypes";
-import { isOpenAiConfigured, resolveOpenAiModel } from "@/lib/ai/provider";
+import { isGroqReady } from "@/lib/ai/provider";
 
 export type { SentimentLabel, SentimentSourceType } from "@/lib/ai/sentimentTypes";
 
@@ -73,15 +73,14 @@ export function analyzeTextRuleBased(text: string): SentimentResult {
   };
 }
 
-async function analyzeTextWithOpenAI(text: string): Promise<SentimentResult | null> {
-  const openai = getOpenAI();
-  if (!openai || !isOpenAiConfigured()) return null;
+async function analyzeTextWithGroq(text: string): Promise<SentimentResult | null> {
+  if (!isGroqReady()) return null;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: resolveOpenAiModel("fast"),
+    const raw = await groqChat({
       temperature: 0,
-      response_format: { type: "json_object" },
+      json: true,
+      maxTokens: 300,
       messages: [
         {
           role: "system",
@@ -91,8 +90,6 @@ async function analyzeTextWithOpenAI(text: string): Promise<SentimentResult | nu
         { role: "user", content: text.slice(0, 2000) },
       ],
     });
-
-    const raw = response.choices[0]?.message?.content;
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as {
@@ -124,7 +121,7 @@ export async function analyzeText(text: string): Promise<SentimentResult> {
     return { sentiment: "neutral", score: 0, topics: ["general"] };
   }
 
-  const aiResult = await analyzeTextWithOpenAI(trimmed);
+  const aiResult = await analyzeTextWithGroq(trimmed);
   return aiResult ?? analyzeTextRuleBased(trimmed);
 }
 

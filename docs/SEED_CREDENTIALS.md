@@ -100,7 +100,7 @@ Shortcut after step 1: paste **`supabase/GO_LIVE.sql`** once. It applies migrati
 | --- | --- |
 | `/admin/finance` | Non-zero revenue / payouts / treasury tiles |
 | `/admin/payouts` | Pending + completed rows, approve/reject actions, charts if volume exists |
-| `/admin/treasury` | KES Operating / USD Settlement / Escrow + M-Pesa float pools + forecasts |
+| `/admin/treasury` | Treasury accounts, escrow, and Paystack settlement pools from the database |
 
 ### Step 6: Profile media bucket (Dashboard only)
 

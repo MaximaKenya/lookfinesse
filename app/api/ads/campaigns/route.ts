@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
   let status = "draft";
   if (method === "wallet") status = "live";
-  else if (method === "stripe" || method === "mpesa") status = "pending_payment";
+  else if (method === "paystack" || method === "stripe" || method === "mpesa") status = "pending_payment";
 
   const { data: campaign, error } = await supabase
     .from("ad_campaigns")
@@ -135,69 +135,28 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  if (method === "stripe") {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
-    }
-    const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2026-03-25.dahlia" as any,
-    });
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "kes",
-            unit_amount: budget.totalBudget * 100,
-            product_data: { name: `Ad: ${title}` },
-          },
-          quantity: 1,
-        },
-      ],
-      success_url: `${origin}/dashboard/ads?paid=${campaign.id}`,
-      cancel_url: `${origin}/dashboard/ads?cancelled=1`,
-      metadata: {
-        kind: "ad_campaign",
-        campaign_id: campaign.id,
-        vendor_id,
-      },
-    });
-    await supabase
-      .from("ad_campaigns")
-      .update({ payment_ref: session.id })
-      .eq("id", campaign.id);
-    return NextResponse.json({ ...campaign, checkout_url: session.url }, { status: 201 });
-  }
-
-  if (method === "mpesa") {
-    if (!phone) {
-      return NextResponse.json({ error: "M-Pesa phone required" }, { status: 400 });
-    }
-    const stkRes = await fetch(`${origin}/api/mpesa/stk`, {
+  if (method === "paystack" || method === "stripe" || method === "mpesa") {
+    const payRes = await fetch(`${origin}/api/paystack/initialize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone,
         amount: budget.totalBudget,
-        accountReference: `AD-${campaign.id.slice(0, 8)}`,
-        description: `LookFinesse Ad: ${title}`,
+        description: `Ad: ${title}`,
         metadata: {
           kind: "ad_campaign",
           campaign_id: campaign.id,
           vendor_id,
+          app: "lookfinesse",
         },
       }),
     });
-    const stkData = await stkRes.json();
-    if (!stkRes.ok) {
+    const payData = await payRes.json();
+    if (!payRes.ok) {
       await supabase.from("ad_campaigns").update({ status: "draft" }).eq("id", campaign.id);
-      return NextResponse.json({ error: stkData.message ?? "M-Pesa failed" }, { status: 500 });
+      return NextResponse.json({ error: payData.message ?? "Paystack checkout failed" }, { status: 502 });
     }
-    return NextResponse.json(
-      { ...campaign, stk: stkData, budget_breakdown: budget },
-      { status: 201 }
-    );
+    await supabase.from("ad_campaigns").update({ payment_ref: payData.reference }).eq("id", campaign.id);
+    return NextResponse.json({ ...campaign, checkout_url: payData.url, budget_breakdown: budget }, { status: 201 });
   }
 
   return NextResponse.json(

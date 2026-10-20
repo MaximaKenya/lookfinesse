@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabaseClient";
 /** Mark booking paid/confirmed after successful payment. */
 export async function syncBookingPayment(
   bookingId: string,
-  paymentMethod: "mpesa" | "stripe"
+  paymentMethod: "paystack" | "mpesa" | "stripe"
 ): Promise<void> {
   const now = new Date().toISOString();
   await supabase

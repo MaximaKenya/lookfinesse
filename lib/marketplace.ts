@@ -1,5 +1,4 @@
 import { supabase } from "./supabaseClient";
-import { DEMO_PRODUCTS } from "./social/queries";
 
 // ======================
 // GET ALL PRODUCTS (FEED)
@@ -31,26 +30,7 @@ export async function getProducts() {
   }));
 }
 
-function normalizeDemoProduct(p: (typeof DEMO_PRODUCTS)[number]) {
-  return {
-    ...p,
-    store_id: null,
-    description:
-      `Curated by ${p.stores?.name ?? "LookFinesse"}. Demo product — connect Supabase and seed.sql to manage real inventory.`,
-    stock: p.stock_quantity,
-    images: [p.image_url],
-  };
-}
-
-// ======================
-// GET SINGLE PRODUCT
-// ======================
 export async function getProduct(id: string) {
-  if (id.startsWith("demo-")) {
-    const demo = DEMO_PRODUCTS.find((p) => p.id === id);
-    return demo ? normalizeDemoProduct(demo) : null;
-  }
-
   const { data, error } = await supabase
     .from("products")
     .select(`
@@ -76,12 +56,7 @@ export async function getProduct(id: string) {
 }
 
 export async function getRelatedProducts(storeId: string | null, currentId: string) {
-  if (!storeId || currentId.startsWith("demo-")) {
-    return DEMO_PRODUCTS
-      .filter((p) => p.id !== currentId)
-      .slice(0, 4)
-      .map((p) => normalizeDemoProduct(p));
-  }
+  if (!storeId) return [];
 
   const { data, error } = await supabase
     .from("products")

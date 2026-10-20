@@ -1,17 +1,11 @@
-import { processMpesaPayout } from "./mpesaRail";
-import { processBankPayout } from "./bankRail";
-import { processCardPayout } from "./cardRail";
+import { processPaystackPayout } from "./paystackRail";
 
-export async function routePayout(payout: any) {
-  // EXAMPLE ROUTING STRATEGY
-
-  if (payout.amount < 5000) {
-    return processMpesaPayout(payout);
-  }
-
-  if (payout.amount < 50000) {
-    return processBankPayout(payout);
-  }
-
-  return processCardPayout(payout);
+export async function routePayout(payout: {
+  amount: number;
+  phone?: string;
+  account_number?: string;
+  bank_code?: string;
+  name?: string;
+}) {
+  return processPaystackPayout(payout);
 }

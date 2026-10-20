@@ -1,5 +1,4 @@
-// Personalized Today tips — OpenAI when OPENAI_API_KEY is set, else prefs-aware fallback.
-// Set OPENAI_API_KEY in .env.local for super-intelligent, unique daily suggestions.
+// Personalized Today tips — Groq when GROQ_API_KEY is set, else prefs-aware fallback.
 
 import type { UserPreferences } from "@/lib/auth/onboarding";
 import { hasMeaningfulPrefs, prefsForPrompt } from "@/lib/ai/profileLabels";
@@ -8,7 +7,8 @@ import {
   type TodayTip,
   type WeatherInput,
 } from "@/lib/ai/weatherTips";
-import { isOpenAiConfigured, resolveOpenAiModel } from "@/lib/ai/provider";
+import { groqChat } from "@/lib/ai/groq";
+import { isGroqReady } from "@/lib/ai/provider";
 
 export type TodayUserContext = {
   userId: string;
@@ -70,11 +70,11 @@ function shopCategoryForInterests(interests: string[] = []): string {
   return "fashion";
 }
 
-async function generateWithOpenAI(
+async function generateWithGroq(
   weather: WeatherInput,
   ctx: TodayUserContext
 ): Promise<TodayPayload | null> {
-  if (!isOpenAiConfigured()) return null;
+  if (!isGroqReady()) return null;
 
   const { preferences: p } = ctx;
   const profile = prefsForPrompt(p, ctx.city);
@@ -87,24 +87,20 @@ async function generateWithOpenAI(
   }
 
   try {
-    const { default: OpenAI } = await import("openai");
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    const completion = await openai.chat.completions.create({
-      model: resolveOpenAiModel("fast"),
-      max_tokens: 900,
-      response_format: { type: "json_object" },
+    const raw = await groqChat({
+      maxTokens: 900,
+      json: true,
       messages: [
         {
           role: "system",
           content: `You are LookFinesse, a premium lifestyle concierge for beauty, fashion, and fitness in Kenya.
 Use ONLY the exact profile fields provided — never substitute defaults like male, 25-34, or Nairobi when the profile says otherwise.
 If gender is female and age_group is 35-44, write for a woman in her 40s. If city is Machakos, reference Machakos — not Nairobi.
-Return JSON: { "summary": string (max 3 sentences, warm, personalized), "tips": [ exactly 3 objects with keys:
-  category ("outfit"|"skincare"|"fitness"), title, body (2 sentences max),
+Return JSON: { "summary": string (max 3 sentences, warm, personalized), "tips": [ exactly 4 objects with keys:
+  category ("outfit"|"skincare"|"fitness"|"activity"), title, body (2 sentences max),
   productHref (path like /shop?category=fashion), productLabel,
   serviceHref (path like /services?category=beauty), serviceLabel ] }
-Tailor outfit/skincare/fitness to gender, age_group, style, and interests. Reference actual weather. Do NOT invent product names.`,
+The outfit tip must say what to wear for this weather. The activity tip must suggest a realistic Nairobi-area activity (walk, gym, salon, market) that fits the forecast. Do NOT invent product names.`,
         },
         {
           role: "user",
@@ -118,14 +114,13 @@ Tailor outfit/skincare/fitness to gender, age_group, style, and interests. Refer
         },
       ],
     });
-
-    const raw = completion.choices[0]?.message?.content;
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { summary?: string; tips?: TodayTip[] };
     if (!parsed.summary || !Array.isArray(parsed.tips) || parsed.tips.length < 3) return null;
 
-    const tips = parsed.tips.slice(0, 3).map((t, i) => ({
-      category: (["outfit", "skincare", "fitness"] as const)[i] ?? t.category,
+    const order = ["outfit", "skincare", "fitness", "activity"] as const;
+    const tips = parsed.tips.slice(0, 4).map((t, i) => ({
+      category: order[i] ?? t.category,
       title: t.title ?? "Today's pick",
       body: t.body ?? "",
       productHref: t.productHref ?? `/shop?category=${shopCat}`,
@@ -155,7 +150,7 @@ export async function getPersonalizedToday(
     if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.payload;
   }
 
-  const ai = await generateWithOpenAI(weather, ctx);
+  const ai = await generateWithGroq(weather, ctx);
   const needsOnboarding =
     ctx.userId !== "anonymous" && !hasMeaningfulPrefs(ctx.preferences, ctx.profile);
 

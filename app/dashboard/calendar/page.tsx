@@ -133,7 +133,7 @@ export default function VendorCalendarPage() {
 
         {!userId && (
           <div className="bg-yellow-500/8 border border-yellow-500/20 text-yellow-300 text-sm rounded-2xl px-4 py-3">
-            You're seeing demo events. <Link href="/login" className="underline">Sign in</Link> as a vendor to view your real calendar.
+            Sign in to load your bookings. <Link href="/login" className="underline">Sign in</Link> as a vendor to view your calendar.
           </div>
         )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import SearchInput from "@/components/ui/SearchInput";
@@ -33,8 +33,8 @@ export default function LiveSessionsList({
     );
   };
 
-  const live = useMemo(() => filterSessions(liveSessions), [liveSessions, query]);
-  const up = useMemo(() => filterSessions(upcoming), [upcoming, query]);
+  const live = filterSessions(liveSessions);
+  const up = filterSessions(upcoming);
 
   return (
     <div className="space-y-8">

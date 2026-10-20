@@ -1,36 +1,23 @@
 /**
- * AI provider selection for LookFinesse.
- *
- * ## Groq vs OpenAI
- * - **OpenAI is the only LLM provider used in this app.**
- * - There is **no Groq** integration (`GROQ_API_KEY` is unused / not wired).
- * - When `OPENAI_API_KEY` is set: chat, Today tips, sentiment, embeddings, and
- *   intelligence insights call OpenAI (`gpt-4o` for deep reasoning, `gpt-4o-mini`
- *   for fast / structured tasks).
- * - When the key is missing or invalid: rich demo / local fallbacks (see
- *   `lib/ai/prompts.ts`, `weatherTips.ts`, etc.).
- *
- * Optional future: Groq could be wired as a fast fallback behind
- * `GROQ_API_KEY`, but it is intentionally not present to avoid provider confusion.
+ * LookFinesse AI runs on Groq (OpenAI-compatible chat completions).
+ * When GROQ_API_KEY is missing, assistants fall back to local copy.
  */
+
+import { isGroqConfigured, resolveGroqModel } from "@/lib/ai/groq";
 
 export type AiModelTier = "fast" | "deep";
 
-const PLACEHOLDER_KEYS = new Set(["", "sk-your-key-here", "your-key", "changeme"]);
-
-export function isOpenAiConfigured(): boolean {
-  const key = process.env.OPENAI_API_KEY ?? "";
-  return key.length > 20 && !PLACEHOLDER_KEYS.has(key);
+export function isGroqReady(): boolean {
+  return isGroqConfigured();
 }
 
-/** Prefer gpt-4o for deep intelligence; gpt-4o-mini for latency-sensitive paths. */
-export function resolveOpenAiModel(tier: AiModelTier = "fast"): string {
-  if (tier === "deep") return process.env.OPENAI_MODEL_DEEP?.trim() || "gpt-4o";
-  return process.env.OPENAI_MODEL_FAST?.trim() || "gpt-4o-mini";
+/** Single Groq model for every assistant. Override with GROQ_MODEL. */
+export function resolveAiModel(_tier: AiModelTier = "fast"): string {
+  return resolveGroqModel();
 }
 
-export function getAiProviderLabel(): "openai" | "demo" {
-  return isOpenAiConfigured() ? "openai" : "demo";
+export function getAiProviderLabel(): "groq" | "demo" {
+  return isGroqConfigured() ? "groq" : "demo";
 }
 
 export type RoleContext = "shopper" | "vendor" | "admin";
@@ -38,7 +25,7 @@ export type RoleContext = "shopper" | "vendor" | "admin";
 export function buildRoleSystemAddon(role?: RoleContext | string | null): string {
   switch (role) {
     case "admin":
-      return `\nROLE CONTEXT: Platform admin. You may discuss marketplace risk, sentiment, treasury, vendor health, and ops. Prefer deep, decisive answers with links to /intelligence, /admin, /finance.`;
+      return `\nROLE CONTEXT: Platform admin. You may discuss marketplace risk, sentiment, treasury, vendor health, and ops. Prefer decisive answers with links to /intelligence, /admin, /finance.`;
     case "vendor":
       return `\nROLE CONTEXT: Vendor / creator. Focus on merchandising, ads, live commerce, payouts, and growth. Link to /vendor/intelligence, /dashboard/creator-studio, /dashboard/ads when useful.`;
     case "shopper":

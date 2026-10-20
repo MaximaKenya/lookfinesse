@@ -19,7 +19,7 @@ export const FAN_TIER_DEFAULTS: FanTier[] = [
     price: 299,
     tagline: "Back your favorite creator",
     features: [
-      "Recurring support via M-Pesa or card",
+      "Recurring support via Paystack (card, M-Pesa, or bank)",
       "Listed on creator membership page",
       "Follow & engage on creator feed",
       "Cancel anytime from your profile",

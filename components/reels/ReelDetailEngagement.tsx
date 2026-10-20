@@ -24,8 +24,7 @@ export function ReelDetailVideo({ reel }: Props) {
     videoRef.current?.play().catch(() => {});
   }, []);
 
-  const fallbackVideo =
-    "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+  const fallbackVideo = "";
 
   return (
     <div

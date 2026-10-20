@@ -6,63 +6,6 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Plus, Bookmark, FolderOpen, Heart } from "lucide-react";
 import Pagination, { getPageSlice } from "@/components/ui/Pagination";
 
-const DEMO_SAVED = [
-  {
-    id: "demo-sv1",
-    post_id: "demo-post-1",
-    feed_posts: {
-      caption: "Glass skin in 3 steps 🌟 Full routine breakdown — save this!",
-      thumbnail_url: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600",
-    },
-    reels: null,
-  },
-  {
-    id: "demo-sv2",
-    post_id: "demo-post-2",
-    feed_posts: {
-      caption: "6-week transformation done. No excuses, only results 💪",
-      thumbnail_url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600",
-    },
-    reels: null,
-  },
-  {
-    id: "demo-sv3",
-    reel_id: "demo-reel-1",
-    feed_posts: null,
-    reels: {
-      caption: "GRWM: Full glam in 10 minutes 💄",
-      thumbnail_url: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600",
-    },
-  },
-  {
-    id: "demo-sv4",
-    post_id: "demo-post-3",
-    feed_posts: {
-      caption: "New season Ankara is here 🔥 Shop the link in bio.",
-      thumbnail_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
-    },
-    reels: null,
-  },
-  {
-    id: "demo-sv5",
-    post_id: "demo-post-4",
-    feed_posts: {
-      caption: "5 breathing exercises to reduce cortisol and improve focus 🧘",
-      thumbnail_url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600",
-    },
-    reels: null,
-  },
-  {
-    id: "demo-sv6",
-    reel_id: "demo-reel-2",
-    feed_posts: null,
-    reels: {
-      caption: "Nairobi rooftop photoshoot BTS 📸",
-      thumbnail_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
-    },
-  },
-];
-
 function savedItemHref(item: {
   id: string;
   post_id?: string;
@@ -160,33 +103,12 @@ export default function SavedPage() {
           </p>
         </div>
 
-        {/* Preview of what saved looks like */}
-        <div className="mt-8">
-          <p className="text-xs text-white/20 text-center mb-4 uppercase tracking-widest">Preview</p>
-          <div className="grid grid-cols-3 gap-2 opacity-40 pointer-events-none select-none">
-            {DEMO_SAVED.slice(0, 6).map((s) => {
-              const post = s.feed_posts || s.reels;
-              if (!post) return null;
-              return (
-                <div key={s.id} className="relative aspect-square rounded-2xl overflow-hidden bg-[#111]">
-                  <img
-                    src={post.thumbnail_url}
-                    className="w-full h-full object-cover"
-                    alt=""
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <Heart className="absolute bottom-2 right-2 w-4 h-4 text-white/60" />
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
     );
   }
 
-  const displaySaved = saved.length > 0 ? saved : DEMO_SAVED;
-  const isDemo = saved.length === 0;
+  const displaySaved = saved;
+  const isDemo = false;
   const { slice: pagedSaved, totalPages, safePage } = getPageSlice(displaySaved, page, PAGE_SIZE);
 
   return (

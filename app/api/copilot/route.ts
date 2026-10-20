@@ -1,35 +1,35 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import { computeRiskEngine } from "@/lib/intelligence/riskEngine";
-import OpenAI from "openai";
-import { isOpenAiConfigured, resolveOpenAiModel } from "@/lib/ai/provider";
+import { groqChat } from "@/lib/ai/groq";
+import { isGroqReady, resolveAiModel } from "@/lib/ai/provider";
+import { clientIp, rateLimit, tooManyRequests } from "@/lib/security/rateLimit";
 
 export async function POST(req: Request) {
-  const { question } = await req.json();
+  if (!rateLimit(`ai-copilot:${clientIp(req)}`, 15, 60_000)) return tooManyRequests();
+  const { question } = await req.json().catch(() => ({ question: "" }));
 
   const supabase = await createSupabaseServer();
   const { data: txns } = await supabase.from("ledger_entries").select("*").limit(500);
 
   const riskReport = computeRiskEngine(txns ?? []);
 
-  if (!isOpenAiConfigured()) {
+  if (!isGroqReady()) {
     return NextResponse.json({
       insight:
-        "Demo ops summary: review risk clusters in the payload. Configure OPENAI_API_KEY for gpt-4o analysis.",
+        "Ops summary is running on local rules. Add GROQ_API_KEY for a written risk briefing. Review the clusters in this payload in the meantime.",
       raw: riskReport,
       provider: "demo",
     });
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-  const completion = await openai.chat.completions.create({
-    model: resolveOpenAiModel("deep"),
+  const insight = await groqChat({
+    maxTokens: 700,
     messages: [
       {
         role: "system",
         content:
-          "You are an AI financial operations copilot for LookFinesse. Explain fraud, risk, anomalies, and treasury insights clearly and decisively. Prefer actionable bullets.",
+          "You are the LookFinesse financial operations copilot. Explain fraud, risk, anomalies, and treasury insights clearly. Prefer short actionable bullets. Do not invent transactions that are not in the payload.",
       },
       {
         role: "user",
@@ -39,9 +39,11 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({
-    insight: completion.choices[0].message.content,
+    insight:
+      insight ||
+      "Groq did not return a briefing. Use the raw risk report and try again.",
     raw: riskReport,
-    provider: "openai",
-    model: resolveOpenAiModel("deep"),
+    provider: insight ? "groq" : "demo",
+    model: resolveAiModel("deep"),
   });
 }

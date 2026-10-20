@@ -28,12 +28,12 @@ Use webpack (not Turbopack). The `dev` script is `next dev --webpack -H 0.0.0.0`
    nslookup YOUR_PROJECT_REF.supabase.co
    ```
 
-5. Optional: `OPENAI_API_KEY` for AI tips/copilot (**OpenAI only** — Groq is not used; see `docs/AI_PROVIDERS.md`); payment keys for M-Pesa/Stripe (see `.env.example`).
+5. Optional: `GROQ_API_KEY` for AI (see `docs/AI_PROVIDERS.md`) and `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` for payments (see `.env.example`).
 
 ### Mobile / LAN testing
 
 - Dev binds to `0.0.0.0:3000` — open `http://<PC-LAN-IP>:3000` on your phone (same Wi‑Fi).
-- Server-side payment callbacks use `getRequestOrigin()` from the incoming request host, so M-Pesa/STK from a phone should work without hardcoding localhost.
+- Paystack `callback_url` uses the public app origin (`NEXT_PUBLIC_BASE_URL`), so a phone can return to checkout without a hardcoded localhost.
 - Avoid mixed content: do not set `NEXT_PUBLIC_BASE_URL` to an `https://` ngrok URL while browsing over `http://192.168.x.x:3000`; use the URL you actually open in the browser, or leave `NEXT_PUBLIC_BASE_URL` unset for local work (`lib/url.ts` falls back to request origin or `http://localhost:3000`).
 
 ### Runtime checks

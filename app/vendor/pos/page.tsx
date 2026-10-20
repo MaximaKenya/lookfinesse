@@ -215,8 +215,7 @@ export default function VendorPosPage() {
             className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white"
           >
             <option value="cash">Cash</option>
-            <option value="mpesa">M-Pesa</option>
-            <option value="card">Card</option>
+            <option value="paystack">Paystack (card or M-Pesa)</option>
           </select>
         </div>
         <button

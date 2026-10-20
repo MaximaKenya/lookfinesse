@@ -49,15 +49,12 @@ export async function POST(req: Request) {
     const planName = plan?.name ?? "Membership";
     const price = plan?.price_kes ?? 0;
 
-    const isMpesa = sub.payment_method === "mpesa";
-    const ctaUrl = isMpesa
-      ? `/checkout/subscribe?subscription_id=${sub.id}&renew=mpesa`
-      : `/checkout/subscribe?subscription_id=${sub.id}&renew=stripe`;
+    const ctaUrl = `/checkout/subscribe?subscription_id=${sub.id}`;
 
     await supabase.from("notifications").insert({
       user_id: sub.user_id,
       type: "subscription_renewal",
-      title: isMpesa ? "Renew with M-Pesa" : "Subscription renewing soon",
+      title: "Subscription renewing soon",
       message: `${vendorName} — ${planName} (KES ${Number(price).toLocaleString()}/mo) renews ${new Date(sub.next_billing_at).toLocaleDateString()}. Tap to renew.`,
       link_url: ctaUrl,
       is_read: false,

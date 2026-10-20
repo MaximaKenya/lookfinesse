@@ -547,9 +547,9 @@ export default function TodayLookFinesse() {
 
             <p className="font-semibold text-white">Weather unavailable</p>
 
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-white/80">
 
-              We couldn&apos;t fetch live conditions from Open-Meteo. No guessed temperatures are shown.
+              Open-Meteo did not return a forecast. Try Nairobi, or allow location and try again. We will not invent a temperature.
 
             </p>
 

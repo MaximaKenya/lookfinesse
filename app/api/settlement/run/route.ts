@@ -42,7 +42,7 @@ async function runSettlement() {
         total_amount: total,
         payout_count: payouts.length,
         status: "PENDING",
-        rail: "mpesa",
+        rail: "paystack",
         currency: "KES",
         metadata: { source: "admin_network_console" },
       })

@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { DEMO_PRODUCTS } from "@/lib/social/queries";
 import Pagination, { getPageSlice } from "@/components/ui/Pagination";
 import ShopCategoryBar from "@/components/shop/ShopCategoryBar";
 import SearchInput from "@/components/ui/SearchInput";
@@ -32,24 +31,6 @@ const SORT_OPTIONS = [
   { value: "price_asc", label: "Price: Low → High" },
   { value: "price_desc", label: "Price: High → Low" },
 ];
-
-function filterDemoProducts(
-  category: string,
-  search: string,
-  priceRange: string,
-  sort: string
-) {
-  let demo = [...DEMO_PRODUCTS];
-  if (category !== "all") demo = demo.filter((p) => p.category === category);
-  if (search) demo = demo.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
-  if (priceRange !== "all") {
-    const [min, max] = priceRange.replace("+", "-99999").split("-").map(Number);
-    demo = demo.filter((p) => p.price >= min && (max === 99999 || p.price <= max));
-  }
-  if (sort === "price_asc") demo.sort((a, b) => a.price - b.price);
-  else if (sort === "price_desc") demo.sort((a, b) => b.price - a.price);
-  return demo;
-}
 
 function ProductCard({ product }: { product: any }) {
   const image = product.image_url || product.images?.[0] || null;
@@ -160,7 +141,7 @@ function ShopContent() {
           image_url: p.image_url,
           stores: p.vendor_name ? { name: p.vendor_name } : undefined,
         }));
-        setProducts(nearby.length ? nearby : filterDemoProducts(category, search, priceRange, "newest"));
+        setProducts(nearby);
         setTotal(nearby.length);
         setLoading(false);
         return;
@@ -176,9 +157,9 @@ function ShopContent() {
     query = query.limit(120);
 
     const { data, error, count } = await query;
-    let result = !error && data?.length ? data : filterDemoProducts(category, search, priceRange, sort);
+    let result = !error && data?.length ? data : [];
     if (!error && data?.length) result = data;
-    else if (error || !data?.length) result = filterDemoProducts(category, search, priceRange, sort);
+    else if (error || !data?.length) result = [];
 
     setProducts(result);
     setTotal(count && count > 0 ? count : result.length);

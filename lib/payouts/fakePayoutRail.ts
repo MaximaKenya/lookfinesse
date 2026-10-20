@@ -1,7 +1,16 @@
-export async function fakePayoutRail(payout: any) {
-  // simulate network delay
-  await new Promise((r) => setTimeout(r, 800));
+import { sendPaystackPayout } from "@/lib/paystack/payout";
 
-  // simulate 85% success rate
-  return Math.random() > 0.15;
+export async function fakePayoutRail(payout: {
+  amount: number;
+  phone?: string;
+  account_number?: string;
+  bank_code?: string;
+}) {
+  await sendPaystackPayout({
+    amountKes: Number(payout.amount),
+    phone: payout.phone,
+    accountNumber: payout.account_number,
+    bankCode: payout.bank_code,
+  });
+  return true;
 }

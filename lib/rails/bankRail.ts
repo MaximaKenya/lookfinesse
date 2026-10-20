@@ -1,10 +1,10 @@
-export async function processBankPayout(
-  payout: any
-) {
-  await new Promise((r) => setTimeout(r, 800));
+import { processPaystackPayout } from "./paystackRail";
 
-  return {
-    success: Math.random() > 0.15,
-    rail: "BANK",
-  };
+export async function processBankPayout(payout: {
+  amount: number;
+  account_number?: string;
+  bank_code?: string;
+  name?: string;
+}) {
+  return processPaystackPayout(payout);
 }

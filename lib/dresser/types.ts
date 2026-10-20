@@ -5,7 +5,7 @@ export type DresserPrefs = {
   gender?: "female" | "male" | "neutral";
   skinTone?: string;
   avatarUrl?: string | null;
-  avatarMode?: "svg" | "openai";
+  avatarMode?: "svg" | "photo";
 };
 
 export const SKIN_TONES = [

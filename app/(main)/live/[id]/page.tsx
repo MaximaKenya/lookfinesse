@@ -6,8 +6,6 @@ import { ShoppingBag, Gift, Calendar, Radio, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { DEMO_LIVE_SESSIONS, DEMO_PRODUCTS } from "@/lib/social/queries";
-
 type Params = { id: string };
 
 export default function LiveDetailPage({ params }: { params: Promise<Params> }) {
@@ -23,28 +21,13 @@ export default function LiveDetailPage({ params }: { params: Promise<Params> }) 
     params.then(({ id: resolvedId }) => {
       setId(resolvedId);
 
-      // Handle demo IDs immediately
-      if (resolvedId.startsWith("demo-")) {
-        const demoSession = DEMO_LIVE_SESSIONS.find((s) => s.id === resolvedId);
-        if (demoSession) {
-          setSession(demoSession);
-          setProducts(DEMO_PRODUCTS.slice(0, 6));
-          return;
-        }
-      }
-
       supabase
         .from("live_sessions")
         .select(`*, vendors ( id, name, avatar_url )`)
         .eq("id", resolvedId)
         .single()
         .then(({ data }) => {
-          if (data) {
-            setSession(data);
-          } else {
-            // Fallback to first demo session
-            setSession(DEMO_LIVE_SESSIONS[0]);
-          }
+          if (data) setSession(data);
         });
 
       supabase
@@ -60,7 +43,7 @@ export default function LiveDetailPage({ params }: { params: Promise<Params> }) 
               .from("products")
               .select("id, name, price, image_url")
               .limit(6)
-              .then(({ data: fallback }) => setProducts(fallback && fallback.length > 0 ? fallback : DEMO_PRODUCTS.slice(0, 6)));
+              .then(({ data: fallback }) => setProducts(fallback ?? []));
           }
         });
     });

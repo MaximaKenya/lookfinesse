@@ -281,25 +281,33 @@ ON CONFLICT (id) DO NOTHING;
 -- ─── REELS (8 with sample video URLs) ─────────────────────────────────────
 INSERT INTO reels (id, vendor_id, caption, video_url, thumbnail_url, product_id, engagement_score)
 VALUES
-  (r1, v_elitefit,   'Saturday morning HIIT session 🔥 Spot is limited, DM to book.',     'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',     'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600', p5,  9420),
-  (r2, v_glow,       'GRWM: Full glam in 10 minutes using drugstore products 💄',          'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',         'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600', p3,  7800),
-  (r3, v_stylebnk,   'Nairobi rooftop photoshoot BTS 📸 Full collection now live!',         'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600', p1,  12100),
-  (r4, v_fitqueen,   '30-day abs challenge day 1 💪 Save this for tomorrow morning.',       'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',     'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600', NULL, 8650),
-  (r5, v_natubeauty, 'My 5-step natural skincare routine 🌿 All products in bio.',         'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4','https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600', p13, 5600),
-  (r6, v_zenwell,    'Karen sunrise yoga 🌅 Join us every weekday 6AM.',                   'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',         'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600', NULL, 4200),
-  (r7, v_afrocuts,   'Skin fade timelapse in 60 seconds 💈 Book: afrocuts.co.ke',          'https://storage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanDo.mp4',         'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', p9, 11300),
-  (r8, v_luxthread,  'Watch this custom suit come to life in 14 days 🧵',                  'https://storage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600', p19, 6700)
-ON CONFLICT (id) DO NOTHING;
+  (r1, v_elitefit,   'Saturday morning HIIT session 🔥 Spot is limited, DM to book.',     'https://videos.pexels.com/video-files/5319747/5319747-sd_640_360_25fps.mp4', 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600', p5,  9420),
+  (r2, v_glow,       'GRWM: Full glam in 10 minutes using drugstore products 💄',          'https://videos.pexels.com/video-files/6543523/6543523-sd_360_640_25fps.mp4', 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600', p3,  7800),
+  (r3, v_stylebnk,   'Nairobi rooftop photoshoot BTS 📸 Full collection now live!',         'https://videos.pexels.com/video-files/2795750/2795750-sd_640_360_25fps.mp4', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600', p1,  12100),
+  (r4, v_fitqueen,   '30-day abs challenge day 1 💪 Save this for tomorrow morning.',       'https://videos.pexels.com/video-files/4671979/4671979-sd_640_360_25fps.mp4', 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600', NULL, 8650),
+  (r5, v_natubeauty, 'My 5-step natural skincare routine 🌿 All products in bio.',         'https://videos.pexels.com/video-files/6543584/6543584-sd_360_640_25fps.mp4', 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600', p13, 5600),
+  (r6, v_zenwell,    'Karen sunrise yoga 🌅 Join us every weekday 6AM.',                   'https://videos.pexels.com/video-files/8480742/8480742-sd_640_360_25fps.mp4', 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600', NULL, 4200),
+  (r7, v_afrocuts,   'Skin fade timelapse in 60 seconds 💈 Book: afrocuts.co.ke',          'https://videos.pexels.com/video-files/7697073/7697073-sd_640_360_30fps.mp4', 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', p9, 11300),
+  (r8, v_luxthread,  'Watch this custom suit come to life in 14 days 🧵',                  'https://videos.pexels.com/video-files/6424127/6424127-sd_640_360_25fps.mp4', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600', p19, 6700)
+ON CONFLICT (id) DO UPDATE SET
+  caption = EXCLUDED.caption,
+  video_url = EXCLUDED.video_url,
+  thumbnail_url = EXCLUDED.thumbnail_url;
 
 -- ─── LIVE SESSIONS (5: 2 live, 3 upcoming) ────────────────────────────────
 INSERT INTO live_sessions (id, vendor_id, title, description, scheduled_for, is_live, cover_url, stream_url, viewer_count)
 VALUES
-  (l1, v_elitefit,  'Full Body HIIT — Live Burn',         '45-min live HIIT workout. No equipment needed. All levels welcome!',   now() + interval '1 hour',   true,  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200', 'https://www.youtube.com/embed/live_stream?channel=UCxxxxxx', 143),
-  (l2, v_fitqueen,  'FitQueen Live: Booty & Core',        'Live 45-min glutes & core session. Grab your mat!',                    now() + interval '2 hours',  true,  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200', 'https://www.youtube.com/embed/live_stream?channel=UCyyyyyy', 87),
+  (l1, v_elitefit,  'Full Body HIIT — Live Burn',         '45-min live HIIT workout. No equipment needed. All levels welcome!',   now() + interval '1 hour',   true,  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200', 'https://www.youtube.com/embed/ml6cT4AZdqI', 143),
+  (l2, v_fitqueen,  'FitQueen Live: Booty & Core',        'Live 45-min glutes & core session. Grab your mat!',                    now() + interval '2 hours',  true,  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200', 'https://www.youtube.com/embed/UBMk30rjy0o', 87),
   (l3, v_glow,      'Skincare Masterclass: Know Your Skin','Live Q&A + product demos. Learn your skin type and build your routine.',now() + interval '1 day',   false, 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200', NULL, 0),
   (l4, v_stylebnk,  'SS2026 Collection Drop — Live',      'Be the first to shop the new season. Exclusive live-only discounts!',  now() + interval '3 days',  false, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200', NULL, 0),
-  (l5, v_zenwell,   'Guided Meditation + Q&A',            'Live 30-min breathwork & meditation. Bring a journal.',                 now() + interval '5 days',  false, 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', NULL, 0)
-ON CONFLICT (id) DO NOTHING;
+  (l5, v_zenwell,   'Guided Meditation + Q&A',            'Live 30-min breathwork & meditation. Bring a journal.',                 now() + interval '5 days',  false, 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', 'https://www.youtube.com/embed/v7AYKMP6rOE', 0)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  cover_url = EXCLUDED.cover_url,
+  stream_url = EXCLUDED.stream_url,
+  is_live = EXCLUDED.is_live;
 
 -- ─── AVAILABILITY SLOTS (next 2 weeks) ────────────────────────────────────
 INSERT INTO availability_slots (vendor_id, service_id, starts_at, ends_at, is_booked)

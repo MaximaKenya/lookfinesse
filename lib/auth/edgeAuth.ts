@@ -143,7 +143,7 @@ export async function getEdgeAuth(request: NextRequest): Promise<EdgeAuth & { re
       .eq("user_id", user.id);
 
     const roles = (roleRows ?? []).map((r) => r.role);
-    let isAdmin = isPlatformAdmin({
+    const isAdmin = isPlatformAdmin({
       email: user.email,
       roles,
       appMetadata: (user.app_metadata ?? null) as Record<string, unknown> | null,

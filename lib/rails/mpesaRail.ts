@@ -1,10 +1,5 @@
-export async function processMpesaPayout(
-  payout: any
-) {
-  await new Promise((r) => setTimeout(r, 500));
+import { processPaystackPayout } from "./paystackRail";
 
-  return {
-    success: Math.random() > 0.1,
-    rail: "MPESA",
-  };
+export async function processMpesaPayout(payout: { amount: number; phone?: string; name?: string }) {
+  return processPaystackPayout({ ...payout, phone: payout.phone });
 }

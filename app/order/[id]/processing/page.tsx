@@ -94,11 +94,7 @@ export default function ProcessingPage() {
     setReconciling(true);
     setReconcileMsg("");
     try {
-      const res = await fetch("/api/mpesa/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: id }),
-      });
+      const res = await fetch(`/api/orders/${id}/reconcile`, { method: "POST" });
       const data = await res.json();
       if (data.status === "paid") {
         setReconcileMsg("Payment confirmed! Redirecting...");
@@ -129,7 +125,7 @@ export default function ProcessingPage() {
           {/* WAITING */}
           {(status === "checking" || status === "waiting") && (
             <>
-              {/* M-Pesa logo area */}
+              {/* Paystack waiting */}
               <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center mx-auto">
                 <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -138,9 +134,9 @@ export default function ProcessingPage() {
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-2xl font-semibold">Waiting for M-Pesa</h1>
+                <h1 className="text-2xl font-semibold">Waiting for Paystack</h1>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  Check your phone for the STK push prompt. Enter your PIN to complete payment.
+                  Finish checkout on Paystack, then verify the payment here. Card, M-Pesa, and bank transfer all settle through Paystack.
                 </p>
               </div>
 
@@ -170,7 +166,7 @@ export default function ProcessingPage() {
                   disabled={reconciling}
                   className="w-full py-3 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20 transition disabled:opacity-50 font-medium text-sm"
                 >
-                  {reconciling ? "Checking M-Pesa..." : "I've paid — verify now"}
+                  {reconciling ? "Checking Paystack..." : "I've paid — verify now"}
                 </button>
                 {reconcileMsg && (
                   <p className="text-xs text-center text-gray-400">{reconcileMsg}</p>

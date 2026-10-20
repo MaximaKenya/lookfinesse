@@ -15,6 +15,16 @@ export interface WeatherSummary {
   isDay: boolean;
   high: number | null;
   low: number | null;
+  timezone: string;
+  hourly: { time: string; temperatureC: number; weatherCode: number; description: string }[];
+  daily: {
+    date: string;
+    high: number | null;
+    low: number | null;
+    weatherCode: number;
+    description: string;
+    precipitationProbability: number | null;
+  }[];
   source: typeof WEATHER_SOURCE;
   attribution: string;
   fetchedAt: string;
@@ -51,7 +61,8 @@ function describe(code: number): string {
 type CacheEntry = { at: number; data: WeatherSummary };
 
 const CACHE = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 1000 * 60 * 55; // ~1 hour bucket
+const NAIROBI_TZ = "Africa/Nairobi";
+const CACHE_TTL_MS = 1000 * 60 * 30;
 
 function hourBucket(): string {
   return new Date().toISOString().slice(0, 13);
@@ -108,7 +119,9 @@ export async function fetchOpenMeteoWeather(opts: {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${opts.lat}&longitude=${opts.lng}` +
     `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day` +
-    `&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`;
+    `&hourly=temperature_2m,weather_code` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+    `&timezone=${encodeURIComponent(NAIROBI_TZ)}&forecast_days=7`;
 
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 8000);
@@ -125,12 +138,42 @@ export async function fetchOpenMeteoWeather(opts: {
         wind_speed_10m: number;
         is_day: 0 | 1;
       };
-      daily?: { temperature_2m_max?: number[]; temperature_2m_min?: number[] };
+      hourly?: { time?: string[]; temperature_2m?: number[]; weather_code?: number[] };
+      daily?: {
+        time?: string[];
+        temperature_2m_max?: number[];
+        temperature_2m_min?: number[];
+        weather_code?: number[];
+        precipitation_probability_max?: number[];
+      };
     };
 
     const c = j.current;
     if (!c || typeof c.temperature_2m !== "number") return null;
     const d = j.daily;
+    const hourly = (j.hourly?.time ?? []).slice(0, 24).map((time, i) => {
+      const code = j.hourly?.weather_code?.[i] ?? 0;
+      return {
+        time,
+        temperatureC: Math.round(j.hourly?.temperature_2m?.[i] ?? 0),
+        weatherCode: code,
+        description: describe(code),
+      };
+    });
+    const daily = (d?.time ?? []).map((date, i) => {
+      const code = d?.weather_code?.[i] ?? 0;
+      return {
+        date,
+        high: d?.temperature_2m_max?.[i] != null ? Math.round(d.temperature_2m_max[i]!) : null,
+        low: d?.temperature_2m_min?.[i] != null ? Math.round(d.temperature_2m_min[i]!) : null,
+        weatherCode: code,
+        description: describe(code),
+        precipitationProbability:
+          d?.precipitation_probability_max?.[i] != null
+            ? Math.round(d.precipitation_probability_max[i]!)
+            : null,
+      };
+    });
 
     const summary: WeatherSummary = {
       city: opts.city,
@@ -146,6 +189,9 @@ export async function fetchOpenMeteoWeather(opts: {
       isDay: c.is_day === 1,
       high: d?.temperature_2m_max?.[0] != null ? Math.round(d.temperature_2m_max[0]) : null,
       low: d?.temperature_2m_min?.[0] != null ? Math.round(d.temperature_2m_min[0]) : null,
+      timezone: NAIROBI_TZ,
+      hourly,
+      daily,
       source: WEATHER_SOURCE,
       attribution: WEATHER_ATTRIBUTION,
       fetchedAt: new Date().toISOString(),

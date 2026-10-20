@@ -13,7 +13,7 @@ import {
 } from "@/lib/dresser/types";
 import { checkTryOnCompat, type TryOnKind } from "@/lib/dresser/tryOn";
 import { getZoneLayer, type DresserZone } from "@/lib/dresser/zones";
-import { DEMO_PRODUCTS } from "@/lib/social/queries";
+import { supabase } from "@/lib/supabaseClient";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const inputCls =
@@ -88,11 +88,12 @@ export default function VirtualDresserPage() {
     gender: "female",
     skinTone: "medium",
   });
-  const [selectedProduct, setSelectedProduct] = useState<(typeof DEMO_PRODUCTS)[0] | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<{ id: string; name: string; category?: string; image_url?: string | null; price?: number } | null>(null);
+  const [catalog, setCatalog] = useState<{ id: string; name: string; category?: string; image_url?: string | null; price?: number }[]>([]);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
-  const [avatarMode, setAvatarMode] = useState<"svg" | "openai">("svg");
+  const [avatarMode, setAvatarMode] = useState<"svg" | "photo">("svg");
 
   useEffect(() => {
     if (!userId) return;
@@ -103,7 +104,7 @@ export default function VirtualDresserPage() {
         if (d) {
           setPrefs((prev) => ({ ...prev, ...d }));
           if (d.avatarUrl) setAiAvatarUrl(d.avatarUrl);
-          if (d.avatarMode) setAvatarMode(d.avatarMode);
+          if (d.avatarMode === "photo") setAvatarMode("photo");
         }
       })
       .catch(() => {});
@@ -120,7 +121,7 @@ export default function VirtualDresserPage() {
       const data = await res.json();
       if (data.avatarUrl) {
         setAiAvatarUrl(data.avatarUrl);
-        setAvatarMode("openai");
+        setAvatarMode("photo");
         toast.success("AI avatar generated!");
       } else {
         setAvatarMode("svg");
@@ -169,7 +170,13 @@ export default function VirtualDresserPage() {
     []
   );
 
-  const catalog = DEMO_PRODUCTS.slice(0, 12);
+  useEffect(() => {
+    supabase
+      .from("products")
+      .select("id, name, category, image_url, price")
+      .limit(12)
+      .then(({ data }) => setCatalog(data ?? []));
+  }, []);
 
   // Try-on compatibility for the selected product against the current avatar.
   const compat = selectedProduct
@@ -304,7 +311,7 @@ export default function VirtualDresserPage() {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-black/40 p-6 flex flex-col items-center min-h-[360px]">
-          {avatarMode === "openai" && aiAvatarUrl ? (
+          {avatarMode === "photo" && aiAvatarUrl ? (
             <div className="relative w-full max-w-[280px] aspect-[3/4] rounded-2xl overflow-hidden border border-white/10">
               <Image src={aiAvatarUrl} alt="AI avatar" fill className="object-cover" unoptimized />
               {/* Zone-aware try-on overlay — never slaps the full product photo

@@ -38,16 +38,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 
 
-const DEMO_REEL_VIDEOS = [
-
-  "https://videos.pexels.com/video-files/6774633/6774633-hd_720_1366_30fps.mp4",
-
-  "https://videos.pexels.com/video-files/6774106/6774106-hd_720_1366_30fps.mp4",
-
-  "https://videos.pexels.com/video-files/6774852/6774852-hd_720_1366_30fps.mp4",
-
-];
-
 
 
 function Carousel({
@@ -154,7 +144,7 @@ function Carousel({
 
 function ReelCard({ reel, index }: { reel: any; index: number }) {
 
-  const videoUrl = reel.video_url || DEMO_REEL_VIDEOS[index % DEMO_REEL_VIDEOS.length];
+  const videoUrl = reel.video_url as string | undefined;
 
   const [playing, setPlaying] = useState(false);
 

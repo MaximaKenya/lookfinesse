@@ -17,18 +17,7 @@ export default function VendorOnboarding() {
 
   const startOnboarding = async () => {
     if (!userId) return;
-
-    const res = await fetch("/api/stripe/connect/onboard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        vendor_id: userId,
-        email: email || undefined,
-      }),
-    });
-
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    window.location.href = "/dashboard/vendor/payout-settings";
   };
 
   if (loading) return <div className="p-6 text-zinc-500">Loading…</div>;
@@ -42,14 +31,14 @@ export default function VendorOnboarding() {
       <h1 className="text-xl font-bold">Complete Your Setup</h1>
 
       <p className="text-gray-500 mb-4">
-        You must complete Stripe onboarding to receive payouts.
+        Add the M-Pesa number or bank account Paystack should pay.
       </p>
 
       <button
         onClick={startOnboarding}
         className="bg-black text-white px-4 py-2 rounded"
       >
-        Start Verification
+        Set up payouts
       </button>
     </div>
   );

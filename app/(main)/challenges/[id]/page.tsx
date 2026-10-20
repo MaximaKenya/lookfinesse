@@ -156,20 +156,6 @@ const CHALLENGE_META: Record<
 
 
 
-const DEMO_LEADERBOARD = [
-
-  { name: "Wanjiru K.", points: 920, streak: 22 },
-
-  { name: "Achieng O.", points: 880, streak: 19 },
-
-  { name: "Kamau M.", points: 705, streak: 14 },
-
-  { name: "Njeri W.", points: 640, streak: 12 },
-
-  { name: "Ali H.", points: 530, streak: 9 },
-
-];
-
 
 
 export default function ChallengeDetail() {
@@ -598,7 +584,7 @@ export default function ChallengeDetail() {
 
         <ol className="space-y-2">
 
-          {DEMO_LEADERBOARD.map((row, i) => (
+          {([] as {name:string;score:number}[]).map((row, i) => (
 
             <li
 
