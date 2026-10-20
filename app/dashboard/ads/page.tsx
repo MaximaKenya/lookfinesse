@@ -85,7 +85,6 @@ export default function AdsManagerPage() {
     total_budget: 3500,
     start_at: "",
     payment_method: "wallet",
-    mpesa_phone: "",
   });
 
   const budgetPreview = useMemo(
@@ -223,17 +222,14 @@ export default function AdsManagerPage() {
         total_budget: form.total_budget,
         start_at: form.start_at,
         payment_method: form.payment_method,
-        phone: form.payment_method === "mpesa" ? form.mpesa_phone : undefined,
       }),
     });
     const data = await res.json();
     if (!res.ok) {
       toast.error(data.error || "Campaign failed");
     } else if (data.checkout_url) {
-      toast.success("Redirecting to Stripe…");
+      toast.success("Opening Paystack…");
       window.location.href = data.checkout_url;
-    } else if (form.payment_method === "mpesa") {
-      toast.success("Check your phone to complete payment");
     } else {
       toast.success("Campaign is live!");
     }
@@ -442,16 +438,10 @@ export default function AdsManagerPage() {
               <Field label="Payment Method">
                 <select className={input} value={form.payment_method} onChange={(e) => setForm((f) => ({ ...f, payment_method: e.target.value }))}>
                   <option value="wallet">Vendor Wallet / Escrow</option>
-                  <option value="stripe">Stripe</option>
-                  <option value="mpesa">M-Pesa</option>
+                  <option value="paystack">Paystack (card, M-Pesa, bank)</option>
                 </select>
               </Field>
 
-              {form.payment_method === "mpesa" && (
-                <Field label="M-Pesa phone">
-                  <input className={input} value={form.mpesa_phone} onChange={(e) => setForm((f) => ({ ...f, mpesa_phone: e.target.value }))} placeholder="0712345678" />
-                </Field>
-              )}
 
               <div className="flex items-center gap-3 pt-2">
                 <button type="submit" disabled={submitting} className="bg-gradient-to-r from-amber-500 to-rose-500 disabled:opacity-50 text-black font-bold px-6 py-2.5 rounded-2xl">

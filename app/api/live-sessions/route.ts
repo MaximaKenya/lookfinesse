@@ -2,36 +2,6 @@ import { NextResponse } from "next/server";
 
 import { supabase } from "@/lib/supabaseClient";
 
-const DEMO_LIVE = [
-  {
-    id: "demo-l1", vendor_id: "a1000000-0000-0000-0000-000000000001",
-    title: "Full Body HIIT — Live Burn",
-    description: "45-min live HIIT workout. No equipment needed. All levels welcome!",
-    scheduled_for: new Date(Date.now() + 3600000).toISOString(),
-    is_live: true, viewer_count: 143,
-    cover_url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200",
-    vendors: { id: "a1000000-0000-0000-0000-000000000001", name: "EliteFit Gym", avatar_url: "https://api.dicebear.com/7.x/initials/svg?seed=EliteFit" },
-  },
-  {
-    id: "demo-l2", vendor_id: "a1000000-0000-0000-0000-000000000005",
-    title: "FitQueen Live: Booty & Core",
-    description: "Live 45-min glutes & core session. Grab your mat!",
-    scheduled_for: new Date(Date.now() + 7200000).toISOString(),
-    is_live: true, viewer_count: 87,
-    cover_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200",
-    vendors: { id: "a1000000-0000-0000-0000-000000000005", name: "FitQueen Training", avatar_url: "https://api.dicebear.com/7.x/initials/svg?seed=FitQueen" },
-  },
-  {
-    id: "demo-l3", vendor_id: "a1000000-0000-0000-0000-000000000002",
-    title: "Skincare Masterclass: Know Your Skin",
-    description: "Live Q&A + product demos. Learn your skin type.",
-    scheduled_for: new Date(Date.now() + 86400000).toISOString(),
-    is_live: false, viewer_count: 0,
-    cover_url: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200",
-    vendors: { id: "a1000000-0000-0000-0000-000000000002", name: "Glow Salon & Spa", avatar_url: "https://api.dicebear.com/7.x/initials/svg?seed=GlowSalon" },
-  },
-];
-
 export async function GET() {
   const { data, error } = await supabase
     .from("live_sessions")
@@ -39,7 +9,7 @@ export async function GET() {
     .order("scheduled_for", { ascending: true });
 
   if (error || !data || data.length === 0) {
-    return NextResponse.json(DEMO_LIVE);
+    return NextResponse.json([]);
   }
 
   return NextResponse.json(data);

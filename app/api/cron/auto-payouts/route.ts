@@ -1,9 +1,14 @@
 // /app/api/cron/auto-payouts/route.ts
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import { sendMpesaPayout } from "@/lib/mpesa/payout";
+import { sendPaystackPayout } from "@/lib/paystack/payout";
+import { cronUnauthorized, isCronAuthorized } from "@/lib/cron/authorize";
 
-export async function GET() {
+export const dynamic = "force-dynamic";
+
+export async function GET(req: Request) {
+  if (!isCronAuthorized(req)) return cronUnauthorized();
+
   // 1. get approved payouts
   const { data: payouts } = await supabase
     .from("payouts")
@@ -21,8 +26,11 @@ export async function GET() {
 
       if (!vendor?.phone) continue;
 
-      // 💸 send money
-      await sendMpesaPayout(vendor.phone, p.amount);
+      await sendPaystackPayout({
+        amountKes: Number(p.amount),
+        phone: vendor.phone,
+        reason: "LookFinesse scheduled payout",
+      });
 
       // ✅ mark paid
       await supabase

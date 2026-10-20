@@ -5,11 +5,10 @@ import "./globals.css";
 import { CartProvider }
   from "@/context/CartContext";
 
-import CartDrawer
-  from "@/components/CartDrawer";
+import dynamic from "next/dynamic";
 
-import CopilotPanel
-  from "@/components/ai/CopilotPanel";
+const CartDrawer = dynamic(() => import("@/components/CartDrawer"));
+const CopilotPanel = dynamic(() => import("@/components/ai/CopilotPanel"));
 
 import EnvGuard from "@/components/EnvGuard";
 
@@ -23,7 +22,7 @@ export const metadata: Metadata = {
   },
   description:
     "AI-powered fashion, beauty, fitness & wellness social commerce — shop, book services, follow creators. Kenya & beyond.",
-  keywords: ["fashion", "beauty", "fitness", "marketplace", "Kenya", "M-Pesa", "creators"],
+    keywords: ["fashion", "beauty", "fitness", "marketplace", "Kenya", "Paystack", "creators"],
   openGraph: {
     title: "LookFinesse — Fashion, Beauty & Fitness Marketplace",
     description:

@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
+import { cronUnauthorized, isCronAuthorized } from "@/lib/cron/authorize";
 
-export async function GET() {
+export const dynamic = "force-dynamic";
+
+export async function GET(req: Request) {
+  if (!isCronAuthorized(req)) return cronUnauthorized();
+
   const { data: failed } = await supabase
     .from("payouts")
     .select("*")

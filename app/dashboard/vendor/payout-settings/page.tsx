@@ -7,7 +7,6 @@ import {
   Building2,
   CheckCircle2,
   Clock,
-  CreditCard,
   Loader2,
   Save,
   ShieldCheck,
@@ -17,7 +16,7 @@ import { toast } from "sonner";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-type PayoutMethod = "mpesa" | "stripe" | "bank";
+type PayoutMethod = "mpesa" | "bank";
 
 const METHODS: {
   id: PayoutMethod;
@@ -29,21 +28,14 @@ const METHODS: {
   {
     id: "mpesa",
     label: "M-Pesa",
-    helper: "Instant mobile money — Kenya",
+    helper: "Paystack mobile money — Kenya",
     icon: Smartphone,
     accent: "from-emerald-500/20 to-green-600/10 border-emerald-500/25 text-emerald-200",
   },
   {
-    id: "stripe",
-    label: "Stripe",
-    helper: "Cards & international rails",
-    icon: CreditCard,
-    accent: "from-violet-500/20 to-indigo-600/10 border-violet-500/25 text-violet-200",
-  },
-  {
     id: "bank",
     label: "Bank transfer",
-    helper: "Local or SWIFT settlement",
+    helper: "Paystack bank payout in KES",
     icon: Building2,
     accent: "from-cyan-500/20 to-blue-600/10 border-cyan-500/25 text-cyan-200",
   },
@@ -58,7 +50,6 @@ export default function PayoutSettingsPage() {
   const [verified] = useState<"pending" | "verified">("pending");
 
   const [mpesaPhone, setMpesaPhone] = useState("");
-  const [stripeAccount, setStripeAccount] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountName, setAccountName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -77,7 +68,6 @@ export default function PayoutSettingsPage() {
           auto_payout: autoPayout,
           method,
           mpesa_phone: mpesaPhone,
-          stripe_account: stripeAccount,
           bank_name: bankName,
           account_name: accountName,
           account_number: accountNumber,
@@ -118,7 +108,7 @@ export default function PayoutSettingsPage() {
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-400/80">Finance</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Payout settings</h1>
         <p className="text-sm text-white/70 leading-relaxed max-w-xl">
-          Configure how LookFinesse sends your earnings — M-Pesa, Stripe, or bank transfer with automated schedules.
+          Configure how LookFinesse sends your earnings through Paystack — M-Pesa or a Kenyan bank account.
         </p>
       </header>
 
@@ -192,18 +182,6 @@ export default function PayoutSettingsPage() {
               onChange={(e) => setMpesaPhone(e.target.value)}
               placeholder="+254 7XX XXX XXX"
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-emerald-500/40"
-            />
-          </div>
-        )}
-
-        {method === "stripe" && (
-          <div className="space-y-3">
-            <label className="block text-xs font-medium text-white/70">Stripe Connect account ID</label>
-            <input
-              value={stripeAccount}
-              onChange={(e) => setStripeAccount(e.target.value)}
-              placeholder="acct_xxxxxxxx"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-violet-500/40"
             />
           </div>
         )}

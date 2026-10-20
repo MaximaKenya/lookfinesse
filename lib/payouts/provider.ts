@@ -1,44 +1,26 @@
-import { PayoutProvider } from "./types";
-import Stripe from "stripe";
+import { sendPaystackPayout } from "@/lib/paystack/payout";
+
+export type PayoutProvider = "paystack";
 
 export async function payoutProviderFactory(
   provider: PayoutProvider,
-  payload: any
+  payload: {
+    amount: number;
+    phone?: string;
+    account_number?: string;
+    bank_code?: string;
+    name?: string;
+  }
 ) {
-  switch (provider) {
-    case "mpesa":
-      return await mpesaPayout(payload);
-
-    case "stripe_connect":
-      return await stripePayout(payload);
-
-    default:
-      throw new Error("Unsupported provider");
+  if (provider !== "paystack") {
+    throw new Error("Only Paystack payouts are supported");
   }
-}
-
-export async function mpesaPayout(payload: any) {
-  // call your existing B2C logic
-  return { status: "sent_mpesa", payload };
-}
-
-function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY?.trim();
-  if (!key) {
-    throw new Error("STRIPE_SECRET_KEY is not configured");
-  }
-  return new Stripe(key, {
-    apiVersion: "2026-03-25.dahlia",
+  return sendPaystackPayout({
+    amountKes: Number(payload.amount),
+    phone: payload.phone,
+    accountNumber: payload.account_number,
+    bankCode: payload.bank_code,
+    name: payload.name,
+    reason: "LookFinesse vendor payout",
   });
-}
-
-export async function stripePayout(payload: any) {
-  const stripe = getStripe();
-  const transfer = await stripe.transfers.create({
-    amount: Math.round(payload.amount * 100),
-    currency: "kes",
-    destination: payload.stripe_account_id,
-  });
-
-  return { status: "sent_stripe", transfer };
 }

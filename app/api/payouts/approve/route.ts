@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { postJournal } from "@/lib/finance/postJournal";
-import { sendMpesaPayout } from "@/lib/mpesa/payout";
+import { sendPaystackPayout } from "@/lib/paystack/payout";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function POST(req: Request) {
@@ -33,23 +33,25 @@ export async function POST(req: Request) {
           amount: payout.amount,
         },
         {
-          account_id: "cash:mpesa",
+          account_id: "cash:paystack",
           type: "credit",
           amount: payout.amount,
         },
       ],
     });
 
-    // 📲 Mpesa
     const { data: vendor } = await supabase
       .from("profiles")
       .select("phone")
       .eq("id", vendorId)
       .single();
 
-    if (vendor?.phone) {
-      await sendMpesaPayout(vendor.phone, payout.amount);
-    }
+    if (!vendor?.phone) throw new Error("Vendor payout number is missing");
+    await sendPaystackPayout({
+      amountKes: Number(payout.amount),
+      phone: vendor.phone,
+      reason: `Payout ${payout.id}`,
+    });
 
     await supabase
       .from("payouts")

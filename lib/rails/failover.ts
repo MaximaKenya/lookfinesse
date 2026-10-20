@@ -1,23 +1,11 @@
-import { processMpesaPayout } from "./mpesaRail";
-import { processBankPayout } from "./bankRail";
-import { processCardPayout } from "./cardRail";
+import { processPaystackPayout } from "./paystackRail";
 
-export async function failoverPayout(
-  payout: any
-) {
-  const rails = [
-    processMpesaPayout,
-    processBankPayout,
-    processCardPayout,
-  ];
-
-  for (const rail of rails) {
-    const result = await rail(payout);
-
-    if (result.success) {
-      return result;
-    }
-  }
-
-  throw new Error("All payout rails failed");
+export async function failoverPayout(payout: {
+  amount: number;
+  phone?: string;
+  account_number?: string;
+  bank_code?: string;
+  name?: string;
+}) {
+  return processPaystackPayout(payout);
 }

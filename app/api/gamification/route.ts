@@ -18,7 +18,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     streak: streak ?? { current_streak: 0, longest_streak: 0 },
-    challenges: challenges.length ? challenges : getDefaultChallenges(),
+    challenges,
     achievements: achievements.data ?? [],
   });
 }
@@ -32,28 +32,3 @@ export async function POST(req: Request) {
   return NextResponse.json({ joined: true });
 }
 
-function getDefaultChallenges() {
-  return [
-    {
-      id: "c1",
-      title: "7-Day Glow Up",
-      description: "Complete a beauty routine daily for 7 days",
-      category: "beauty",
-      participant_count: 1240,
-    },
-    {
-      id: "c2",
-      title: "30-Day Shred",
-      description: "Work out 4x per week for 30 days",
-      category: "fitness",
-      participant_count: 3890,
-    },
-    {
-      id: "c3",
-      title: "Style Week",
-      description: "Post or save 5 outfit inspirations",
-      category: "style",
-      participant_count: 890,
-    },
-  ];
-}

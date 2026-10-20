@@ -339,7 +339,7 @@ Ask about pricing, live commerce, or which SKUs to push and I’ll go deeper.`,
   ops: {
     default: `**Ops Intelligence (demo mode)**
 
-Without OPENAI_API_KEY I’m running local heuristics:
+Without GROQ_API_KEY I’m running local heuristics:
 
 - Review **Sentiment** and risk panels on [/intelligence](/intelligence)
 - Cross-check treasury pressure and payout queues on [/finance](/finance)

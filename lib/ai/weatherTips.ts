@@ -1,6 +1,6 @@
 // Deterministic, weather-aware tips with real product/vendor links.
 // Varies copy by user preferences hash — never identical for every user.
-// Used when OPENAI_API_KEY is unset OR as guaranteed fallback if the model errors.
+// Used when GROQ_API_KEY is unset, or when the model errors.
 
 import type { UserPreferences } from "@/lib/auth/onboarding";
 
@@ -15,7 +15,7 @@ export interface WeatherInput {
 }
 
 export interface TodayTip {
-  category: "outfit" | "skincare" | "fitness";
+  category: "outfit" | "skincare" | "fitness" | "activity";
   title: string;
   body: string;
   productHref: string;
@@ -275,15 +275,43 @@ export function generateTodayTips(w: WeatherInput, prefs: UserPreferences = {}):
   const skincare = pick(skincareVariants, seed, 7);
   const fitness = pick(fitnessVariants, seed, 13);
 
+  const activity: Omit<TodayTip, "category"> = rainy
+    ? {
+        title: "Stay-in plan",
+        body: `Rain in ${w.city}: a salon booking, indoor yoga, or a Westlands mall try-on beats a soaked commute.`,
+        productHref: shopHref(prefs, "fashion"),
+        productLabel: "Shop rain-ready looks",
+        serviceHref: "/services",
+        serviceLabel: "Book indoors",
+      }
+    : hot
+      ? {
+          title: "Beat the heat",
+          body: `${w.temperatureC}°C — early Karura walk, a shaded cafe fit, or an air-conditioned gym session after 6pm.`,
+          productHref: shopHref(prefs, "fitness"),
+          productLabel: "Shop light layers",
+          serviceHref: "/services?category=fitness",
+          serviceLabel: "Book a cool studio",
+        }
+      : {
+          title: "Get outside",
+          body: `${w.description.toLowerCase()} and ${w.temperatureC}°C in ${w.city}. A neighbourhood walk, rooftop shoot, or open-air market run all work.`,
+          productHref: shopHref(prefs, "fashion"),
+          productLabel: "Shop the outfit",
+          serviceHref: "/services?category=fitness",
+          serviceLabel: "Book a session",
+        };
+
   return [
     { category: "outfit", ...outfit },
+    { category: "activity", ...activity },
     { category: "skincare", ...skincare },
     { category: "fitness", ...fitness },
   ];
 }
 
 export function shopRedirectFor(tipCategory: TodayTip["category"]): string {
-  if (tipCategory === "outfit") return "/shop?category=fashion";
+  if (tipCategory === "outfit" || tipCategory === "activity") return "/shop?category=fashion";
   if (tipCategory === "skincare") return "/shop?category=beauty";
   return "/shop?category=fitness";
 }

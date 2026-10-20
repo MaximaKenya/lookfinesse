@@ -83,57 +83,6 @@ type VendorRow = {
   delivery_radius_km?: number | null;
 };
 
-const DEMO_VENDORS: VendorRow[] = [
-  {
-    id: "a1000000-0000-0000-0000-000000000001",
-    name: "EliteFit Gym",
-    business_name: "EliteFit Gym",
-    category: "fitness",
-    location: "Westlands, Nairobi",
-    address: "Westlands",
-    lat: -1.2674,
-    lng: 36.8075,
-    is_verified: true,
-    delivery_radius_km: 20,
-  },
-  {
-    id: "a1000000-0000-0000-0000-000000000002",
-    name: "Glow Salon & Spa",
-    business_name: "Glow Salon & Spa",
-    category: "beauty",
-    location: "Kilimani, Nairobi",
-    address: "Dennis Pritt Rd",
-    lat: -1.2916,
-    lng: 36.7836,
-    is_verified: true,
-    delivery_radius_km: 15,
-  },
-  {
-    id: "a1000000-0000-0000-0000-000000000003",
-    name: "Style Bank",
-    business_name: "Style Bank",
-    category: "fashion",
-    location: "Lavington, Nairobi",
-    address: "Lavington",
-    lat: -1.2789,
-    lng: 36.7689,
-    is_verified: true,
-    delivery_radius_km: 25,
-  },
-  {
-    id: "a1000000-0000-0000-0000-000000000004",
-    name: "Zen Wellness",
-    business_name: "Zen Wellness",
-    category: "wellness",
-    location: "Karen, Nairobi",
-    address: "Karen",
-    lat: -1.3197,
-    lng: 36.7073,
-    is_verified: true,
-    delivery_radius_km: 20,
-  },
-];
-
 function toPlace(
   v: VendorRow,
   originLat: number,
@@ -200,8 +149,6 @@ export async function queryNearby(
       vendors = fallback.data as VendorRow[];
     }
   }
-
-  if (!vendors.length) vendors = DEMO_VENDORS;
 
   let places = vendors
     .map((v) => toPlace(v, originLat, originLng))

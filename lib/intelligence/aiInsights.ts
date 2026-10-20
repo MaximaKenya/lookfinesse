@@ -1,5 +1,5 @@
-import { getOpenAI } from "@/lib/openai";
-import { isOpenAiConfigured, resolveOpenAiModel } from "@/lib/ai/provider";
+import { groqChat } from "@/lib/ai/groq";
+import { isGroqReady } from "@/lib/ai/provider";
 
 function localFallbackInsight(data: any) {
   const suspicious = data?.risk?.suspiciousCount || 0;
@@ -9,51 +9,46 @@ function localFallbackInsight(data: any) {
   let summary = "";
 
   if (suspicious > 5) {
-    summary += "High volume suspicious activity detected. ";
+    summary += "High volume of suspicious activity. ";
   }
 
   if (avgRisk > 0.7) {
-    summary += "System-wide risk levels elevated. ";
+    summary += "System-wide risk is elevated. ";
   }
 
   const topZone = hotspots[0];
 
   if (topZone) {
-    summary += `${topZone.zone} currently shows highest anomaly intensity. `;
+    summary += `${topZone.zone} currently shows the highest anomaly intensity. `;
   }
 
   if (!summary) {
-    summary = "System operating within normal parameters.";
+    summary = "The marketplace is operating within normal parameters.";
   }
 
   return summary;
 }
 
 export async function generateAIInsight(data: any) {
-  const openai = getOpenAI();
-  if (!openai || !isOpenAiConfigured()) {
+  if (!isGroqReady()) {
     return localFallbackInsight(data);
   }
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: resolveOpenAiModel("deep"),
+    const text = await groqChat({
+      maxTokens: 500,
       messages: [
         {
           role: "system",
           content:
-            "You are an elite AI fraud intelligence system for LookFinesse. Be decisive, cite concrete signals from the payload, and recommend next actions for admins.",
+            "You are the LookFinesse fraud desk. Be decisive, cite signals from the payload, and recommend the next admin action.",
         },
-        {
-          role: "user",
-          content: JSON.stringify(data),
-        },
+        { role: "user", content: JSON.stringify(data) },
       ],
     });
-
-    return completion.choices[0]?.message?.content || localFallbackInsight(data);
+    return text || localFallbackInsight(data);
   } catch (err: any) {
-    console.error("OPENAI FAILED → USING LOCAL AI:", err.message);
+    console.error("GROQ FAILED → USING LOCAL AI:", err.message);
     return localFallbackInsight(data);
   }
 }

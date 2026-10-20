@@ -32,7 +32,7 @@ export default function GamificationCharts({ streak, challenges = [], className 
 
   const challengeBars = challenges.slice(0, 5).map((c) => ({
     name: c.title.length > 14 ? `${c.title.slice(0, 12)}…` : c.title,
-    progress: c.progress ?? Math.floor(Math.random() * 60 + 20),
+    progress: c.progress ?? 0,
     target: c.target ?? 100,
   }));
 

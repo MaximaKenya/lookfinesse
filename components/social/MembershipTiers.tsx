@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Award, Check, CreditCard, Smartphone, AlertCircle } from "lucide-react";
+import { Award, Check, AlertCircle } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { toast } from "sonner";
-import { FAN_TIER_DEFAULTS, fanTierFromName } from "@/lib/subscriptions/fanTiers";
+import { fanTierFromName } from "@/lib/subscriptions/fanTiers";
 
 interface Tier {
   id: string;
@@ -23,8 +23,6 @@ function perksList(perks: string[] | string | undefined, tierName: string): stri
   return fallback?.features ?? [];
 }
 
-type Payment = "mpesa" | "stripe";
-
 export default function MembershipTiers({
   vendorId,
   tiers,
@@ -34,32 +32,19 @@ export default function MembershipTiers({
 }) {
   const { userId } = useCurrentUser();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
-  const [payment, setPayment] = useState<Payment>("mpesa");
-  const [mpesaPhone, setMpesaPhone] = useState("");
   const [showSetupHint, setShowSetupHint] = useState(false);
 
-  const displayTiers =
-    tiers.length > 0
-      ? tiers.map((t) => {
-          const fb = fanTierFromName(t.name);
-          return {
-            ...t,
-            name: fb?.name ?? t.name,
-            price: t.price || fb?.price || 499,
-            popular: fb?.popular,
-            tagline: fb?.tagline,
-            comingSoon: fb?.comingSoon,
-          };
-        })
-      : FAN_TIER_DEFAULTS.map((t) => ({
-          id: t.id,
-          name: t.name,
-          price: t.price,
-          popular: t.popular,
-          tagline: t.tagline,
-          perks: t.features,
-          comingSoon: t.comingSoon,
-        }));
+  const displayTiers = tiers.map((t) => {
+    const fb = fanTierFromName(t.name);
+    return {
+      ...t,
+      name: fb?.name ?? t.name,
+      price: t.price || fb?.price || 0,
+      popular: fb?.popular,
+      tagline: fb?.tagline,
+      comingSoon: fb?.comingSoon,
+    };
+  });
 
   const subscribe = async (tier: (typeof displayTiers)[0]) => {
     if (!userId) {
@@ -70,54 +55,27 @@ export default function MembershipTiers({
     try {
       const tierKey = tier.name.toLowerCase().replace(/\s+/g, "");
 
-      if (payment === "mpesa") {
-        if (!mpesaPhone || mpesaPhone.length < 9) {
-          toast.error("Enter your M-Pesa phone number");
-          setLoadingTier(null);
-          return;
-        }
-        const res = await fetch("/api/mpesa/stk", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phone: mpesaPhone,
-            amount: tier.price,
-            accountReference: `LF-${vendorId.slice(0, 6)}-${tier.id}`,
-            description: `LookFinesse Membership: ${tier.name}`,
-            metadata: {
-              user_id: userId,
-              vendor_id: vendorId,
-              tier: tierKey,
-              kind: "membership",
-            },
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          if (data.message?.toLowerCase().includes("config") || data.error?.toLowerCase().includes("credentials")) {
-            setShowSetupHint(true);
-          }
-          toast.error(data.message ?? data.error ?? "M-Pesa STK push failed");
-        } else {
-          toast.success("Check your phone to complete payment");
-        }
-        return;
-      }
-
-      const res = await fetch("/api/stripe/create-subscription", {
+      const res = await fetch("/api/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          amount: tier.price,
           userId,
-          vendorId,
-          tier: tierKey,
+          description: `LookFinesse membership: ${tier.name}`,
+          metadata: {
+            app: "lookfinesse",
+            kind: "membership",
+            user_id: userId,
+            vendor_id: vendorId,
+            tier: tierKey,
+          },
         }),
       });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       } else if (data.error) {
-        if (data.error.toLowerCase().includes("stripe") || data.error.toLowerCase().includes("config")) {
+        if (data.error.toLowerCase().includes("config") || data.error.toLowerCase().includes("paystack")) {
           setShowSetupHint(true);
         }
         toast.error(data.error);
@@ -139,43 +97,22 @@ export default function MembershipTiers({
             <Award className="w-5 h-5 text-amber-400" />
             <h2 className="font-bold text-white">Membership Plans</h2>
           </div>
-          <p className="text-xs text-white/40 mt-1">
+          <p className="text-xs text-white/70 mt-1">
             Support your creator with recurring perks. Cancel anytime — not the same as a free Follow.
           </p>
         </div>
 
-        <div className="flex bg-white/5 border border-white/10 rounded-xl p-0.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => setPayment("mpesa")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-              payment === "mpesa" ? "bg-emerald-500/20 text-emerald-300" : "text-white/50"
-            }`}
-          >
-            <Smartphone className="w-3 h-3" /> M-Pesa
-          </button>
-          <button
-            type="button"
-            onClick={() => setPayment("stripe")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-              payment === "stripe" ? "bg-rose-500/20 text-rose-300" : "text-white/50"
-            }`}
-          >
-            <CreditCard className="w-3 h-3" /> Card
-          </button>
-        </div>
       </div>
 
-      {payment === "mpesa" && (
-        <input
-          value={mpesaPhone}
-          onChange={(e) => setMpesaPhone(e.target.value.replace(/\D/g, "").slice(0, 12))}
-          placeholder="M-Pesa phone (e.g. 0712345678)"
-          inputMode="numeric"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/40"
-        />
-      )}
+      <p className="text-xs text-white/60">
+        Checkout opens on Paystack. Card, M-Pesa, and bank transfer are available there.
+      </p>
 
+      {displayTiers.length === 0 ? (
+        <p className="text-sm text-white/70 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6 text-center">
+          This creator has not published membership plans yet.
+        </p>
+      ) : (
       <div className="grid md:grid-cols-3 gap-3">
         {displayTiers.map((tier) => {
           const items = perksList(
@@ -236,14 +173,15 @@ export default function MembershipTiers({
           );
         })}
       </div>
+      )}
 
       {showSetupHint && (
         <div className="flex items-start gap-2 text-xs text-yellow-300 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
           <div>
-            <strong>Payment provider not configured.</strong>
-            <p className="text-yellow-300/80 mt-0.5">
-              Add Stripe or M-Pesa credentials in `.env.local` to enable live fan subscriptions.
+            <strong>Paystack is not configured.</strong>
+            <p className="text-yellow-200 mt-0.5">
+              Set PAYSTACK_SECRET_KEY on the server to open live checkout.
             </p>
           </div>
         </div>

@@ -3,13 +3,15 @@ import { createSupabaseServer } from "@/lib/supabaseServer";
 import { SYSTEM_PROMPTS, getDemoResponse } from "@/lib/ai/prompts";
 import { buildAIContext } from "@/lib/ai/buildAIContext";
 import { generateTodayTips, type WeatherInput } from "@/lib/ai/weatherTips";
+import { groqChat, groqStream } from "@/lib/ai/groq";
 import {
   buildRoleSystemAddon,
   getAiProviderLabel,
-  isOpenAiConfigured,
-  resolveOpenAiModel,
+  isGroqReady,
+  resolveAiModel,
   type RoleContext,
 } from "@/lib/ai/provider";
+import { clientIp, rateLimit, tooManyRequests } from "@/lib/security/rateLimit";
 import { resolveLocationWeather } from "@/lib/weather/resolveLocationWeather";
 import { queryNearby } from "@/lib/geo/queryNearby";
 import { supabase as publicClient } from "@/lib/supabaseClient";
@@ -108,7 +110,7 @@ function enrichDemoReply(
       ? "\n\n_Admin demo mode — open [/intelligence](/intelligence) for live signals._"
       : role === "vendor"
         ? "\n\n_Vendor demo mode — open [/vendor/intelligence](/vendor/intelligence) for growth signals._"
-        : "\n\n_Tip: set OPENAI_API_KEY for deeper, personalized answers. Try **what's near me** or **what should I wear today**._";
+        : "\n\n_Tip: add GROQ_API_KEY for a live stylist. Try **what's near me** or **what should I wear today**._";
   return `${base}${roleNote}`;
 }
 
@@ -117,6 +119,7 @@ function sseChunk(delta: string) {
 }
 
 export async function POST(req: Request) {
+  if (!rateLimit(`ai-chat:${clientIp(req)}`, 20, 60_000)) return tooManyRequests();
   let body: {
     userId?: string;
     assistantType?: string;
@@ -215,7 +218,7 @@ export async function POST(req: Request) {
     }
   };
 
-  if (!isOpenAiConfigured()) {
+  if (!isGroqReady()) {
     const reply = enrichDemoReply(assistantType, message, weather, role, nearbyText || undefined);
     await persist(reply);
     if (wantsStream) {
@@ -258,9 +261,6 @@ export async function POST(req: Request) {
       assistantType === "vendor" ||
       message.length > 180;
 
-    const { default: OpenAI } = await import("openai");
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
     const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
       {
         role: "system",
@@ -290,25 +290,49 @@ Be specific, actionable, and Nairobi-aware. Prefer LookFinesse deep links (/shop
     messages.push({ role: "user", content: message });
 
     if (wantsStream) {
-      const completion = await openai.chat.completions.create({
-        model: resolveOpenAiModel(deep ? "deep" : "fast"),
+      const upstream = await groqStream({
         messages,
-        max_tokens: deep ? 1100 : 700,
+        maxTokens: deep ? 1100 : 700,
         temperature: 0.7,
-        stream: true,
       });
-
       let full = "";
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {
           try {
-            for await (const part of completion) {
-              const delta = part.choices[0]?.delta?.content ?? "";
-              if (delta) {
-                full += delta;
-                controller.enqueue(encoder.encode(sseChunk(delta)));
+            if (!upstream) throw new Error("groq stream unavailable");
+            const reader = upstream.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop() ?? "";
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith("data:")) continue;
+                const payload = trimmed.slice(5).trim();
+                if (!payload || payload === "[DONE]") continue;
+                try {
+                  const json = JSON.parse(payload) as {
+                    choices?: { delta?: { content?: string } }[];
+                  };
+                  const delta = json.choices?.[0]?.delta?.content ?? "";
+                  if (delta) {
+                    full += delta;
+                    controller.enqueue(encoder.encode(sseChunk(delta)));
+                  }
+                } catch {
+                  /* ignore partial frames */
+                }
               }
+            }
+            if (!full) {
+              const fallback = enrichDemoReply(assistantType, message, weather, role, nearbyText || undefined);
+              full = fallback;
+              controller.enqueue(encoder.encode(sseChunk(fallback)));
             }
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           } catch {
@@ -333,18 +357,14 @@ Be specific, actionable, and Nairobi-aware. Prefer LookFinesse deep links (/shop
       });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: resolveOpenAiModel(deep ? "deep" : "fast"),
-      messages,
-      max_tokens: deep ? 1100 : 700,
-      temperature: 0.7,
-    });
-
     const reply =
-      completion.choices[0]?.message?.content ??
-      enrichDemoReply(assistantType, message, weather, role, nearbyText || undefined);
+      (await groqChat({
+        messages,
+        maxTokens: deep ? 1100 : 700,
+        temperature: 0.7,
+      })) ?? enrichDemoReply(assistantType, message, weather, role, nearbyText || undefined);
     await persist(reply);
-    return NextResponse.json({ reply, provider, model: resolveOpenAiModel(deep ? "deep" : "fast") });
+    return NextResponse.json({ reply, provider, model: resolveAiModel(deep ? "deep" : "fast") });
   } catch (err) {
     console.error("AI chat error:", err);
     const reply = enrichDemoReply(assistantType, message, weather, role, nearbyText || undefined);

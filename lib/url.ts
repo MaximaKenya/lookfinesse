@@ -24,7 +24,9 @@ export function getRequestOrigin(req: Request): string {
 
 /** Fallback when no request is available (cron, scripts). */
 export function getEnvBaseUrl(): string {
-  const env = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "");
+  const env = (
+    process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL
+  )?.replace(/\/$/, "");
   if (env && env !== "http://localhost:3000") return env;
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;

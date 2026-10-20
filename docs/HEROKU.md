@@ -5,7 +5,7 @@
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed and logged in (`heroku login`)
 - This repo cloned locally
 - Supabase project with migrations + seed applied
-- Node **20.x** (set via `package.json` `engines`; Heroku-24 defaults can otherwise pick Node 24)
+- Node **22.x** (set via `package.json` `engines`)
 
 ## Beginner: create app → remote → env → push
 
@@ -35,11 +35,10 @@ heroku config:set \
   NEXT_PUBLIC_BASE_URL="https://lookfinesseke.herokuapp.com" \
   NODE_ENV=production
 
-# Optional — AI, payments, email. OPENAI_API_KEY enables live LLM features;
-# the Next.js build must succeed WITHOUT it (OpenAI is lazy-initialized at request time).
-# heroku config:set OPENAI_API_KEY="sk-..."
-# heroku config:set STRIPE_SECRET_KEY=... NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...
-# heroku config:set RESEND_API_KEY=...
+# Optional — AI, payments, email. The Next.js build succeeds without these.
+# heroku config:set GROQ_API_KEY="gsk_..." GROQ_MODEL="llama-3.3-70b-versatile"
+# heroku config:set PAYSTACK_SECRET_KEY="sk_test_..." PAYSTACK_PUBLIC_KEY="pk_test_..."
+# heroku config:set RESEND_API_KEY=... CRON_SECRET=...
 
 # Large Next.js builds may need extra heap:
 heroku config:set NODE_OPTIONS="--max-old-space-size=460"
@@ -58,30 +57,27 @@ git push heroku HEAD:main
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Runtime | Anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Runtime | Server routes / admin |
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_BASE_URL` | Runtime | Heroku app URL |
-| `OPENAI_API_KEY` | **No** (optional) | Chat, sentiment, tips, insights. Demo fallbacks without it. |
-| `RESEND_API_KEY` | **No** (optional) | Email alerts. Skipped at runtime if unset; must not block build. |
-| `STRIPE_*` / `MPESA_*` | **No** (optional) | Payments |
+| `GROQ_API_KEY` | **No** (optional) | Stylist, beauty, fitness, copilot, weather tips. Local copy when unset. |
+| `GROQ_MODEL` | **No** (optional) | Defaults to `llama-3.3-70b-versatile`. |
+| `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` | **No** (optional for build) | Required for live checkout. Test keys until told otherwise. |
+| `RESEND_API_KEY` | **No** (optional) | Email alerts. Skipped at runtime if unset. |
+| `CRON_SECRET` | **No** (optional for build) | Required in production so the daily Paystack reconcile job is fail-closed. |
 
 ```bash
 heroku config:set \
-  STRIPE_SECRET_KEY="sk_..." \
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_..." \
-  OPENAI_API_KEY="sk_..." \
+  PAYSTACK_SECRET_KEY="sk_test_..." \
+  PAYSTACK_PUBLIC_KEY="pk_test_..." \
+  GROQ_API_KEY="gsk_..." \
+  GROQ_MODEL="llama-3.3-70b-versatile" \
   RESEND_API_KEY="re_..." \
-  MPESA_CONSUMER_KEY="..." \
-  MPESA_CONSUMER_SECRET="..." \
-  MPESA_SHORTCODE="..." \
-  MPESA_PASSKEY="..."
+  CRON_SECRET="..."
 ```
 
 The `Procfile` runs `npm run start`, which binds to `$PORT` on `0.0.0.0` (required by Heroku).
 
 ## Production Supabase seeds (finance zeros)
 
-Heroku does **not** run SQL seeds. After deploy, in the Supabase SQL editor for the project matching Heroku `NEXT_PUBLIC_SUPABASE_URL`:
-
-1. `supabase/seed_demo_metrics.sql`
-2. `supabase/seed_admin_finance.sql`
+Heroku does **not** run SQL. After deploy, paste `supabase/GO_LIVE.sql` once in the Supabase SQL editor for the project matching `NEXT_PUBLIC_SUPABASE_URL`. That script is the schema, buckets, demo logins, and Nairobi catalog. Do not paste `seed_demo_metrics.sql`.
 
 Login as **`admin@test.com`** only for `/admin/*` finance/ops consoles and `/dashboard/admin/*`. Set `SUPABASE_SERVICE_ROLE_KEY` on Heroku so admin finance APIs bypass RLS.
 
@@ -120,8 +116,8 @@ Connect the repo in Heroku Dashboard → **Deploy** → **GitHub** for automatic
 | CLI not found | Install: https://devcenter.heroku.com/articles/heroku-cli then `heroku login` |
 | `R10 Boot timeout` | Ensure `package.json` `"start"` uses `-H 0.0.0.0 -p $PORT` |
 | Build OOM | Set `NODE_OPTIONS=--max-old-space-size=460` |
-| `Missing credentials... OPENAI_API_KEY` during build | OpenAI must not be constructed at module import. Use `getOpenAI()`; build does not need the key. |
-| Wrong Node version | `package.json` `"engines": { "node": "20.x" }` — rebuild after push |
+| Build fails looking for OpenAI or Stripe | Those packages are removed. Set Groq and Paystack only if you want live AI and checkout. |
+| Wrong Node version | `package.json` `"engines": { "node": "22.x" }` — rebuild after push |
 | Auth redirect loops | Set `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_BASE_URL` to your Heroku URL |
 | Missing data | Run Supabase migrations + seed (see `docs/SEED_CREDENTIALS.md`) |
 | Env checklist | `docs/LIVE_INTEGRATIONS.md` |

@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { CreditCard, Smartphone, Calendar, Loader2 } from "lucide-react";
+import { Calendar, Loader2 } from "lucide-react";
 
 import { getProduct } from "@/lib/marketplace";
 
@@ -57,16 +57,6 @@ type BookingCheckout = {
 
 
 
-type PaymentMethod = "mpesa" | "card";
-
-
-
-const STRIPE_CONFIGURED = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-
-const MPESA_CONFIGURED = !!process.env.NEXT_PUBLIC_MPESA_ENABLED;
-
-
-
 function CheckoutInner() {
 
   const { cart } = useCart();
@@ -81,9 +71,6 @@ function CheckoutInner() {
 
 
 
-  const [method, setMethod] = useState<PaymentMethod>("mpesa");
-
-  const [phone, setPhone] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -236,123 +223,26 @@ function CheckoutInner() {
 
 
 
-  const payWithMpesa = async (userId?: string) => {
-
-    if (!phone.trim()) throw new Error("Enter your M-Pesa phone number");
-
-
-
-    if (isBookingCheckout) {
-
-      const res = await fetch("/api/mpesa/stk", {
-
-        method: "POST",
-
-        headers: { "Content-Type": "application/json" },
-
-        body: JSON.stringify({
-
-          phone: phone.trim(),
-
-          amount: total,
-
-          userId,
-
-          accountReference: `BK-${booking.id.slice(0, 8)}`,
-
-          description: `Booking: ${booking.services?.title ?? "Service"}`,
-
-          metadata: {
-
-            kind: "booking",
-
-            booking_id: booking.id,
-
-            vendor_id: booking.vendor_id,
-
-          },
-
-        }),
-
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "M-Pesa push failed");
-
-      router.push(`/bookings?paid=pending&booking_id=${booking.id}`);
-
-      return;
-
-    }
-
-
-
-    const res = await fetch("/api/mpesa/stk", {
-
-      method: "POST",
-
-      headers: { "Content-Type": "application/json" },
-
-      body: JSON.stringify({ phone: phone.trim(), amount: total, userId, cart: items, delivery }),
-
-    });
-
-
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message || "M-Pesa push failed");
-
-
-
-    if (data?.orderId) {
-
-      router.push(`/order/${data.orderId}/processing`);
-
-    }
-
-  };
-
-
-
-  const payWithStripe = async (userId?: string) => {
-
+  const payWithPaystack = async (userId?: string, email?: string) => {
     const payload = isBookingCheckout
+      ? {
+          amount: total,
+          userId,
+          email,
+          bookingId: booking.id,
+          description: `Booking: ${booking.services?.title ?? "Service"}`,
+        }
+      : { amount: total, userId, email, cart: items, delivery };
 
-      ? { amount: total, userId, bookingId: booking.id, description: `Booking: ${booking.services?.title ?? "Service"}` }
-
-      : { amount: total, userId, cart: items, delivery };
-
-
-
-    const res = await fetch("/api/stripe/create-session", {
-
+    const res = await fetch("/api/paystack/initialize", {
       method: "POST",
-
       headers: { "Content-Type": "application/json" },
-
       body: JSON.stringify(payload),
-
     });
-
-
-
     const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message || "Failed to start card payment");
-
-
-
-    if (data?.url) {
-
-      window.location.href = data.url;
-
-    }
-
+    if (!res.ok) throw new Error(data.message || "Could not start Paystack checkout");
+    if (data?.url) window.location.href = data.url;
   };
-
-
 
   const pay = async () => {
 
@@ -372,15 +262,7 @@ function CheckoutInner() {
 
 
 
-      if (method === "mpesa") {
-
-        await payWithMpesa(user?.id);
-
-      } else {
-
-        await payWithStripe(user?.id);
-
-      }
+      await payWithPaystack(user?.id, user?.email ?? undefined);
 
     } catch (err: unknown) {
 
@@ -627,123 +509,10 @@ function CheckoutInner() {
 
 
 
-            <div className="grid grid-cols-2 gap-3">
-
-              <button
-
-                onClick={() => setMethod("mpesa")}
-
-                className={`flex items-center justify-center gap-2 p-3 rounded-2xl border text-sm font-medium transition-all ${
-
-                  method === "mpesa"
-
-                    ? "bg-white text-black border-white"
-
-                    : "border-white/10 text-white/60 hover:border-white/25 hover:text-white"
-
-                }`}
-
-              >
-
-                <Smartphone className="w-4 h-4 shrink-0" />
-
-                M-Pesa
-
-              </button>
-
-
-
-              <button
-
-                onClick={() => setMethod("card")}
-
-                className={`flex items-center justify-center gap-2 p-3 rounded-2xl border text-sm font-medium transition-all ${
-
-                  method === "card"
-
-                    ? "bg-white text-black border-white"
-
-                    : "border-white/10 text-white/60 hover:border-white/25 hover:text-white"
-
-                }`}
-
-              >
-
-                <CreditCard className="w-4 h-4 shrink-0" />
-
-                Card
-
-              </button>
-
-            </div>
-
-
-
-            {method === "mpesa" && (
-
-              <div className="space-y-2">
-
-                <label className="text-xs text-gray-400 uppercase tracking-wider">
-
-                  Safaricom Number
-
-                </label>
-
-                <input
-
-                  value={phone}
-
-                  onChange={(e) => setPhone(e.target.value)}
-
-                  placeholder="2547XXXXXXXX"
-
-                  className="w-full p-3 rounded-xl bg-black/40 border border-white/10 outline-none text-white placeholder-white/30 focus:border-white/30 transition-colors"
-
-                />
-
-                <p className="text-xs text-gray-500">
-
-                  An STK push will be sent to this number.
-
-                </p>
-
-                {!MPESA_CONFIGURED && (
-
-                  <p className="text-[11px] text-yellow-400/80 bg-yellow-500/8 border border-yellow-500/20 rounded-lg px-3 py-2">
-
-                    Demo: set <code>NEXT_PUBLIC_MPESA_ENABLED=1</code> and configure Daraja keys in <code>.env.local</code> for live M-Pesa.
-
-                  </p>
-
-                )}
-
+            <div className="rounded-2xl bg-black/30 border border-white/10 p-4 text-sm text-white/80 leading-relaxed space-y-2">
+                <p>Pay with card, M-Pesa, or bank transfer on Paystack. We only confirm the order after Paystack verifies the payment.</p>
+                <p className="text-xs text-white/60">Amount is in Kenyan shillings. You will return here when the payment is confirmed.</p>
               </div>
-
-            )}
-
-
-
-            {method === "card" && (
-
-              <div className="rounded-2xl bg-black/30 border border-white/8 p-4 text-sm text-gray-400 leading-relaxed space-y-2">
-
-                <p>You will be redirected to a secure Stripe checkout page to complete payment with your card.</p>
-
-                {!STRIPE_CONFIGURED && (
-
-                  <p className="text-[11px] text-yellow-400/80 bg-yellow-500/8 border border-yellow-500/20 rounded-lg px-3 py-2">
-
-                    Demo: set <code>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> and Stripe secret keys in <code>.env.local</code> for live card payments.
-
-                  </p>
-
-                )}
-
-              </div>
-
-            )}
-
-
 
             {error && (
 
@@ -767,15 +536,7 @@ function CheckoutInner() {
 
             >
 
-              {loading
-
-                ? "Processing…"
-
-                : method === "mpesa"
-
-                  ? `Pay KES ${total.toLocaleString()} with M-Pesa`
-
-                  : `Pay KES ${total.toLocaleString()} with Card`}
+              {loading ? "Processing…" : `Pay KES ${total.toLocaleString()} with Paystack`}
 
             </button>
 

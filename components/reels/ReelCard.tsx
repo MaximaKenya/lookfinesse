@@ -10,9 +10,6 @@ import { ShoppingBag, BadgeCheck, Volume2, VolumeX, Calendar } from "lucide-reac
 
 type Props = { reel: any };
 
-const FALLBACK_VIDEO =
-  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
-
 export default function ReelCard({ reel }: Props) {
   const { userId } = useCurrentUser();
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -81,7 +78,7 @@ export default function ReelCard({ reel }: Props) {
         <div className="reel-frame">
           <video
             ref={videoRef}
-            src={reel.video_url || FALLBACK_VIDEO}
+            src={reel.video_url}
             poster={poster}
             className="absolute inset-0 z-0 w-full h-full object-cover"
             loop

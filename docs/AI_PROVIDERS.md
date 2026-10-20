@@ -1,25 +1,19 @@
-# AI providers (Groq vs OpenAI)
+# AI providers
 
-**LookFinesse uses OpenAI only.** There is no Groq wiring in the codebase.
+LookFinesse calls **Groq** (OpenAI-compatible chat completions) for every assistant.
 
-| Surface | Provider | Model (default) | Fallback |
+| Surface | Provider | Model | Fallback |
 |---|---|---|---|
-| `/api/ai/chat` (Copilot FAB) | OpenAI when `OPENAI_API_KEY` set | `gpt-4o` (deep) / `gpt-4o-mini` (fast) | Demo replies in `lib/ai/prompts.ts` |
-| Today tips (`lib/ai/todayPersonalization.ts`) | OpenAI | `gpt-4o-mini` | Prefs-aware weather tips |
-| Sentiment (`lib/ai/sentimentAnalysis.ts`) | OpenAI | `gpt-4o-mini` | Local heuristics |
-| Embeddings / search | OpenAI | `text-embedding-3-small` | Keyword search |
-| Intelligence insights / `/api/copilot` | OpenAI | `gpt-4o` | Local summary strings |
-| Virtual dresser avatar | OpenAI Images | DALL·E | Built-in SVG avatar |
-
-Source of truth: `lib/ai/provider.ts`.
-
-Set in `.env.local`:
+| `/api/ai/chat` (stylist, beauty, fitness, copilot) | Groq when `GROQ_API_KEY` is set | `GROQ_MODEL` or `llama-3.3-70b-versatile` | Local replies in `lib/ai/prompts.ts` |
+| Today outfit and activity tips | Groq | same | `lib/ai/weatherTips.ts` |
+| Sentiment | Groq | same | Keyword heuristics |
+| Search | Keyword search in Supabase | — | Empty results |
+| Ops copilot and fraud insight | Groq | same | Local summary |
+| Virtual dresser portrait | Illustrated avatar | — | No image API |
 
 ```bash
-OPENAI_API_KEY=sk-...
-# optional overrides
-OPENAI_MODEL_FAST=gpt-4o-mini
-OPENAI_MODEL_DEEP=gpt-4o
+GROQ_API_KEY=gsk_...
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
-Do **not** expect `GROQ_API_KEY` to power any route — it is unused.
+OpenAI is not a dependency. Streaming stays on `/api/ai/chat`. If Groq is down or the key is missing, the same routes return the local fallback instead of an error page.

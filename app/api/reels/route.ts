@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import { DEMO_REELS, dedupeReels, normalizeReelRow } from "@/lib/social/queries";
+import { dedupeReels, normalizeReelRow } from "@/lib/social/queries";
 
 const REEL_SELECTS = [
   `*, vendors ( id, name, avatar_url, logo_url, is_verified ), products ( id, name, price, image_url ), services ( id, title, price )`,
@@ -19,7 +19,7 @@ async function fetchReels(limit = 25) {
       .order("engagement_score", { ascending: false })
       .limit(limit);
     if (!error) {
-      if (!data?.length) return DEMO_REELS;
+      if (!data?.length) return [];
       return dedupeReels(
         data.map((row) => normalizeReelRow(row as Record<string, unknown>)!)
       );
@@ -29,7 +29,7 @@ async function fetchReels(limit = 25) {
       break;
     }
   }
-  return DEMO_REELS;
+  return [];
 }
 
 export async function GET() {

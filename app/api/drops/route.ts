@@ -10,23 +10,6 @@ function missing(error: { code?: string; message?: string } | null) {
   );
 }
 
-const DEMO_DROPS = [
-  {
-    id: "demo-drop-1",
-    title: "Weekend Flash — Ankara Sets",
-    description: "48-hour drop with live reel countdown",
-    starts_at: new Date(Date.now() - 3600_000).toISOString(),
-    ends_at: new Date(Date.now() + 86_400_000).toISOString(),
-    sale_price: 2500,
-    currency: "KES",
-    hold_qty: 3,
-    max_holds: 40,
-    status: "live",
-    products: { id: "demo", name: "Ankara Co-ord", image_url: null },
-    vendors: { name: "Nairobi Atelier" },
-  },
-];
-
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -45,8 +28,8 @@ export async function GET(req: Request) {
 
     const { data, error } = await q;
     if (error) {
-      if (missing(error)) return NextResponse.json({ drops: DEMO_DROPS, demo: true });
-      return NextResponse.json({ drops: DEMO_DROPS, demo: true, error: error.message });
+      if (missing(error)) return NextResponse.json({ drops: [], demo: false });
+      return NextResponse.json({ drops: [], demo: false });
     }
 
     // Auto-mark live/ended based on window
@@ -63,9 +46,9 @@ export async function GET(req: Request) {
       return { ...d, status: st };
     });
 
-    return NextResponse.json({ drops: drops.length ? drops : DEMO_DROPS, demo: drops.length === 0 });
+    return NextResponse.json({ drops, demo: false });
   } catch {
-    return NextResponse.json({ drops: DEMO_DROPS, demo: true });
+    return NextResponse.json({ drops: [], demo: false });
   }
 }
 

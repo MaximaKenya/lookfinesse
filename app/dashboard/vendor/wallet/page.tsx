@@ -291,7 +291,7 @@ export default function WalletPage() {
             </button>
           </div>
           <p className="text-xs text-zinc-500">
-            Payouts route to M-Pesa or bank — configure rails in{" "}
+            Payouts go out through Paystack to M-Pesa or a bank. Configure them in{" "}
             <Link href="/dashboard/vendor/payout-settings" className="text-cyan-300 hover:underline">
               payout settings
             </Link>

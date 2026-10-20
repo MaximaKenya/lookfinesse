@@ -11,16 +11,14 @@
  */
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
+import { cronUnauthorized, isCronAuthorized } from "@/lib/cron/authorize";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const auth = req.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (secret && auth !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!isCronAuthorized(req)) return cronUnauthorized();
+
 
   const { searchParams } = new URL(req.url);
   const daysAhead = Math.min(14, Math.max(1, Number(searchParams.get("days_ahead") ?? 3)));
@@ -51,15 +49,12 @@ export async function POST(req: Request) {
     const planName = plan?.name ?? "Membership";
     const price = plan?.price_kes ?? 0;
 
-    const isMpesa = sub.payment_method === "mpesa";
-    const ctaUrl = isMpesa
-      ? `/checkout/subscribe?subscription_id=${sub.id}&renew=mpesa`
-      : `/checkout/subscribe?subscription_id=${sub.id}&renew=stripe`;
+    const ctaUrl = `/checkout/subscribe?subscription_id=${sub.id}`;
 
     await supabase.from("notifications").insert({
       user_id: sub.user_id,
       type: "subscription_renewal",
-      title: isMpesa ? "Renew with M-Pesa" : "Subscription renewing soon",
+      title: "Subscription renewing soon",
       message: `${vendorName} — ${planName} (KES ${Number(price).toLocaleString()}/mo) renews ${new Date(sub.next_billing_at).toLocaleDateString()}. Tap to renew.`,
       link_url: ctaUrl,
       is_read: false,

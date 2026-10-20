@@ -123,8 +123,11 @@ export async function GET(req: Request) {
         source: wJson.source ?? WEATHER_SOURCE,
         attribution: wJson.attribution ?? WEATHER_ATTRIBUTION,
         temperatureUnit: wJson.temperatureUnit ?? "°C",
+        timezone: wJson.timezone,
         latitude: wJson.latitude,
         longitude: wJson.longitude,
+        hourly: wJson.hourly,
+        daily: wJson.daily,
       },
     },
     {

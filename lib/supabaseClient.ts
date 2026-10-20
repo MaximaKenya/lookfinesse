@@ -50,7 +50,24 @@ const AUTH_STUB = {
   signUp: async () => ({ data: { user: null, session: null }, error: { message: "SUPABASE_MISCONFIGURED" } }),
 };
 
+/** Chainable no-op for `.channel().on().subscribe()` when env is missing. */
+function channelChain(): any {
+  const callable = function channelNoop() {
+    return channelChain();
+  };
+  return new Proxy(callable, {
+    get(_t, prop) {
+      if (prop === "then" || typeof prop === "symbol") return undefined;
+      return channelChain();
+    },
+  });
+}
+
 /** Never-throwing stub client for missing env / SSG. */
+export function disconnectedSupabase(): any {
+  return misconfiguredClient();
+}
+
 function misconfiguredClient(): any {
   return new Proxy(
     {},
@@ -60,7 +77,10 @@ function misconfiguredClient(): any {
           return (..._args: unknown[]) => misconfiguredQuery();
         }
         if (prop === "auth") return AUTH_STUB;
-        if (prop === "storage" || prop === "functions" || prop === "realtime" || prop === "channel") {
+        if (prop === "channel" || prop === "removeChannel" || prop === "getChannels") {
+          return (..._args: unknown[]) => channelChain();
+        }
+        if (prop === "storage" || prop === "functions" || prop === "realtime") {
           return new Proxy(
             {},
             {

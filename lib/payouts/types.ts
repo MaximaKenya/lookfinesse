@@ -1,1 +1,1 @@
-export type PayoutProvider = "mpesa" | "stripe_connect";
+export type PayoutProvider = "paystack";

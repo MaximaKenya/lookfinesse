@@ -1,10 +1,5 @@
-export async function processCardPayout(
-  payout: any
-) {
-  await new Promise((r) => setTimeout(r, 400));
+import { processPaystackPayout } from "./paystackRail";
 
-  return {
-    success: Math.random() > 0.2,
-    rail: "CARD",
-  };
+export async function processCardPayout(payout: { amount: number; phone?: string; name?: string }) {
+  return processPaystackPayout(payout);
 }
