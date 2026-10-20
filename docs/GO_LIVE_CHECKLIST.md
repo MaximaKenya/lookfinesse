@@ -13,7 +13,7 @@ Run in the **Supabase SQL editor**, in this order. Each step is idempotent (safe
 Paste **`supabase/GO_LIVE.sql` once**. It is the full idempotent script:
 
 1. `000_fresh_bootstrap.sql` (this supersedes migrations `001`–`020`; do not run those after it)
-2. Migrations `021` through `030` (bookings, categories, Paystack reference, indexes, RLS where a policy already exists)
+2. Migrations `021` through `031` (bookings, categories, Paystack reference, indexes, advisor fixes, RLS where a policy already exists)
 3. Storage buckets `products`, `product-images`, `profile-media` and their RLS policies
 4. Demo auth users and roles from `docs/SEED_CREDENTIALS.md`
 5. The Nairobi catalog seed (vendors, products, services, posts, reels, live sessions)
