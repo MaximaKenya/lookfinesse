@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 
 import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
+import { disconnectedSupabase } from "@/lib/supabaseClient";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export type EdgeAuth = {
   userId: string | null;
@@ -65,6 +67,10 @@ export async function readEdgeSessionUserFromCookies(
  */
 export function createEdgeSupabase(request: NextRequest) {
   let response = NextResponse.next({ request });
+
+  if (!isSupabaseConfigured()) {
+    return { supabase: disconnectedSupabase(), getResponse: () => response };
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

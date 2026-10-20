@@ -4,6 +4,57 @@
 -- Safe to re-run (ON CONFLICT DO NOTHING / idempotent updates)
 -- ═══════════════════════════════════════════════════════════════════════════
 
+-- ─── Demo vendor rows (no-op if seed.sql already inserted these ids) ────────
+-- Lets vendor@test.com / glow / style create products without the full catalog seed.
+
+INSERT INTO vendors (
+  id, name, business_name, email, category, description, location, address, lat, lng, is_verified, specialty
+)
+VALUES
+  (
+    'a1000000-0000-0000-0000-000000000001',
+    'EliteFit Gym',
+    'EliteFit Gym',
+    'elitefit@vyb.co.ke',
+    'fitness',
+    'Premium fitness studio in Westlands. Strength, cardio & HIIT.',
+    'Westlands, Nairobi',
+    'Westlands Rd, Nairobi',
+    -1.2648,
+    36.8067,
+    true,
+    ARRAY['fitness','hiit','strength']
+  ),
+  (
+    'a1000000-0000-0000-0000-000000000002',
+    'Glow Salon & Spa',
+    'Glow Salon & Spa',
+    'glow@vyb.co.ke',
+    'beauty',
+    'Salon and spa in Kilimani — hair, facials, and beauty services.',
+    'Kilimani, Nairobi',
+    'Dennis Pritt Rd, Nairobi',
+    -1.2916,
+    36.7836,
+    true,
+    ARRAY['beauty','hair','facials']
+  ),
+  (
+    'a1000000-0000-0000-0000-000000000003',
+    'Style Bank',
+    'Style Bank',
+    'style@vyb.co.ke',
+    'fashion',
+    'African fashion boutique in Lavington.',
+    'Lavington, Nairobi',
+    'James Gichuru Rd, Nairobi',
+    -1.2833,
+    36.7736,
+    true,
+    ARRAY['fashion','style','accessories']
+  )
+ON CONFLICT (id) DO NOTHING;
+
 -- ─── Roles ──────────────────────────────────────────────────────────────────
 
 INSERT INTO user_roles (user_id, role)

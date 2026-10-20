@@ -43,6 +43,8 @@ There is **no delivery-driver role** in this app. Delivery is a fulfilment optio
 
 ## Fresh project — exact setup order
 
+Shortcut after step 1: paste **`supabase/GO_LIVE.sql`** once. It applies migrations `028` and `029`, creates storage buckets `products`, `product-images`, and `profile-media` (with RLS), and seeds the five demo logins below. Steps 2–3 are the same SQL, split out. Full click-path: **`docs/GO_LIVE_CHECKLIST.md`**.
+
 ### Step 1: Bootstrap schema
 
 1. Open **Supabase Dashboard** → your project

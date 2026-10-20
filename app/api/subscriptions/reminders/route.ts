@@ -11,16 +11,14 @@
  */
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
+import { cronUnauthorized, isCronAuthorized } from "@/lib/cron/authorize";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const auth = req.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (secret && auth !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!isCronAuthorized(req)) return cronUnauthorized();
+
 
   const { searchParams } = new URL(req.url);
   const daysAhead = Math.min(14, Math.max(1, Number(searchParams.get("days_ahead") ?? 3)));

@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 
 import { cookies } from "next/headers";
 
+import { disconnectedSupabase } from "@/lib/supabaseClient";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
 
@@ -11,9 +12,7 @@ export async function createSupabaseServer() {
   const env = getSupabaseEnv();
 
   if (!env.ok) {
-
-    throw new Error(`SUPABASE_MISCONFIGURED: ${env.issues.join("; ")}`);
-
+    return disconnectedSupabase();
   }
 
 

@@ -7,13 +7,15 @@ import {
   generatePassword,
   getTimestamp,
 } from "@/lib/mpesa";
+import { cronUnauthorized, isCronAuthorized } from "@/lib/cron/authorize";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// 🔐 ENV
-// 🔁 MAIN ENTRY
-export async function GET() {
+// Vercel Cron (vercel.json) calls this daily with Authorization: Bearer CRON_SECRET.
+export async function GET(req: Request) {
+  if (!isCronAuthorized(req)) return cronUnauthorized();
+
   try {
     console.log("🔄 Starting reconciliation...");
 

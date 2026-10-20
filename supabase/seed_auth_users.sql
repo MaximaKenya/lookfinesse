@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- LookFinesse — Seed Supabase Auth test users (SQL Editor / hosted projects)
 -- Run AFTER 000_fresh_bootstrap.sql, BEFORE seed_auth_roles.sql
--- Safe to re-run (skips existing emails; ON CONFLICT on identities)
+-- Safe to re-run (skips existing emails; resets the documented demo password if it drifted)
 --
 -- Password for all accounts: Test123456!
 --   vendor@test.com  → vendor / fitness gym (EliteFit)
@@ -87,31 +87,36 @@ BEGIN
       RAISE EXCEPTION 'Failed to create or resolve auth user for %', v_email;
     END IF;
 
-    -- auth.identities — required for email/password sign-in (GoTrue)
-    INSERT INTO auth.identities (
-      provider_id,
-      user_id,
-      identity_data,
-      provider,
-      last_sign_in_at,
-      created_at,
-      updated_at
-    )
-    VALUES (
-      v_user_id::text,
-      v_user_id,
-      jsonb_build_object(
-        'sub', v_user_id::text,
-        'email', v_email,
-        'email_verified', true,
-        'phone_verified', false
-      ),
-      'email',
-      now(),
-      now(),
-      now()
-    )
-    ON CONFLICT (provider_id, provider) DO NOTHING;
+    -- auth.identities — required for email/password sign-in (GoTrue).
+    -- NOT EXISTS (not ON CONFLICT) so a re-run does not depend on constraint column order.
+    IF NOT EXISTS (
+      SELECT 1 FROM auth.identities i
+      WHERE i.user_id = v_user_id AND i.provider = 'email'
+    ) THEN
+      INSERT INTO auth.identities (
+        provider_id,
+        user_id,
+        identity_data,
+        provider,
+        last_sign_in_at,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        v_user_id::text,
+        v_user_id,
+        jsonb_build_object(
+          'sub', v_user_id::text,
+          'email', v_email,
+          'email_verified', true,
+          'phone_verified', false
+        ),
+        'email',
+        now(),
+        now(),
+        now()
+      );
+    END IF;
   END LOOP;
 END $$;
 
@@ -130,8 +135,13 @@ BEGIN
     FROM auth.users u
     WHERE u.email = v_email;
 
+    -- Re-run: keep the documented demo password instead of aborting the script.
     IF v_ok IS DISTINCT FROM true THEN
-      RAISE EXCEPTION 'Password verification failed for % — bcrypt hash does not match Test123456!', v_email;
+      UPDATE auth.users
+      SET encrypted_password = extensions.crypt(v_password, extensions.gen_salt('bf')),
+          updated_at = now()
+      WHERE email = v_email;
+      RAISE NOTICE 'seed_auth_users: reset demo password for %', v_email;
     END IF;
   END LOOP;
 

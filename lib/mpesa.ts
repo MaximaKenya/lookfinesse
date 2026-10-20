@@ -1,10 +1,24 @@
-const consumerKey = process.env.MPESA_CONSUMER_KEY!;
-const consumerSecret = process.env.MPESA_CONSUMER_SECRET!;
+function mpesaValue(name: string): string {
+  return process.env[name]?.trim() ?? "";
+}
+
+export function isMpesaConfigured(): boolean {
+  return Boolean(
+    mpesaValue("MPESA_CONSUMER_KEY") &&
+      mpesaValue("MPESA_CONSUMER_SECRET") &&
+      mpesaValue("MPESA_SHORTCODE") &&
+      mpesaValue("MPESA_PASSKEY")
+  );
+}
 
 export async function getAccessToken() {
-  const auth = Buffer.from(
-    `${consumerKey}:${consumerSecret}`
-  ).toString("base64");
+  const consumerKey = mpesaValue("MPESA_CONSUMER_KEY");
+  const consumerSecret = mpesaValue("MPESA_CONSUMER_SECRET");
+  if (!consumerKey || !consumerSecret) {
+    throw new Error("M-Pesa is not configured");
+  }
+
+  const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString("base64");
 
   const res = await fetch(
     "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
@@ -16,7 +30,7 @@ export async function getAccessToken() {
   );
 
   const data = await res.json();
-  return data.access_token;
+  return data.access_token as string | undefined;
 }
 
 export function getTimestamp() {
@@ -33,8 +47,11 @@ export function getTimestamp() {
 }
 
 export function generatePassword(timestamp: string) {
-  const shortcode = process.env.MPESA_SHORTCODE!;
-  const passkey = process.env.MPESA_PASSKEY!;
+  const shortcode = mpesaValue("MPESA_SHORTCODE");
+  const passkey = mpesaValue("MPESA_PASSKEY");
+  if (!shortcode || !passkey) {
+    throw new Error("M-Pesa is not configured");
+  }
 
   return Buffer.from(shortcode + passkey + timestamp).toString("base64");
 }
