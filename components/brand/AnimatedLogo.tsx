@@ -2,6 +2,10 @@
 
 import { useId } from "react";
 import {
+  GOLD_X1,
+  GOLD_X2,
+  GOLD_Y1,
+  GOLD_Y2,
   LOCKUP_VIEWBOX,
   MARK_SHIFT,
   MARK_VIEWBOX,
@@ -28,9 +32,9 @@ export type AnimatedLogoProps = {
 
 /**
  * Open Arc draws itself: the woman, then the gentleman, then the shared
- * back, then the arc from her shoulder around to his side. A gold glint
- * follows the arc and the wordmark fades up. About three seconds.
- * prefers-reduced-motion shows the finished lockup.
+ * back, then the arc from her lower back up and over to the tip of his
+ * fedora brim. A gold glint follows the arc and the wordmark fades up.
+ * About three seconds. prefers-reduced-motion shows the finished lockup.
  */
 export default function AnimatedLogo({
   theme = "dark",
@@ -57,10 +61,10 @@ export default function AnimatedLogo({
       <defs>
         <linearGradient
           id={gradId}
-          x1="124.7"
-          y1="56"
-          x2="871.6"
-          y2="835"
+          x1={GOLD_X1}
+          y1={GOLD_Y1}
+          x2={GOLD_X2}
+          y2={GOLD_Y2}
           gradientUnits="userSpaceOnUse"
         >
           <stop offset="0%" stopColor={OPEN_ARC_GOLD[0]} />
