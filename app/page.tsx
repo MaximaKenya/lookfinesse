@@ -8,6 +8,7 @@ import {
   MapPin,
   Dumbbell,
 } from "lucide-react";
+import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import Logo from "@/components/brand/Logo";
 
 const FEATURES = [
@@ -47,7 +48,7 @@ export default function HomePage() {
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
-        <Logo href="/" size="md" />
+        <Logo href="/" variant="icon" size="md" />
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/shop"
@@ -84,6 +85,7 @@ export default function HomePage() {
 
       <main className="relative z-10 mx-auto max-w-6xl px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
         <div className="mx-auto max-w-3xl text-center">
+          <AnimatedLogo className="mx-auto mb-8 h-auto w-40 sm:w-52" />
           <div className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-white/55">
             <Sparkles className="h-3 w-3 text-purple-300" />
             Kenya fashion · beauty · fitness
@@ -188,7 +190,7 @@ export default function HomePage() {
 
       <footer className="relative z-10 border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
-          <Logo href="/" size="sm" />
+          <Logo href="/" variant="icon" size="sm" />
           <p className="text-xs text-white/55">Fashion, beauty and fitness · Kenya</p>
         </div>
       </footer>

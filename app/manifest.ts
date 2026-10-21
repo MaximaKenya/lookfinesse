@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "AI-powered fashion, beauty, fitness & wellness social commerce — Kenya & beyond",
     start_url: "/feed",
     display: "standalone",
-    background_color: "#000000",
-    theme_color: "#0A0A0A",
+    background_color: "#050A1A",
+    theme_color: "#050A1A",
     orientation: "portrait-primary",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

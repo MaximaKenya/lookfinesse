@@ -153,7 +153,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c] text-white">
         <div className="text-center space-y-3">
-          <Logo variant="mark" size="lg" className="mx-auto" />
+          <Logo variant="icon" size="lg" className="mx-auto" />
           <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-gray-500 text-sm">Loading dashboard...</p>
         </div>
@@ -168,7 +168,7 @@ export default function DashboardPage() {
         <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-purple-600/8 blur-[160px] pointer-events-none" />
         <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 py-16 space-y-8">
           <div className="space-y-3">
-            <Logo href="/feed" size="sm" />
+            <Logo href="/feed" variant="icon" size="sm" />
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-gray-500 text-sm">{user?.email}</p>
           </div>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
         {/* ── HEADER ───────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div className="space-y-3">
-            <Logo href="/feed" size="sm" />
+            <Logo href="/feed" variant="icon" size="sm" />
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-3xl font-bold tracking-tight">

@@ -1,8 +1,8 @@
-/** Email-safe LookFinesse lockup. Uses the light-surface PNG when an absolute origin is known. */
+/** Email-safe Open Arc lockup. Navy ink on white, when an absolute origin is known. */
 export function emailLockupHtml(origin?: string | null) {
   const base = origin?.replace(/\/$/, "") ?? "";
   if (base) {
-    return `<div style="margin:0 0 20px"><img src="${base}/brand/logo-email.png" alt="LookFinesse" height="36" style="display:block;border:0;height:36px;width:auto"/></div>`;
+    return `<div style="margin:0 0 20px"><img src="${base}/brand/logo-email.png" alt="LookFinesse" width="148" height="148" style="display:block;border:0;height:148px;width:148px"/></div>`;
   }
   return `<p style="margin:0 0 20px;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;font-size:18px;font-weight:650;letter-spacing:-0.04em;color:#1C1016">LookFinesse</p>`;
 }

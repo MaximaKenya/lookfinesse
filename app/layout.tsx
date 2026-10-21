@@ -30,11 +30,13 @@ export const metadata: Metadata = {
     siteName: "LookFinesse",
     type: "website",
     locale: "en_KE",
+    images: [{ url: "/brand/og.png", width: 1200, height: 630, alt: "LookFinesse" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "LookFinesse",
     description: "Fashion, beauty & fitness social commerce",
+    images: ["/brand/og.png"],
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -45,7 +47,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0A0A0A",
+  themeColor: "#050A1A",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

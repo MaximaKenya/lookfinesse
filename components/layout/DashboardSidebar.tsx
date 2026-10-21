@@ -228,7 +228,7 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 flex-col border-r border-white/8 bg-black/80 backdrop-blur-xl">
         <div className="px-5 py-5 border-b border-white/8 space-y-4">
-          <Logo href="/feed" size="sm" />
+          <Logo href="/feed" variant="icon" size="sm" />
           <div className="flex items-center gap-3">
             <div
               className={`flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 ${
@@ -284,7 +284,7 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/8 bg-black/80 px-4 backdrop-blur-xl">
         <div className="flex items-center gap-2 min-w-0">
-          <Logo href="/feed" variant="mark" size="sm" />
+          <Logo href="/feed" variant="icon" size="sm" />
           <span className="truncate max-w-[120px] text-sm font-semibold">{brand.title}</span>
         </div>
         <button
