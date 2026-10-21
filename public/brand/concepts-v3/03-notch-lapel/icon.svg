@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="LookFinesse">
+<title>LookFinesse</title>
+<desc>LookFinesse concept — Notch Lapel. Evening jacket with notch lapels, bow tie, and a crown-fold pocket square. Simplified icon.</desc>
+<defs>
+          <linearGradient id="woolS" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4A3860"/><stop offset="1" stop-color="#16121C"/>
+          </linearGradient></defs>
+        <path d="M256,118 C232,126 196,142 168,162 C140,182 118,214 112,258 C106,304 122,352 142,402 L158,452 C196,474 316,474 354,452 L370,402 C390,352 406,304 400,258 C394,214 372,182 344,162 C316,142 280,126 256,118 Z" fill="url(#woolS)" stroke="#F5D0A8" stroke-width="16" stroke-linejoin="round"/>
+        <path d="M246,162 L214,154 L184,186 L168,214 L196,228 L176,276 L214,352 L248,340 L236,230 L246,176 Z" fill="#5A3C78" stroke="#F5D0A8" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M266.00,162.00 L298.00,154.00 L328.00,186.00 L344.00,214.00 L316.00,228.00 L336.00,276.00 L298.00,352.00 L264.00,340.00 L276.00,230.00 L266.00,176.00 Z" fill="#5A3C78" stroke="#F5D0A8" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M232,188 L214,210 L196,196" fill="#FBF7F2"/>
+        <path d="M280,188 L298,210 L316,196" fill="#FBF7F2"/>
+        <path d="M200,214 C230,196 282,196 312,214 C300,236 212,236 200,214 Z" fill="#FDA4AF" stroke="#0B0B0F" stroke-width="6"/>
+        <path d="M318,236 L348,214 L372,236 L348,228 L328,246 L318,236 Z" fill="#F5D0A8" stroke="#0B0B0F" stroke-width="6"/>
+        <circle cx="256" cy="348" r="16" fill="#F5D0A8" stroke="#0B0B0F" stroke-width="6"/>
+        
+</svg>

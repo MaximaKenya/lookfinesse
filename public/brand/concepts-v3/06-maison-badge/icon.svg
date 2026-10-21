@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="LookFinesse">
+<title>LookFinesse</title>
+<desc>LookFinesse concept — Maison Badge. Vintage atelier badge: dress form wreathed with hanger, scissors, perfume, and mirror. Simplified icon.</desc>
+<defs>
+      <linearGradient id="formfill" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FBF3E8"/>
+        <stop offset="1" stop-color="#E7C9A4"/>
+      </linearGradient>
+      <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FDE8EC"/>
+        <stop offset="0.45" stop-color="#FDA4AF"/>
+        <stop offset="1" stop-color="#C084FC"/>
+      </linearGradient>
+      <radialGradient id="mirrorg" cx="0.35" cy="0.35" r="0.8">
+        <stop offset="0" stop-color="#FFFFFF"/>
+        <stop offset="0.5" stop-color="#F3E8FF"/>
+        <stop offset="1" stop-color="#C4A574"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="256" cy="268" rx="214" ry="228" fill="#161018" stroke="#F5D0A8" stroke-width="14"/>
+    <ellipse cx="256" cy="268" rx="196" ry="210" fill="none" stroke="#C4A574" stroke-width="4"/>
+    <g transform="translate(256,104)">
+      <path d="M-6,-6 L-96,40 L-86,54 H86 L96,40 L6,-6 Z" fill="#E7CBA6" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M-70,46 H70" stroke="#8C6844" stroke-width="5" stroke-linecap="round"/>
+      <path d="M0,-4 C0,-28 26,-32 28,-16 C30,-6 16,-2 8,2" fill="none" stroke="#F5D0A8" stroke-width="10" stroke-linecap="round"/>
+      <path d="M0,-4 L0,4" stroke="#0B0B0F" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <path d="M256.00,158.00 C250.67,158.00 244.00,159.00 240.00,164.00 C236.00,169.00 238.67,181.00 232.00,188.00 C225.33,195.00 208.00,197.00 200.00,206.00 C192.00,215.00 181.67,228.67 184.00,242.00 C186.33,255.33 214.67,271.00 214.00,286.00 C213.33,301.00 183.00,317.67 180.00,332.00 C177.00,346.33 188.33,363.33 196.00,372.00 C203.67,380.67 216.00,381.00 226.00,384.00 C236.00,387.00 246.00,390.00 256.00,390.00 C266.00,390.00 276.00,387.00 286.00,384.00 C296.00,381.00 308.33,380.67 316.00,372.00 C323.67,363.33 335.00,346.33 332.00,332.00 C329.00,317.67 298.67,301.00 298.00,286.00 C297.33,271.00 325.67,255.33 328.00,242.00 C330.33,228.67 320.00,215.00 312.00,206.00 C304.00,197.00 286.67,195.00 280.00,188.00 C273.33,181.00 276.00,169.00 272.00,164.00 C268.00,159.00 261.33,158.00 256.00,158.00 Z" fill="url(#formfill)" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+    <ellipse cx="256" cy="158" rx="26" ry="10" fill="#C4A574" stroke="#0B0B0F" stroke-width="4"/>
+    
+    <rect x="248" y="384" width="16" height="52" rx="3" fill="#C4A574"/>
+    <ellipse cx="256" cy="448" rx="52" ry="14" fill="#6E4C32"/>
+    <ellipse cx="256" cy="442" rx="52" ry="14" fill="#F5D0A8" stroke="#0B0B0F" stroke-width="3"/>
+    <g transform="translate(92,250)" stroke="#F5D0A8" stroke-width="10" fill="none" stroke-linecap="round">
+          <path d="M0,70 L70,0"/><path d="M0,0 L70,70"/>
+          <circle cx="0" cy="78" r="14"/><circle cx="0" cy="-8" r="14"/>
+        </g>
+    <g transform="translate(372,196)">
+      <rect x="14" y="0" width="36" height="18" rx="3" fill="#F5D0A8" stroke="#0B0B0F" stroke-width="6"/>
+      <rect x="22" y="16" width="20" height="12" fill="#C4A574" stroke="#0B0B0F" stroke-width="6"/>
+      <path d="M6,36 C6,26 16,22 32,22 C48,22 58,26 58,36 V108 Q32,118 6,108 Z" fill="url(#glass)" stroke="#0B0B0F" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M8,62 C18,56 46,56 56,64 V106 Q32,114 8,106 Z" fill="#E46C84" opacity="0.9"/>
+      <rect x="14" y="40" width="8" height="52" rx="4" fill="#FFFFFF" opacity="0.45"/>
+      
+    </g>
+    
+    
+</svg>

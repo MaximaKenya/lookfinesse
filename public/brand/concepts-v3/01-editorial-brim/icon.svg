@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="LookFinesse">
+<title>LookFinesse</title>
+<desc>LookFinesse concept — Editorial Brim. Tilted wide-brim fedora with a rose ribbon and a side bow. Simplified icon.</desc>
+<defs>
+          <linearGradient id="fFelt" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#F8E7D0"/><stop offset="1" stop-color="#C49662"/>
+          </linearGradient></defs>
+        <g transform="rotate(-12 256 286)">
+          <ellipse cx="256" cy="348" rx="214" ry="62" fill="#6E4C32"/>
+          <ellipse cx="256" cy="328" rx="214" ry="56" fill="url(#fFelt)" stroke="#0B0B0F" stroke-width="10"/>
+          <path d="M184,156 C160,196 150,244 168,306 C214,328 298,328 344,306 C362,244 352,196 328,156 C306,118 276,148 256,186 C236,148 206,118 184,156 Z" fill="url(#fFelt)" stroke="#0B0B0F" stroke-width="10" stroke-linejoin="round"/>
+          <path d="M196,250 C230,278 282,278 316,250 L322,286 C286,316 226,316 190,286 Z" fill="#FDA4AF" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+          <path d="M300,262 C336,248 368,270 352,296 C336,318 304,300 300,278 Z" fill="#C46178" stroke="#0B0B0F" stroke-width="8"/>
+        </g>
+</svg>

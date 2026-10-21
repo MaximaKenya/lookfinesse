@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="LookFinesse">
+<title>LookFinesse</title>
+<desc>LookFinesse concept — Atelier Ensemble. Medallion of boater, cat-eye sunglasses, heel, handbag, and lipstick. Simplified icon.</desc>
+<defs>
+      <radialGradient id="lens" cx="0.3" cy="0.3" r="0.8">
+        <stop offset="0" stop-color="#E9D4FF"/>
+        <stop offset="0.45" stop-color="#7C4DCC"/>
+        <stop offset="1" stop-color="#2A1438"/>
+      </radialGradient>
+      <linearGradient id="tube" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#F8E7C8"/>
+        <stop offset="0.45" stop-color="#C4A574"/>
+        <stop offset="1" stop-color="#8C6844"/>
+      </linearGradient>
+      <linearGradient id="bagbody" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FBF0E0"/>
+        <stop offset="1" stop-color="#E2C094"/>
+      </linearGradient>
+      <linearGradient id="heelupper" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F8E7D0"/>
+        <stop offset="1" stop-color="#E0B184"/>
+      </linearGradient>
+      <clipPath id="medallion"><circle cx="256" cy="256" r="228"/></clipPath>
+    </defs>
+    <circle cx="256" cy="256" r="236" fill="#FBF7F2" stroke="#0B0B0F" stroke-width="12"/>
+    <circle cx="256" cy="256" r="220" fill="none" stroke="#C4A574" stroke-width="6"/>
+    <g clip-path="url(#medallion)">
+      <!-- boater -->
+      <g transform="translate(256,62)">
+        <ellipse cx="0" cy="46" rx="92" ry="20" fill="#6E4C32"/>
+        <ellipse cx="0" cy="38" rx="92" ry="20" fill="#E7CBA6" stroke="#0B0B0F" stroke-width="10"/>
+        <rect x="-48" y="-6" width="96" height="46" fill="#E7CBA6" stroke="#0B0B0F" stroke-width="10"/>
+        <ellipse cx="0" cy="-6" rx="48" ry="14" fill="#FBF3E6" stroke="#0B0B0F" stroke-width="10"/>
+        <path d="M-48,18 H48" stroke="#FDA4AF" stroke-width="16" stroke-linecap="butt"/>
+        <path d="M-48,14 H48" stroke="#F5D0A8" stroke-width="0"/>
+        
+      </g>
+      <!-- sunglasses -->
+      <g transform="translate(78,132)">
+        <path d="M0,36 C2,8 40,-2 84,12 C120,24 132,40 116,52 C84,70 18,66 0,44 Z" fill="url(#lens)" stroke="#0B0B0F" stroke-width="10" stroke-linejoin="round"/>
+        <path d="M22,30 C48,20 74,22 96,32" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-opacity="0.8" stroke-linecap="round"/>
+        <path d="M312.00,36.00 C310.00,8.00 272.00,-2.00 228.00,12.00 C192.00,24.00 180.00,40.00 196.00,52.00 C228.00,70.00 294.00,66.00 312.00,44.00 Z" fill="url(#lens)" stroke="#0B0B0F" stroke-width="10" stroke-linejoin="round"/>
+        <path d="M186,30 C214,20 246,24 276,36" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-opacity="0.75" stroke-linecap="round"/>
+        <path d="M116,40 C136,30 156,30 176,40" fill="none" stroke="#F5D0A8" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="132" cy="44" r="3.5" fill="#F5D0A8"/>
+        <circle cx="180" cy="44" r="3.5" fill="#F5D0A8"/>
+        
+        
+      </g>
+      <g transform="translate(46,248)">
+      <path d="M8,86 C34,112 78,116 116,102 L128,98 L158,154 L146,158 L118,104 C82,118 32,114 10,98 Z" fill="#0B0B0F"/>
+      <path d="M148,146 L162,150 L156,160 L142,156 Z" fill="#F5D0A8" stroke="#0B0B0F" stroke-width="4"/>
+      <path d="M12,80 C38,52 72,46 110,56 C140,64 160,50 170,68 C180,86 170,104 148,98 C126,92 116,114 88,118 C50,124 24,114 12,96 Z" fill="url(#heelupper)" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M112,62 C138,58 162,72 168,90 C152,96 128,90 114,102 C108,86 104,72 112,62 Z" fill="#FDA4AF"/>
+      
+      
+    </g>
+      <g transform="translate(322,246)">
+      <path d="M28,58 L132,58 L146,148 Q84,164 16,148 Z" fill="url(#bagbody)" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M132,58 L146,78 L158,146 L146,148 Z" fill="#C49A68" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M24,58 L136,58 L146,76 L128,108 Q84,122 32,108 L16,76 Z" fill="#C084FC" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M36,70 C40,96 70,104 84,100" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-opacity="0.45" stroke-linecap="round"/>
+      <path d="M52,58 C52,24 112,24 112,58" fill="none" stroke="#0B0B0F" stroke-width="9" stroke-linecap="round"/>
+      <path d="M58,58 C58,34 106,34 106,58" fill="none" stroke="#F5D0A8" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="84" cy="104" r="10" fill="#F5D0A8" stroke="#0B0B0F" stroke-width="3"/>
+      <circle cx="84" cy="104" r="3" fill="#8B5CF6"/>
+      
+      
+    </g>
+      <g transform="translate(222,268)">
+      <path d="M16,52 C16,34 26,16 42,10 C60,16 70,34 70,52 Z" fill="#FDA4AF" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M28,40 C32,28 40,20 48,18" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-opacity="0.8" stroke-linecap="round"/>
+      <path d="M14,50 H72 V118 Q43,130 14,118 Z" fill="url(#tube)" stroke="#0B0B0F" stroke-width="8" stroke-linejoin="round"/>
+      <rect x="12" y="46" width="62" height="16" rx="3" fill="#F5D0A8" stroke="#0B0B0F" stroke-width="8"/>
+      <path d="M24,70 V112" stroke="#FFFFFF" stroke-width="4" stroke-opacity="0.45" stroke-linecap="round"/>
+      
+    </g>
+    </g>
+    
+</svg>
