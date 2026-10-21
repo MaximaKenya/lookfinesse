@@ -1,0 +1,12 @@
+<!-- Atelier: concept only. Not the live LookFinesse logo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="LookFinesse atelier mark">
+  <title>LookFinesse atelier mark</title>
+  <defs><linearGradient id="hang-light" x1="10" y1="6" x2="56" y2="54" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#9A3412"/><stop offset="52%" stop-color="#9F1239"/><stop offset="100%" stop-color="#6D28D9"/></linearGradient></defs>
+  <g fill="none" stroke="url(#hang-light)" stroke-width="6.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M33 23 C33 23 25 23 23 16 C21 8 29 4 35 8 C41 12 39 21 34 23"/>
+      <path d="M33 24 L12 46"/>
+      <path d="M33 24 L54 46"/>
+      <path d="M10 49 H56"/>
+    </g>
+    <path d="M18 49.5 C26 57 40 57 48 49.5" fill="none" stroke="#6D28D9" stroke-width="5" stroke-linecap="round"/>
+</svg>

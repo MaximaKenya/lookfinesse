@@ -1,0 +1,11 @@
+<!-- Lashline: concept only. Not the live LookFinesse logo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="LookFinesse lashline mark">
+  <title>LookFinesse lashline mark</title>
+  <defs><linearGradient id="lash-dark" x1="12" y1="18" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FDA4AF"/><stop offset="52%" stop-color="#C084FC"/><stop offset="100%" stop-color="#F5D0A8"/></linearGradient></defs>
+  <g transform="rotate(-7 32 34)">
+      <path d="M 15.50 36.50 A 15.00 15.00 0 1 1 45.50 36.50 A 15.00 15.00 0 1 1 15.50 36.50 Z M 24.75 37.10 A 6.15 6.15 0 1 1 37.05 37.10 A 6.15 6.15 0 1 1 24.75 37.10 Z" fill="url(#lash-dark)" fill-rule="evenodd"/>
+      <path d="M 10.15 29.89 L 11.22 27.22 L 12.63 24.72 L 14.37 22.43 L 16.40 20.40 L 18.69 18.65 L 21.19 17.23 L 23.85 16.16 L 26.64 15.45 L 29.49 15.12 L 32.37 15.18 L 35.20 15.62 L 37.96 16.44 L 40.58 17.62 L 43.02 19.14 L 45.23 20.98 L 47.18 23.09 L 48.82 25.45 L 50.14 28.00 L 51.10 30.71 L 51.69 33.52 L 63.19 18.02 L 53.89 36.92 L 43.77 34.64 L 43.40 32.87 L 42.80 31.18 L 41.97 29.58 L 40.94 28.10 L 39.72 26.78 L 38.34 25.63 L 36.81 24.68 L 35.17 23.94 L 33.45 23.43 L 31.67 23.15 L 29.87 23.11 L 28.08 23.32 L 26.34 23.76 L 24.67 24.44 L 23.10 25.33 L 21.67 26.42 L 20.40 27.69 L 19.31 29.12 L 18.43 30.69 L 17.76 32.36 Z" fill="#FDA4AF"/>
+      <circle cx="26.4" cy="32.5" r="2.35" fill="#FFF6F0"/>
+      <path d="M 62.79 13.62 L 63.99 17.02 L 67.39 18.22 L 63.99 19.42 L 62.79 22.82 L 61.59 19.42 L 58.19 18.22 L 61.59 17.02 Z" fill="#F5D0A8"/>
+    </g>
+</svg>

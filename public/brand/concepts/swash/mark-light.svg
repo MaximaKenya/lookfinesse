@@ -1,0 +1,6 @@
+<!-- Swash: concept only. Not the live LookFinesse logo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="LookFinesse swash mark">
+  <title>LookFinesse swash mark</title>
+  <defs><linearGradient id="swash-light" x1="6" y1="50" x2="60" y2="16" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#9F1239"/><stop offset="52%" stop-color="#6D28D9"/><stop offset="100%" stop-color="#9A3412"/></linearGradient></defs>
+  <path d="M 14 46 C 8 40, 10 30, 18 28 C 12 22, 14 14, 24 16 C 32 18, 30 28, 26 32 C 36 24, 48 18, 58 24 C 52 30, 42 34, 32 38 C 24 42, 18 50, 14 46 Z" fill="url(#swash-light)"/><path d="M 59.12 12.24 L 59.10 16.61 L 62.46 19.42 L 58.09 19.40 L 55.28 22.76 L 55.30 18.39 L 51.94 15.58 L 56.31 15.60 Z" fill="#9A3412"/>
+</svg>

@@ -1,0 +1,11 @@
+<!-- Atelier: concept only. Not the live LookFinesse logo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" color="#1C1016" role="img" aria-label="LookFinesse atelier mark">
+  <title>LookFinesse atelier mark</title>
+  <g fill="none" stroke="currentColor" stroke-width="6.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M33 23 C33 23 25 23 23 16 C21 8 29 4 35 8 C41 12 39 21 34 23"/>
+      <path d="M33 24 L12 46"/>
+      <path d="M33 24 L54 46"/>
+      <path d="M10 49 H56"/>
+    </g>
+    <path d="M18 49.5 C26 57 40 57 48 49.5" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+</svg>
