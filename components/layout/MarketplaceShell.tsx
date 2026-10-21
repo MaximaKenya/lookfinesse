@@ -12,7 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-import BrandLogo from "@/components/brand/BrandLogo";
+import Logo from "@/components/brand/Logo";
 
 export default function MarketplaceShell({
   children,
@@ -72,7 +72,7 @@ export default function MarketplaceShell({
 
         {/* BRAND */}
         <div className="px-6 py-8 border-b border-zinc-800">
-          <BrandLogo href="/feed" size="md" />
+          <Logo href="/feed" size="md" />
           <p className="mt-3 text-xs text-zinc-500">Enterprise Commerce Infrastructure</p>
         </div>
 
@@ -103,7 +103,7 @@ export default function MarketplaceShell({
 
         {/* FOOTER */}
         <div className="p-4 border-t border-zinc-800 space-y-3">
-          <BrandLogo href="/feed" variant="icon" size="sm" className="opacity-80" />
+          <Logo href="/feed" variant="mark" size="sm" className="opacity-80" />
 
           <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
 

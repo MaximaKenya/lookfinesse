@@ -8,7 +8,7 @@ import {
   MapPin,
   Dumbbell,
 } from "lucide-react";
-import BrandLogo from "@/components/brand/BrandLogo";
+import Logo from "@/components/brand/Logo";
 
 const FEATURES = [
   {
@@ -47,7 +47,7 @@ export default function HomePage() {
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
-        <BrandLogo href="/" size="md" />
+        <Logo href="/" size="md" />
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/shop"
@@ -185,6 +185,13 @@ export default function HomePage() {
           </div>
         </div>
       </main>
+
+      <footer className="relative z-10 border-t border-white/10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
+          <Logo href="/" size="sm" />
+          <p className="text-xs text-white/55">Fashion, beauty and fitness · Kenya</p>
+        </div>
+      </footer>
     </div>
   );
 }

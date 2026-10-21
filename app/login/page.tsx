@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import AuthCarousel from "@/components/auth/AuthCarousel";
-import BrandLogo from "@/components/brand/BrandLogo";
+import Logo from "@/components/brand/Logo";
 import { hardNavigate, postSignupRedirect } from "@/lib/auth/onboarding";
 import { friendlyAuthError } from "@/lib/auth/signupErrors";
 import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
@@ -116,12 +116,9 @@ function LoginForm() {
           >
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-2xl shadow-purple-900/20 p-6 sm:p-8 space-y-6">
               <motion.div custom={0} variants={fadeUp} className="flex justify-center md:justify-start">
-                <BrandLogo href="/feed" size="md" />
+                <Logo href="/feed" size="md" />
               </motion.div>
               <motion.div custom={1} variants={fadeUp} className="text-center md:text-left">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-purple-400/90 mb-2">
-                  LookFinesse
-                </p>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome back</h2>
                 <p className="text-white/70 mt-2 text-sm leading-relaxed">Sign in to your account</p>
               </motion.div>

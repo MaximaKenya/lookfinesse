@@ -37,10 +37,6 @@ export const metadata: Metadata = {
     description: "Fashion, beauty & fitness social commerce",
   },
   manifest: "/manifest.webmanifest",
-  icons: {
-    icon: [{ url: "/logo-icon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/logo-icon.svg", type: "image/svg+xml" }],
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

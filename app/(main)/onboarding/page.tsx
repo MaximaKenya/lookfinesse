@@ -34,7 +34,7 @@ import { Sparkles, Shirt, Flower2, Dumbbell, Heart, ChevronRight, Check } from "
 
 import { toast } from "sonner";
 
-import BrandLogo from "@/components/brand/BrandLogo";
+import Logo from "@/components/brand/Logo";
 
 
 
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
 
       <div className="flex justify-center">
 
-        <BrandLogo href="/feed" size="sm" />
+        <Logo href="/feed" size="sm" />
 
       </div>
 

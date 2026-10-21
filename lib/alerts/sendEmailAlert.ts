@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { emailLockupHtml, siteOrigin } from "@/lib/brand/emailLockup";
 
 let client: Resend | null = null;
 
@@ -24,9 +25,12 @@ export async function sendEmailAlert(
     to: ["admin@yourdomain.com"],
     subject: `🚨 ${type} detected`,
     html: `
-      <h2>Critical Alert</h2>
-      <p>Type: ${type}</p>
-      <pre>${JSON.stringify(payload, null, 2)}</pre>
+      <div style="background:#FAF7F4;padding:24px;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;color:#1C1016">
+        ${emailLockupHtml(siteOrigin())}
+        <h2 style="margin:0 0 8px;font-size:20px">Critical alert</h2>
+        <p style="margin:0 0 12px">Type: ${type}</p>
+        <pre style="background:#fff;border:1px solid #E7D5C8;border-radius:12px;padding:12px;overflow:auto">${JSON.stringify(payload, null, 2)}</pre>
+      </div>
     `,
   });
 }
