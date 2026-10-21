@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
-import Logo from "@/components/brand/Logo";
+import AnimatedLogo from "@/components/brand/AnimatedLogo";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -54,7 +54,9 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl p-8 space-y-6">
         <div className="flex justify-center">
-          <Logo href="/feed" size="md" />
+          <Link href="/feed" aria-label="LookFinesse" className="inline-flex rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#E8C37A]">
+            <AnimatedLogo className="h-auto w-36" />
+          </Link>
         </div>
         <div className="text-center">
           <h2 className="text-2xl font-bold">Choose a new password</h2>

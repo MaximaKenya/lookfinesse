@@ -11,7 +11,7 @@ export default function Navbar() {
   return (
     <header className="w-full sticky top-0 z-50 bg-black/70 backdrop-blur-xl border-b border-white/8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
-        <Logo href="/feed" size="sm" />
+        <Logo href="/feed" variant="icon" size="sm" />
 
         <nav className="flex items-center gap-1">
           <Link

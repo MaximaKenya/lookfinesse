@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 import AuthCarousel from "@/components/auth/AuthCarousel";
-import Logo from "@/components/brand/Logo";
+import AnimatedLogo from "@/components/brand/AnimatedLogo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -44,7 +44,9 @@ export default function ForgotPasswordPage() {
           <div className="w-full max-w-md">
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-2xl shadow-purple-900/20 p-6 sm:p-8 space-y-6">
               <div className="flex justify-center md:justify-start">
-                <Logo href="/feed" size="md" />
+                <Link href="/feed" aria-label="LookFinesse" className="inline-flex rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#E8C37A]">
+                  <AnimatedLogo className="h-auto w-36" />
+                </Link>
               </div>
               <div className="text-center md:text-left">
                 <h2 className="text-3xl font-bold">Reset password</h2>

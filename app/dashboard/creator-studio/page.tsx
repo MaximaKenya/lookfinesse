@@ -128,7 +128,7 @@ export default function CreatorStudioPage() {
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-3">
-            <Logo href="/feed" size="sm" />
+            <Logo href="/feed" variant="icon" size="sm" />
             <div>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-purple-400" />

@@ -12,7 +12,7 @@ export default function MarketplaceShell({
       <div className="flex">
 
         <aside className="w-72 border-r border-zinc-800 bg-zinc-950 min-h-screen p-6">
-          <Logo href="/feed" size="md" />
+          <Logo href="/feed" variant="icon" size="md" />
 
           <div className="mt-10 space-y-3">
             <div className="text-zinc-400">Dashboard</div>

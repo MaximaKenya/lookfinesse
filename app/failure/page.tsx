@@ -4,7 +4,7 @@ export default function FailurePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="text-center space-y-4">
-        <Logo href="/feed" size="md" className="mx-auto" />
+        <Logo href="/feed" size={148} className="mx-auto" />
         <h1 className="text-3xl font-bold">
           Payment Failed ❌
         </h1>

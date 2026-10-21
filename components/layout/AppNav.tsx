@@ -180,7 +180,7 @@ export default function AppNav() {
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 w-64 flex-col bg-black/95 backdrop-blur-xl border-r border-white/8">
         <div className="px-5 py-5 border-b border-white/8 flex flex-col gap-3">
-          <Logo href="/" size="md" className="max-w-[180px]" />
+          <Logo href="/" variant="icon" size="md" />
           <div className="flex items-center justify-end gap-2">
             <CartButton />
             <AuthHeaderActions />
@@ -306,7 +306,7 @@ export default function AppNav() {
           </button>
 
           <div className="flex-1 min-w-0 flex justify-center">
-            <Logo href="/" size="sm" />
+            <Logo href="/" variant="icon" size="sm" />
           </div>
 
           <div className="flex items-center gap-1 shrink-0 relative z-[61]">

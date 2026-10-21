@@ -1,17 +1,22 @@
 import Link from "next/link";
 import { useId } from "react";
 import {
-  FULL_HEIGHT,
-  FULL_VIEWBOX,
-  FULL_WIDTH,
-  MARK_PATH,
-  MARK_SHIFT_X,
+  GOLD_X1,
+  GOLD_X2,
+  GOLD_Y1,
+  GOLD_Y2,
+  ICON_STROKE,
+  ICON_VIEWBOX,
+  LOCKUP_VIEWBOX,
+  MARK_SHIFT,
   MARK_VIEWBOX,
-  SHEEN_PATH,
-  WORD_PATH,
-  WORD_X,
-  WORD_Y,
-} from "@/components/brand/geometry";
+  OPEN_ARC_GOLD,
+  OPEN_ARC_NAVY,
+  OPEN_ARC_PATHS,
+  OPEN_ARC_STROKE,
+  WORDMARK_PATHS,
+  WORDMARK_TRANSFORM,
+} from "@/components/brand/openArcPaths";
 
 export type LogoVariant = "mark" | "full" | "icon";
 export type LogoTheme = "dark" | "light" | "mono";
@@ -29,32 +34,16 @@ type LogoProps = {
 
 const HEIGHTS = { sm: 28, md: 32, lg: 40 } as const;
 
-const PALETTE: Record<
-  LogoTheme,
-  { word: string; stops: readonly [string, string, string]; sheen: number }
-> = {
-  dark: {
-    word: "#FFF6F0",
-    stops: ["#FDA4AF", "#C084FC", "#F5D0A8"],
-    sheen: 0.5,
-  },
-  light: {
-    word: "#1C1016",
-    stops: ["#9F1239", "#6D28D9", "#9A3412"],
-    sheen: 0.42,
-  },
-  mono: {
-    word: "currentColor",
-    stops: ["currentColor", "currentColor", "currentColor"],
-    sheen: 0,
-  },
-};
-
 function resolveHeight(size: LogoSize) {
   if (typeof size === "number") return size;
   return HEIGHTS[size];
 }
 
+/**
+ * Static Open Arc lockup. `dark` is gold on a transparent ground for navy
+ * and black surfaces. `light` is deep-navy ink for light surfaces. `icon`
+ * uses the heavier stroke so the mark still reads in the nav.
+ */
 export default function Logo({
   variant = "full",
   theme = "dark",
@@ -66,44 +55,57 @@ export default function Logo({
   const rawId = useId().replace(/:/g, "");
   const gradId = `lf-${rawId}`;
   const markOnly = variant === "mark" || variant === "icon" || showWordmark === false;
+  const icon = variant === "icon";
   const height = resolveHeight(size);
-  const width = markOnly ? height : Math.round((height * FULL_WIDTH) / FULL_HEIGHT);
-  const palette = PALETTE[theme];
+  const viewBox = icon ? ICON_VIEWBOX : markOnly ? MARK_VIEWBOX : LOCKUP_VIEWBOX;
+  const stroke = icon ? ICON_STROKE : OPEN_ARC_STROKE;
+  const ink =
+    theme === "mono" ? "currentColor" : theme === "light" ? OPEN_ARC_NAVY : `url(#${gradId})`;
 
   const graphic = (
     <svg
       className="lf-logo block h-auto max-w-full"
-      width={width}
+      width={height}
       height={height}
-      viewBox={markOnly ? MARK_VIEWBOX : FULL_VIEWBOX}
+      viewBox={viewBox}
       fill="none"
       role={href ? undefined : "img"}
       aria-label={href ? undefined : "LookFinesse"}
       aria-hidden={href ? true : undefined}
     >
-      <defs>
-        <linearGradient id={gradId} x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={palette.stops[0]} />
-          <stop offset="46%" stopColor={palette.stops[1]} />
-          <stop offset="100%" stopColor={palette.stops[2]} />
-        </linearGradient>
-      </defs>
-      <g className="lf-gem" transform={markOnly ? undefined : `translate(${MARK_SHIFT_X} 0)`}>
-        <path d={MARK_PATH} fill={`url(#${gradId})`} />
-        {palette.sheen > 0 && (
-          <path
-            d={SHEEN_PATH}
-            fill="none"
-            stroke="#FFF6F0"
-            strokeOpacity={palette.sheen}
-            strokeWidth={1.25}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
+      {theme === "dark" && (
+        <defs>
+          <linearGradient
+            id={gradId}
+            x1={GOLD_X1}
+            y1={GOLD_Y1}
+            x2={GOLD_X2}
+            y2={GOLD_Y2}
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0%" stopColor={OPEN_ARC_GOLD[0]} />
+            <stop offset="100%" stopColor={OPEN_ARC_GOLD[1]} />
+          </linearGradient>
+        </defs>
+      )}
+      <g
+        transform={MARK_SHIFT}
+        fill="none"
+        stroke={ink}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {OPEN_ARC_PATHS.map((path) => (
+          <path key={path.d} d={path.d} />
+        ))}
       </g>
       {!markOnly && (
-        <path transform={`translate(${WORD_X} ${WORD_Y})`} d={WORD_PATH} fill={palette.word} />
+        <g transform={WORDMARK_TRANSFORM} fill={ink}>
+          {WORDMARK_PATHS.map((d, index) => (
+            <path key={index} d={d} />
+          ))}
+        </g>
       )}
     </svg>
   );
@@ -113,7 +115,7 @@ export default function Logo({
       <Link
         href={href}
         aria-label="LookFinesse"
-        className={`inline-flex items-center shrink-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#C084FC] focus-visible:ring-offset-2 focus-visible:ring-offset-black ${className}`}
+        className={`inline-flex items-center shrink-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#E8C37A] focus-visible:ring-offset-2 focus-visible:ring-offset-black ${className}`}
       >
         {graphic}
       </Link>

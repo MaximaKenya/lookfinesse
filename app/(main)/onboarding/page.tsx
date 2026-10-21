@@ -300,7 +300,7 @@ export default function OnboardingPage() {
 
       <div className="flex justify-center">
 
-        <Logo href="/feed" size="sm" />
+        <Logo href="/feed" variant="icon" size="sm" />
 
       </div>
 

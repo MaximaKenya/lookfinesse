@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import Logo from "@/components/brand/Logo";
+import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import AuthCarousel from "@/components/auth/AuthCarousel";
 import {
   friendlyAuthError,
@@ -137,7 +137,9 @@ export default function RegisterPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center space-y-4 max-w-sm rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl p-8"
         >
-          <Logo href="/feed" size="md" className="mx-auto justify-center" />
+          <Link href="/feed" aria-label="LookFinesse" className="mx-auto inline-flex justify-center rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#E8C37A]">
+            <AnimatedLogo className="h-auto w-36" />
+          </Link>
           <div className="text-5xl" aria-hidden>
             ✉️
           </div>
@@ -182,7 +184,9 @@ export default function RegisterPage() {
           <motion.div initial="hidden" animate="show" className="w-full max-w-md">
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-2xl shadow-pink-900/20 p-6 sm:p-8 space-y-6">
               <motion.div custom={0} variants={fadeUp} className="flex justify-center md:justify-start">
-                <Logo href="/feed" size="md" />
+                <Link href="/feed" aria-label="LookFinesse" className="inline-flex rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#E8C37A]">
+                  <AnimatedLogo className="h-auto w-36" />
+                </Link>
               </motion.div>
               <motion.div custom={1} variants={fadeUp} className="text-center md:text-left">
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Create account</h2>
