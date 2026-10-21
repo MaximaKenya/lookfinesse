@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import BrandLogo from "@/components/brand/BrandLogo";
+import Logo from "@/components/brand/Logo";
 import AuthCarousel from "@/components/auth/AuthCarousel";
 import {
   friendlyAuthError,
@@ -137,7 +137,7 @@ export default function RegisterPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center space-y-4 max-w-sm rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl p-8"
         >
-          <BrandLogo href="/feed" size="md" className="mx-auto justify-center" />
+          <Logo href="/feed" size="md" className="mx-auto justify-center" />
           <div className="text-5xl" aria-hidden>
             ✉️
           </div>
@@ -182,12 +182,9 @@ export default function RegisterPage() {
           <motion.div initial="hidden" animate="show" className="w-full max-w-md">
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-2xl shadow-pink-900/20 p-6 sm:p-8 space-y-6">
               <motion.div custom={0} variants={fadeUp} className="flex justify-center md:justify-start">
-                <BrandLogo href="/feed" size="md" />
+                <Logo href="/feed" size="md" />
               </motion.div>
               <motion.div custom={1} variants={fadeUp} className="text-center md:text-left">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-pink-400/90 mb-2">
-                  LookFinesse
-                </p>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Create account</h2>
                 <p className="text-white/70 mt-2 text-sm leading-relaxed">
                   Shop, book, and sell — one Kenya-first marketplace.

@@ -84,7 +84,7 @@ export default function PushOptIn() {
       if (reg) {
         await reg.showNotification("LookFinesse alerts on", {
           body: "Order status, bookings, followers & low-stock alerts.",
-          icon: "/logo-icon.svg",
+          icon: "/icons/icon-192.png",
           data: { url: "/notifications" },
         });
       }

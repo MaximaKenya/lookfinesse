@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-import BrandLogo from "@/components/brand/BrandLogo";
+import Logo from "@/components/brand/Logo";
 
 interface Slide {
   type: "image" | "video";
@@ -97,7 +97,7 @@ export default function AuthCarousel({
       <div className={`relative z-[3] flex flex-col h-full ${compact ? "p-6" : "p-8 md:p-10 min-h-[320px] md:min-h-full"}`}>
         {!compact && (
           <div className="hidden md:block">
-            <BrandLogo href="/feed" size="lg" />
+            <Logo href="/feed" size="lg" />
           </div>
         )}
         <div className={compact ? "mt-auto space-y-2" : "mt-auto space-y-4"}>

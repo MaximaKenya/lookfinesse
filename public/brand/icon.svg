@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1A121C"/>
+      <stop offset="100%" stop-color="#09070B"/>
+    </linearGradient>
+    <linearGradient id="lf-mark" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+    <stop offset="0%" stop-color="#FDA4AF"/>
+    <stop offset="46%" stop-color="#C084FC"/>
+    <stop offset="100%" stop-color="#F5D0A8"/>
+  </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <svg x="5" y="5" width="54" height="54" viewBox="0 0 64 64">
+    <path d="M20 4L28 13L47 13L53 18L47 23L28 23L28 29L41 29L46 33.5L41 38L28 38L28 45L49 45L55 50.5L49 56L13 56L13 13Z" fill="url(#lf-mark)"/>
+    <path d="M20 4L28 13L46.2 13" fill="none" stroke="#FFF6F0" stroke-opacity="0.45" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</svg>

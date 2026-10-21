@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 import AuthCarousel from "@/components/auth/AuthCarousel";
-import BrandLogo from "@/components/brand/BrandLogo";
+import Logo from "@/components/brand/Logo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -44,12 +44,9 @@ export default function ForgotPasswordPage() {
           <div className="w-full max-w-md">
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-2xl shadow-purple-900/20 p-6 sm:p-8 space-y-6">
               <div className="flex justify-center md:justify-start">
-                <BrandLogo href="/feed" size="md" />
+                <Logo href="/feed" size="md" />
               </div>
               <div className="text-center md:text-left">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-purple-400/80 mb-2">
-                  LookFinesse
-                </p>
                 <h2 className="text-3xl font-bold">Reset password</h2>
                 <p className="text-white/40 mt-1 text-sm">
                   We&apos;ll email you a link to choose a new password.

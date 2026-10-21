@@ -2,7 +2,7 @@
  * Service worker: push notifications + offline POS queue sync.
  * Registered from client; works without VAPID (push events optional).
  */
-const CACHE = "lookfinesse-pos-v1";
+const CACHE = "lookfinesse-pos-v2";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
@@ -30,8 +30,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: "/logo-icon.svg",
-      badge: "/logo-icon.svg",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
       data: { url: payload.url },
     })
   );
@@ -70,7 +70,7 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (url.pathname.startsWith("/vendor/pos") || url.pathname === "/logo-icon.svg") {
+  if (url.pathname.startsWith("/vendor/pos") || url.pathname === "/icons/icon-192.png") {
     event.respondWith(
       caches.open(CACHE).then(async (cache) => {
         try {
