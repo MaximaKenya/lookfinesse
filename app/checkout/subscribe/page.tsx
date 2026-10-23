@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import PaymentsPausedNotice from "@/components/checkout/PaymentsPausedNotice";
+import { TRIAL_COPY } from "@/lib/config/trial";
 
 type SubCheckout = {
   id: string;
@@ -99,20 +101,24 @@ function SubscribeInner() {
           <p className="text-3xl font-bold">KES {amount.toLocaleString()}<span className="text-sm font-normal text-white/40">/mo</span></p>
         </div>
 
-        <p className="text-sm text-white/70">
-          Paystack accepts card, M-Pesa, and bank transfer. The plan is confirmed only after Paystack verifies the payment.
-        </p>
+        <p className="text-sm text-white/70">{TRIAL_COPY}.</p>
 
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        <PaymentsPausedNotice payLabel="Paystack">
+          <p className="text-sm text-white/70">
+            Paystack accepts card, M-Pesa, and bank transfer. The plan is confirmed only after Paystack verifies the payment.
+          </p>
 
-        <button
-          type="button"
-          onClick={pay}
-          disabled={paying || amount <= 0}
-          className="w-full bg-white text-black py-3 rounded-xl font-semibold disabled:opacity-50"
-        >
-          {paying ? "Opening Paystack…" : `Pay KES ${amount.toLocaleString()} with Paystack`}
-        </button>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+
+          <button
+            type="button"
+            onClick={pay}
+            disabled={paying || amount <= 0}
+            className="w-full bg-white text-black py-3 rounded-xl font-semibold disabled:opacity-50"
+          >
+            {paying ? "Opening Paystack…" : `Pay KES ${amount.toLocaleString()} with Paystack`}
+          </button>
+        </PaymentsPausedNotice>
       </div>
     </div>
   );

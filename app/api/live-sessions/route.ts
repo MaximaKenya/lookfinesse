@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { supabase } from "@/lib/supabaseClient";
+import { paymentsEnabled } from "@/lib/config/payments";
+import { TRIAL_COPY } from "@/lib/config/trial";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 export async function GET() {
   const { data, error } = await supabase
@@ -20,6 +23,8 @@ export async function POST(req: Request) {
 
   // Create a new live session
   if (!body.type) {
+    const trialBlock = await blockIfTrialEnded();
+    if (trialBlock) return trialBlock;
     const { vendor_id, title, description, scheduled_for, is_live, cover_url, stream_url, product_ids } = body;
     if (!vendor_id || !title || !scheduled_for) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -47,6 +52,12 @@ export async function POST(req: Request) {
   const { type, user_id, session_id, amount, message } = body;
 
   if (type === "tip") {
+    if (!paymentsEnabled()) {
+      return NextResponse.json(
+        { error: `Card checkout is paused. ${TRIAL_COPY}.`, code: "PAYMENTS_DISABLED" },
+        { status: 503 }
+      );
+    }
     if (!user_id || !session_id || !amount) {
       return NextResponse.json({ error: "Missing tip fields" }, { status: 400 });
     }

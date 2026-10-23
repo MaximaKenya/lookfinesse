@@ -9,6 +9,8 @@ import {
   newPaystackReference,
   paystackCallbackUrl,
 } from "@/lib/paystack/client";
+import { paymentsEnabled } from "@/lib/config/payments";
+import { TRIAL_COPY } from "@/lib/config/trial";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/security/rateLimit";
 
 export const runtime = "nodejs";
@@ -44,6 +46,12 @@ const bodySchema = z.object({
 
 export async function POST(req: Request) {
   if (!rateLimit(`paystack-init:${clientIp(req)}`, 12, 60_000)) return tooManyRequests();
+  if (!paymentsEnabled()) {
+    return NextResponse.json(
+      { message: `Card checkout is paused. ${TRIAL_COPY}.` },
+      { status: 503 }
+    );
+  }
   if (!isPaystackConfigured()) {
     return NextResponse.json(
       { message: "Paystack is not configured. Add PAYSTACK_SECRET_KEY to continue." },

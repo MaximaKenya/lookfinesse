@@ -6,6 +6,7 @@ import { ChevronDown, LogOut, User } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/lib/supabaseClient";
 import { signOutAndRedirect } from "@/lib/logout";
+import TrialChip from "@/components/trial/TrialChip";
 
 export default function AuthHeaderActions() {
   const { userId, loading } = useCurrentUser();
@@ -60,7 +61,13 @@ export default function AuthHeaderActions() {
   const initials = (email.split("@")[0] || "U").slice(0, 2).toUpperCase();
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative flex items-center gap-2" ref={menuRef}>
+      <span className="hidden sm:inline-flex">
+        <TrialChip />
+      </span>
+      <span className="sm:hidden">
+        <TrialChip compact />
+      </span>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServiceRole } from "@/lib/supabase/serviceRole";
+import { TRIAL_DAYS } from "@/lib/config/trial";
 import { getPlatformEntitlements } from "./platformEntitlements";
 import type { PlatformTierId } from "./platformTiers";
+
+export { TRIAL_DAYS };
 
 /** Prefer service role for trial writes (bypasses RLS); fall back to user client. */
 function writeClient(userClient: SupabaseClient): SupabaseClient {
@@ -10,7 +13,6 @@ function writeClient(userClient: SupabaseClient): SupabaseClient {
 
 /** Default free-trial tier — full Pro entitlements for 30 days. */
 export const DEFAULT_TRIAL_TIER: PlatformTierId = "pro";
-export const TRIAL_DAYS = 30;
 
 export type EnsureTrialResult = {
   created: boolean;

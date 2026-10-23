@@ -318,6 +318,13 @@ export const ADMIN_NAV: NavGroup[] = [
         icon: Activity,
         accent: "text-purple-300",
       },
+      {
+        href: "/admin/trials",
+        label: "Trials",
+        description: "Extend or end free trials",
+        icon: Sparkles,
+        accent: "text-amber-300",
+      },
     ],
   },
   {

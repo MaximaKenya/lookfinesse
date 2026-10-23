@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { dedupeReels, normalizeReelRow } from "@/lib/social/queries";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 const REEL_SELECTS = [
   `*, vendors ( id, name, avatar_url, logo_url, is_verified ), products ( id, name, price, image_url ), services ( id, title, price )`,
@@ -42,6 +43,8 @@ export async function POST(req: Request) {
     const { requireVendorSession } = await import("@/lib/vendor/requireVendorSession");
     const session = await requireVendorSession();
     if (!session.ok) return session.response;
+    const trialBlock = await blockIfTrialEnded();
+    if (trialBlock) return trialBlock;
 
     const body = await req.json();
     const {

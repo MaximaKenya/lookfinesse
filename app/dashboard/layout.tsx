@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
+import AccountTrialBanner from "@/components/trial/AccountTrialBanner";
 import PlatformSubscriptionGate from "@/components/vendor/PlatformSubscriptionGate";
 
 /**
@@ -34,7 +35,12 @@ export default function DashboardLayout({
             href: "/vendor",
           }}
         />
-        <div className="dashboard-content">{children}</div>
+        <div className="dashboard-content">
+          <div className="px-4 pt-4 sm:px-6">
+            <AccountTrialBanner />
+          </div>
+          {children}
+        </div>
       </div>
     );
   }
@@ -56,6 +62,9 @@ export default function DashboardLayout({
         }}
       />
       <div className="dashboard-content">
+        <div className="px-4 pt-4 sm:px-6">
+          <AccountTrialBanner />
+        </div>
         <PlatformSubscriptionGate>{children}</PlatformSubscriptionGate>
       </div>
     </div>

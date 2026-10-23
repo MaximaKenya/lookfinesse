@@ -18,6 +18,7 @@ import Link from "next/link";
 import CheckoutCurrencyPicker from "@/components/checkout/CheckoutCurrencyPicker";
 import { CheckoutWhatsAppShare } from "@/components/commerce/WhatsAppCommerce";
 import DeliveryPanel, { type DeliveryDetails } from "@/components/checkout/DeliveryPanel";
+import PaymentsPausedNotice from "@/components/checkout/PaymentsPausedNotice";
 
 
 
@@ -507,8 +508,7 @@ function CheckoutInner() {
 
             <h2 className="text-lg font-semibold">Payment Method</h2>
 
-
-
+            <PaymentsPausedNotice payLabel="Paystack">
             <div className="rounded-2xl bg-black/30 border border-white/10 p-4 text-sm text-white/80 leading-relaxed space-y-2">
                 <p>Pay with card, M-Pesa, or bank transfer on Paystack. We only confirm the order after Paystack verifies the payment.</p>
                 <p className="text-xs text-white/60">Amount is in Kenyan shillings. You will return here when the payment is confirmed.</p>
@@ -539,6 +539,7 @@ function CheckoutInner() {
               {loading ? "Processing…" : `Pay KES ${total.toLocaleString()} with Paystack`}
 
             </button>
+            </PaymentsPausedNotice>
 
           </div>
 

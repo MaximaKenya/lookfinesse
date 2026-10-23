@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { cronUnauthorized, isCronAuthorized } from "@/lib/cron/authorize";
+import { paymentsEnabled } from "@/lib/config/payments";
 import { isPaystackConfigured } from "@/lib/paystack/client";
 import { fulfillPaystackReference } from "@/lib/paystack/fulfill";
+import { runTrialReminders } from "@/lib/trial/reminders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,11 +15,17 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   if (!isCronAuthorized(req)) return cronUnauthorized();
 
-  if (!isPaystackConfigured()) {
-    return NextResponse.json(
-      { message: "Paystack is not configured", checked: 0, results: [] },
-      { status: 503 }
-    );
+  const reminders = await runTrialReminders();
+
+  if (!paymentsEnabled() || !isPaystackConfigured()) {
+    return NextResponse.json({
+      message: paymentsEnabled()
+        ? "Paystack is not configured"
+        : "Payments are paused. Trial reminders still ran.",
+      checked: 0,
+      results: [],
+      reminders,
+    });
   }
 
   const { data: stuckPayments, error } = await supabase
@@ -38,14 +46,16 @@ export async function GET(req: Request) {
         .eq("status", "pending")
         .limit(100);
       if (retry.error) {
-        return NextResponse.json({ message: "Could not list payments" }, { status: 503 });
+        return NextResponse.json({ message: "Could not list payments", reminders }, { status: 503 });
       }
-      return reconcileRows(retry.data ?? []);
+      const retryBody = await reconcileRows(retry.data ?? []);
+      return NextResponse.json({ ...retryBody, reminders });
     }
-    return NextResponse.json({ message: "Could not list payments" }, { status: 503 });
+    return NextResponse.json({ message: "Could not list payments", reminders }, { status: 503 });
   }
 
-  return reconcileRows(stuckPayments ?? []);
+  const body = await reconcileRows(stuckPayments ?? []);
+  return NextResponse.json({ ...body, reminders });
 }
 
 async function reconcileRows(rows: { id: string; checkout_request_id?: string | null; provider_ref?: string | null }[]) {
@@ -65,9 +75,9 @@ async function reconcileRows(rows: { id: string; checkout_request_id?: string | 
     }
   }
 
-  return NextResponse.json({
+  return {
     message: "Reconciliation complete",
     checked: rows.length,
     results,
-  });
+  };
 }

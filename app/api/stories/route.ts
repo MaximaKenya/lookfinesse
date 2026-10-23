@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 
 import { guardSupabaseEnv, isNetworkError } from "@/lib/api/supabaseRoute";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 
 
@@ -81,6 +82,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
 
   }
+
+  const trialBlock = await blockIfTrialEnded();
+  if (trialBlock) return trialBlock;
 
 
 

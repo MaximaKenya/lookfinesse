@@ -20,6 +20,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 import Logo from "@/components/brand/Logo";
 import SubscriptionTierBadge from "@/components/vendor/SubscriptionTierBadge";
+import TrialChip from "@/components/trial/TrialChip";
 
 type Props = {
   variant: "admin" | "vendor";
@@ -251,6 +252,7 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
                 {brand.badge}
               </div>
               {variant === "vendor" && <SubscriptionTierBadge />}
+              <TrialChip />
             </div>
           )}
         </div>
@@ -286,6 +288,7 @@ export default function DashboardSidebar({ variant, brand, footer }: Props) {
         <div className="flex items-center gap-2 min-w-0">
           <Logo href="/feed" variant="icon" size="sm" />
           <span className="truncate max-w-[120px] text-sm font-semibold">{brand.title}</span>
+          <TrialChip compact />
         </div>
         <button
           type="button"

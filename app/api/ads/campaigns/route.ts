@@ -3,6 +3,7 @@ import { createSupabaseServer } from "@/lib/supabaseServer";
 import { calculateAdBudget } from "@/lib/ads/budgetCalculator";
 import { getVendorWalletBalance } from "@/lib/vendor/getWalletBalance";
 import { getRequestOrigin } from "@/lib/url";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const trialBlock = await blockIfTrialEnded();
+  if (trialBlock) return trialBlock;
   const supabase = createSupabaseServer();
   const body = await req.json().catch(() => ({}));
   const origin = getRequestOrigin(req);

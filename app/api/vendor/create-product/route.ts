@@ -3,11 +3,14 @@ import { createFeedPost } from "@/lib/social/createFeedPost";
 import { sendFollowerNotifications } from "@/lib/social/sendFollowerNotifications";
 import { checkVendorProductLimit, productLimitMessage } from "@/lib/subscriptions/productLimits";
 import { requireVendorSession } from "@/lib/vendor/requireVendorSession";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 export async function POST(req: Request) {
   try {
     const session = await requireVendorSession();
     if (!session.ok) return session.response;
+    const trialBlock = await blockIfTrialEnded();
+    if (trialBlock) return trialBlock;
 
     const { supabase, scope } = session;
     const body = await req.json();

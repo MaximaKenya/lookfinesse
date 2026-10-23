@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Check, Crown, CreditCard, Smartphone, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PLATFORM_TIERS } from "@/lib/subscriptions/platformTiers";
+import { TRIAL_COPY } from "@/lib/config/trial";
+import { useAccountTrial } from "@/hooks/useAccountTrial";
 
 type Payment = "mpesa" | "stripe";
 
@@ -11,6 +13,8 @@ export default function SubscriptionPage() {
   const [payment, setPayment] = useState<Payment>("mpesa");
   const [phone, setPhone] = useState("");
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
+  const { state: trial, loading: trialLoading } = useAccountTrial();
+  const paymentsOn = trial?.paymentsEnabled === true;
 
   const subscribe = async (tierId: string) => {
     setLoadingTier(tierId);
@@ -51,11 +55,18 @@ export default function SubscriptionPage() {
           </div>
           <h1 className="text-3xl md:text-4xl font-black">Grow on LookFinesse</h1>
           <p className="text-white/45 text-sm max-w-xl mx-auto">
-            Sell, create, advertise, and go live — pick the tier that matches your ambition.
-            Small price steps make upgrading a no-brainer.
+            {TRIAL_COPY}. Sell, create, advertise, and go live — pick the tier that matches your ambition.
           </p>
         </div>
 
+        {!trialLoading && !paymentsOn && (
+          <div className="mb-8 rounded-2xl border border-amber-400/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-50 text-center">
+            Card and Paystack checkout are hidden until live keys arrive. Your trial does not need a card.
+          </div>
+        )}
+
+        {paymentsOn && (
+        <>
         <div className="flex justify-center mb-8">
           <div className="flex bg-white/5 border border-white/10 rounded-xl p-0.5">
             <button
@@ -87,6 +98,8 @@ export default function SubscriptionPage() {
             inputMode="numeric"
             className="max-w-sm mx-auto block w-full mb-8 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/40"
           />
+        )}
+        </>
         )}
 
         <div className="grid md:grid-cols-3 gap-4">
@@ -129,14 +142,18 @@ export default function SubscriptionPage() {
               <button
                 type="button"
                 onClick={() => subscribe(tier.id)}
-                disabled={loadingTier === tier.id}
+                disabled={!paymentsOn || loadingTier === tier.id}
                 className={`w-full py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-50 ${
                   tier.popular
                     ? "bg-gradient-to-r from-amber-400 to-rose-400 text-black hover:opacity-90"
                     : "bg-white/10 border border-white/15 text-white hover:bg-white/15"
                 }`}
               >
-                {loadingTier === tier.id ? "Processing…" : `Choose ${tier.name}`}
+                {!paymentsOn
+                  ? "Checkout paused"
+                  : loadingTier === tier.id
+                    ? "Processing…"
+                    : `Choose ${tier.name}`}
               </button>
             </div>
           ))}

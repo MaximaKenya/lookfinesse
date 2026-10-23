@@ -14,6 +14,7 @@
     "build": "next build --webpack",
     "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "eslint",
+    "test": "node --experimental-strip-types --test lib/trial/logic.test.ts",
     "seed": "node -e \"const fs=require('fs');const sql=fs.readFileSync('./supabase/seed.sql','utf8');console.log('Copy the SQL below into Supabase SQL Editor:\\n');console.log(sql)\""
   },
   "dependencies": {

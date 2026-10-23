@@ -12,6 +12,8 @@ import { getVendorSubscriptionState } from "@/lib/subscriptions/vendorSubscripti
 import { ensureVendorTrial } from "@/lib/subscriptions/ensureVendorTrial";
 import { getRequestOrigin } from "@/lib/url";
 import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
+import { paymentsEnabled } from "@/lib/config/payments";
+import { TRIAL_COPY } from "@/lib/config/trial";
 
 export const runtime = "nodejs";
 
@@ -36,7 +38,7 @@ export async function GET() {
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id);
-      const roles = (roleRows ?? []).map((r) => r.role);
+      const roles = (roleRows ?? []).map((r: { role: string }) => r.role);
       if (
         isPlatformAdmin({
           email: user.email,
@@ -109,6 +111,13 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!paymentsEnabled()) {
+    return NextResponse.json(
+      { error: `Card checkout is paused. ${TRIAL_COPY}.`, code: "PAYMENTS_DISABLED" },
+      { status: 503 }
+    );
+  }
+
   const supabase = await createSupabaseServer();
   const scopeResult = await resolveVendorScope(supabase);
 
