@@ -11,6 +11,7 @@ import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { hardNavigate, postSignupRedirect } from "@/lib/auth/onboarding";
 import { friendlyAuthError } from "@/lib/auth/signupErrors";
 import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
+import { TRIAL_COPY } from "@/lib/config/trial";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -196,6 +197,7 @@ function LoginForm() {
                 <Link href="/register" className="text-purple-400 hover:text-purple-300 font-medium">
                   Sign up
                 </Link>
+                <span className="mt-2 block text-amber-100/80">{TRIAL_COPY}.</span>
               </motion.p>
             </div>
           </motion.div>

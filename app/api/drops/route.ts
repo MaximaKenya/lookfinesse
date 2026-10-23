@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabaseServer";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 function missing(error: { code?: string; message?: string } | null) {
   if (!error) return false;
@@ -121,6 +122,8 @@ export async function POST(req: Request) {
     const { requireVendorSession } = await import("@/lib/vendor/requireVendorSession");
     const session = await requireVendorSession();
     if (!session.ok) return session.response;
+    const trialBlock = await blockIfTrialEnded();
+    if (trialBlock) return trialBlock;
 
     const { data, error } = await session.supabase
       .from("flash_drops")

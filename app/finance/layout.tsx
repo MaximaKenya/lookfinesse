@@ -1,4 +1,5 @@
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
+import AccountTrialBanner from "@/components/trial/AccountTrialBanner";
 import { requireAdminPage } from "@/lib/auth/requireAdminPage";
 
 export default async function FinanceLayout({
@@ -25,7 +26,12 @@ export default async function FinanceLayout({
         }}
       />
       <div className="lg:pl-72">
-        <div className="min-h-screen">{children}</div>
+        <div className="min-h-screen">
+          <div className="px-4 pt-4 md:px-8">
+            <AccountTrialBanner />
+          </div>
+          {children}
+        </div>
       </div>
     </div>
   );

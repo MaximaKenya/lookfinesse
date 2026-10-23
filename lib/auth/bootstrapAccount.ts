@@ -1,5 +1,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { IntendedAccountKind } from "@/lib/auth/signupErrors";
+import { ensureAccountTrial } from "@/lib/trial/account";
 
 function displayNameFrom(user: User, username?: string | null): string {
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
@@ -48,6 +49,8 @@ export async function bootstrapAccount(
   if (profileError) {
     return { ok: false, error: profileError.message };
   }
+
+  await ensureAccountTrial(user.id).catch(() => null);
 
   const { error: roleError } = await supabase
     .from("user_roles")

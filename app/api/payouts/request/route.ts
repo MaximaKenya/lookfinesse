@@ -3,9 +3,13 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import crypto from "crypto";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 export async function POST(req: Request) {
   try {
+    const trialBlock = await blockIfTrialEnded();
+    if (trialBlock) return trialBlock;
+
     const { vendorId, amount } = await req.json();
 
     if (!vendorId || !amount || amount <= 0) {

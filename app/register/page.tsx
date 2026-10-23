@@ -16,6 +16,7 @@ import {
 import { hardNavigate } from "@/lib/auth/onboarding";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { ShoppingBag, Store } from "lucide-react";
+import { TRIAL_COPY, TRIAL_DAYS, daysRemainingLabel } from "@/lib/config/trial";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -144,10 +145,12 @@ export default function RegisterPage() {
             ✉️
           </div>
           <h2 className="text-2xl font-bold">Check your email</h2>
+          <p className="text-amber-100 text-sm font-semibold">{daysRemainingLabel(TRIAL_DAYS)}</p>
+          <p className="text-white/80 text-sm">{TRIAL_COPY}.</p>
           <p className="text-white/70 text-sm leading-relaxed">
             We sent a confirmation link to <strong className="text-white">{email}</strong>. Click it
-            to activate your {kind === "vendor" ? "vendor" : "shopper"} account. Check spam if it
-            is not in your inbox within a minute.
+            to activate your {kind === "vendor" ? "vendor" : "shopper"} account. Your free month
+            starts now. Check spam if it is not in your inbox within a minute.
           </p>
           <button
             type="button"
@@ -191,7 +194,7 @@ export default function RegisterPage() {
               <motion.div custom={1} variants={fadeUp} className="text-center md:text-left">
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Create account</h2>
                 <p className="text-white/70 mt-2 text-sm leading-relaxed">
-                  Shop, book, and sell — one Kenya-first marketplace.
+                  Shop, book, and sell — one Kenya-first marketplace. {TRIAL_COPY}.
                 </p>
               </motion.div>
 

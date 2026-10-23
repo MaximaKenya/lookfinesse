@@ -36,6 +36,8 @@ import { toast } from "sonner";
 
 import Logo from "@/components/brand/Logo";
 
+import { TRIAL_COPY } from "@/lib/config/trial";
+
 
 
 type Interest = "fashion" | "beauty" | "fitness" | "wellness" | "grooming" | "nutrition";
@@ -321,6 +323,8 @@ export default function OnboardingPage() {
           Powers your feed ranking, ads, and Today on LookFinesse tips.
 
         </p>
+
+        <p className="text-sm font-medium text-amber-100">{TRIAL_COPY}.</p>
 
       </div>
 

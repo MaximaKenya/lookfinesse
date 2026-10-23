@@ -3,6 +3,7 @@ import { checkVendorProductLimit, productLimitMessage } from "@/lib/subscription
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import { requireVendorSession } from "@/lib/vendor/requireVendorSession";
 import { isPlatformAdmin } from "@/lib/auth/platformAdmin";
+import { blockIfTrialEnded } from "@/lib/trial/guard";
 
 async function resolveIsAdmin(): Promise<boolean> {
   try {
@@ -29,6 +30,8 @@ export async function POST(req: Request) {
   try {
     const session = await requireVendorSession();
     if (!session.ok) return session.response;
+    const trialBlock = await blockIfTrialEnded();
+    if (trialBlock) return trialBlock;
 
     const { supabase, scope } = session;
     const body = await req.json();
